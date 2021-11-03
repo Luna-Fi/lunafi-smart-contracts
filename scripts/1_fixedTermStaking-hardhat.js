@@ -2,7 +2,7 @@ const hre = require("hardhat");
 
 async function main() {
 
-  const Erc20 = await hre.ethers.getContractFactory("lunaToken");
+  const Erc20 = await hre.ethers.getContractFactory("LunaToken");
   const erc20 = await Erc20.deploy();
 
   await erc20.deployed();
