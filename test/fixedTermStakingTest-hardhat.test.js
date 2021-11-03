@@ -224,46 +224,60 @@ describe("Fixed Term Staking", function () {
    })
 
    it("Should allow user to cancel the stake and settle if there is enough balance in the contract", async () => {
-      const accounts = await web3.eth.getAccounts()
+      [owner, ...accounts] = await ethers.getSigners();
 
       const stakeID5 = 5
       const stakeID6 = 6
       const stakeID7 = 7
 
       //await staked.ClaimToInvest()
-      const beforeBalance5 = await token.balanceOf(accounts[5])
-      const beforeBalance1 = await token.balanceOf(accounts[1])
-      const beforeBalance2 = await token.balanceOf(accounts[2])
+      const beforeBalance5 = await token.balanceOf(accounts[4].address)
+      const beforeBalance1 = await token.balanceOf(accounts[0].address)
+      const beforeBalance2 = await token.balanceOf(accounts[1].address)
+   
       console.log("Balance Before cancelling the Stake : ", beforeBalance5.toNumber())
       console.log("Balance Before cancelling the Stake : ", beforeBalance1.toNumber())
       console.log("Balance Before cancelling the Stake : ", beforeBalance2.toNumber())
 
-      await staked.cancelStake(stakeID5, { from: accounts[5] })
-      await staked.cancelStake(stakeID6, { from: accounts[1] })
-      await staked.cancelStake(stakeID7, { from: accounts[2] })
+      await staked.connect(accounts[4]).cancelStake(stakeID5)
+      await staked.connect(accounts[0]).cancelStake(stakeID6)
+      await staked.connect(accounts[1]).cancelStake(stakeID7)
 
       const stakeDetails5 = await staked.getStakeDetailsByStakeID(stakeID5)
       const stakeDetails6 = await staked.getStakeDetailsByStakeID(stakeID6)
       const stakeDetails7 = await staked.getStakeDetailsByStakeID(stakeID7)
 
-      assert(stakeDetails5.cancelled == true)
-      assert(stakeDetails5.active == false)
-      assert(stakeDetails5.matured == false)
-      assert(stakeDetails5.settled == true)
+      expect(stakeDetails5.cancelled).to.equal(true)
+      expect(stakeDetails5.active).to.equal(false)
+      expect(stakeDetails5.matured).to.equal(false)
+      expect(stakeDetails5.settled).to.equal(true)
 
-      assert(stakeDetails6.cancelled == true)
-      assert(stakeDetails6.active == false)
-      assert(stakeDetails6.matured == false)
-      assert(stakeDetails6.settled == true)
+      // assert(stakeDetails5.cancelled == true)
+      // assert(stakeDetails5.active == false)
+      // assert(stakeDetails5.matured == false)
+      // assert(stakeDetails5.settled == true)
 
-      assert(stakeDetails7.cancelled == true)
-      assert(stakeDetails7.active == false)
-      assert(stakeDetails7.matured == false)
-      assert(stakeDetails7.settled == true)
+      expect(stakeDetails6.cancelled).to.equal(true)
+      expect(stakeDetails6.active).to.equal(false)
+      expect(stakeDetails6.matured).to.equal(false)
+      expect(stakeDetails6.settled).to.equal(true)
+      // assert(stakeDetails6.cancelled == true)
+      // assert(stakeDetails6.active == false)
+      // assert(stakeDetails6.matured == false)
+      // assert(stakeDetails6.settled == true)
 
-      const afterBalance5 = await token.balanceOf(accounts[5])
-      const afterBalance1 = await token.balanceOf(accounts[1])
-      const afterBalance2 = await token.balanceOf(accounts[2])
+      expect(stakeDetails7.cancelled).to.equal(true)
+      expect(stakeDetails7.active).to.equal(false)
+      expect(stakeDetails7.matured).to.equal(false)
+      expect(stakeDetails7.settled).to.equal(true)
+      // assert(stakeDetails7.cancelled == true)
+      // assert(stakeDetails7.active == false)
+      // assert(stakeDetails7.matured == false)
+      // assert(stakeDetails7.settled == true)
+
+      const afterBalance5 = await token.balanceOf(accounts[4].address)
+      const afterBalance1 = await token.balanceOf(accounts[0].address)
+      const afterBalance2 = await token.balanceOf(accounts[1].address)
 
       console.log("*********************************************************")
       console.log("Balance after cancelling the Stake and settling : ", afterBalance5.toNumber())
