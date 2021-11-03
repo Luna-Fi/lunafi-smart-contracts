@@ -3,6 +3,13 @@ const { ethers } = require("hardhat");
 const { MockProvider } = require("ethereum-waffle");
 require("@nomiclabs/hardhat-ethers");
 
+function sleep(milliseconds) {
+   const date = Date.now();
+   let currentDate = null;
+   do {
+      currentDate = Date.now();
+   } while (currentDate - date < milliseconds)
+}
 describe("Fixed Term Staking", function () {
    const [wallet, walletTo] = new MockProvider().getWallets()
    let staked;
@@ -343,20 +350,23 @@ describe("Fixed Term Staking", function () {
    })
 
    it("Should allow the user to claim their matured stakes. If not enough balance stakes will be matured and will be settled by the owner.", async () => {
-      const accounts = await web3.eth.getAccounts()
+      [owner, ...accounts] = await ethers.getSigners();
       const stakeID1 = 1
       const stakeID2 = 2
 
       await staked.ClaimToInvest()
       //await token.transfer(staked.address,1000000)
-      const beforeBalance1 = await token.balanceOf(accounts[1])
-      const beforeBalance2 = await token.balanceOf(accounts[2])
+      const beforeBalance1 = await token.balanceOf(accounts[0].address)
+      const beforeBalance2 = await token.balanceOf(accounts[1].address)
       console.log("Balance before user claims the matured Stake : ", beforeBalance1.toNumber())
       console.log("Balance before user claims the matured Stake : ", beforeBalance2.toNumber())
 
       sleep(130000)
-      await staked.claimMyStake(stakeID1, { from: accounts[1] })
-      await staked.claimMyStake(stakeID2, { from: accounts[2] })
+      await staked.connect(accounts[0]).claimMyStake(stakeID1);
+      await staked.connect(accounts[1]).claimMyStake(stakeID2);
+
+      // await staked.claimMyStake(stakeID1, { from: accounts[1] })
+      // await staked.claimMyStake(stakeID2, { from: accounts[2] })
 
       const stakeDetails1 = await staked.getStakeDetailsByStakeID(stakeID1)
       const stakeDetails2 = await staked.getStakeDetailsByStakeID(stakeID2)
@@ -364,14 +374,19 @@ describe("Fixed Term Staking", function () {
       console.log(stakeDetails1.settlementAmount)
       console.log(stakeDetails1.stakeReturns)
 
-      assert(stakeDetails1.matured == true)
-      assert(stakeDetails1.settled == false)
+      expect(stakeDetails1.matured).to.equal(true)
+      expect(stakeDetails1.settled).to.equal(false)
 
-      assert(stakeDetails2.matured == true)
-      assert(stakeDetails2.settled == false)
+      expect(stakeDetails2.matured).to.equal(true)
+      expect(stakeDetails2.settled).to.equal(false)
+      // assert(stakeDetails1.matured == true)
+      // assert(stakeDetails1.settled == false)
 
-      const afterBalance1 = await token.balanceOf(accounts[1])
-      const afterBalance2 = await token.balanceOf(accounts[2])
+      // assert(stakeDetails2.matured == true)
+      // assert(stakeDetails2.settled == false)
+
+      const afterBalance1 = await token.balanceOf(accounts[0].address)
+      const afterBalance2 = await token.balanceOf(accounts[1].address)
       console.log("*********************************************************")
       console.log("Balance after user claims the matured Stake and unsettled : ", afterBalance1.toNumber())
       console.log("Balance after user claims the matured Stake and unsettled: ", afterBalance2.toNumber())
