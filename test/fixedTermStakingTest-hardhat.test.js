@@ -274,7 +274,7 @@ describe("Fixed Term Staking", function () {
 
    it("Should allow user to cancel the stake if there is not enough balance in the contract", async () => {
       [owner, ...accounts] = await ethers.getSigners();
-      
+
       const stakeID4 = 4
       const stakeID8 = 8
       const stakeID10 = 10
@@ -323,17 +323,21 @@ describe("Fixed Term Staking", function () {
    })
 
    it("Should allow the user to claim their cancelled stake which is not settled", async () => {
-      const accounts = await web3.eth.getAccounts()
+      [owner, ...accounts] = await ethers.getSigners();
       const stakeID8 = 8
       await token.transfer(staked.address, 1000000)
-      const beforeBalance3 = await token.balanceOf(accounts[3])
+      const beforeBalance3 = await token.balanceOf(accounts[2].address)
       console.log("Balance before user claims the stake : ", beforeBalance3.toNumber())
-      await staked.claimMyStake(stakeID8, { from: accounts[3] })
-      const stakeDetails8 = await staked.getStakeDetailsByStakeID(stakeID8)
-      assert(stakeDetails8.cancelled == true)
-      assert(stakeDetails8.settled == true)
+      await staked.connect(accounts[2]).claimMyStake(stakeID8);
+      // await staked.claimMyStake(stakeID8, { from: accounts[2] })
+      const stakeDetails8 = await staked.getStakeDetailsByStakeID(stakeID8);
+      expect(stakeDetails8.cancelled).to.equal(true)
+      expect(stakeDetails8.settled).to.equal(true)
 
-      const afterBalance3 = await token.balanceOf(accounts[3])
+      // assert(stakeDetails8.cancelled == true)
+      // assert(stakeDetails8.settled == true)
+
+      const afterBalance3 = await token.balanceOf(accounts[2].address)
       console.log("*********************************************************")
       console.log("Balance after user claims the stake and the stake unsettled : ", afterBalance3.toNumber())
    })
