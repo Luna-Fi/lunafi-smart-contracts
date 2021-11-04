@@ -29,7 +29,6 @@ describe("Fixed Term Staking", function () {
 
       await staked.deployed();
       console.log("staking deployed to:", staked.address);
-      // const accounts = await hre.ethers.getAccounts();
       const approveAmount = await token.totalSupply()
       token.approve(staked.address, approveAmount)
    });
@@ -237,11 +236,10 @@ describe("Fixed Term Staking", function () {
       const stakeID6 = 6
       const stakeID7 = 7
 
-      //await staked.ClaimToInvest()
       const beforeBalance5 = await token.balanceOf(accounts[4].address)
       const beforeBalance1 = await token.balanceOf(accounts[0].address)
       const beforeBalance2 = await token.balanceOf(accounts[1].address)
-   
+
       console.log("Balance Before cancelling the Stake : ", beforeBalance5.toNumber())
       console.log("Balance Before cancelling the Stake : ", beforeBalance1.toNumber())
       console.log("Balance Before cancelling the Stake : ", beforeBalance2.toNumber())
@@ -263,7 +261,7 @@ describe("Fixed Term Staking", function () {
       expect(stakeDetails6.active).to.equal(false)
       expect(stakeDetails6.matured).to.equal(false)
       expect(stakeDetails6.settled).to.equal(true)
-     
+
       expect(stakeDetails7.cancelled).to.equal(true)
       expect(stakeDetails7.active).to.equal(false)
       expect(stakeDetails7.matured).to.equal(false)
@@ -312,7 +310,7 @@ describe("Fixed Term Staking", function () {
       expect(stakeDetails8.active).to.equal(false)
       expect(stakeDetails8.matured).to.equal(false)
       expect(stakeDetails8.settled).to.equal(false)
-     
+
       expect(stakeDetails10.cancelled).to.equal(true)
       expect(stakeDetails10.active).to.equal(false)
       expect(stakeDetails10.matured).to.equal(false)
@@ -336,13 +334,9 @@ describe("Fixed Term Staking", function () {
       const beforeBalance3 = await token.balanceOf(accounts[2].address)
       console.log("Balance before user claims the stake : ", beforeBalance3.toNumber())
       await staked.connect(accounts[2]).claimMyStake(stakeID8);
-      // await staked.claimMyStake(stakeID8, { from: accounts[2] })
       const stakeDetails8 = await staked.getStakeDetailsByStakeID(stakeID8);
       expect(stakeDetails8.cancelled).to.equal(true)
       expect(stakeDetails8.settled).to.equal(true)
-
-      // assert(stakeDetails8.cancelled == true)
-      // assert(stakeDetails8.settled == true)
 
       const afterBalance3 = await token.balanceOf(accounts[2].address)
       console.log("*********************************************************")
@@ -355,7 +349,6 @@ describe("Fixed Term Staking", function () {
       const stakeID2 = 2
 
       await staked.ClaimToInvest()
-      //await token.transfer(staked.address,1000000)
       const beforeBalance1 = await token.balanceOf(accounts[0].address)
       const beforeBalance2 = await token.balanceOf(accounts[1].address)
       console.log("Balance before user claims the matured Stake : ", beforeBalance1.toNumber())
@@ -364,9 +357,6 @@ describe("Fixed Term Staking", function () {
       sleep(130000)
       await staked.connect(accounts[0]).claimMyStake(stakeID1);
       await staked.connect(accounts[1]).claimMyStake(stakeID2);
-
-      // await staked.claimMyStake(stakeID1, { from: accounts[1] })
-      // await staked.claimMyStake(stakeID2, { from: accounts[2] })
 
       const stakeDetails1 = await staked.getStakeDetailsByStakeID(stakeID1)
       const stakeDetails2 = await staked.getStakeDetailsByStakeID(stakeID2)
@@ -379,11 +369,6 @@ describe("Fixed Term Staking", function () {
 
       expect(stakeDetails2.matured).to.equal(true)
       expect(stakeDetails2.settled).to.equal(false)
-      // assert(stakeDetails1.matured == true)
-      // assert(stakeDetails1.settled == false)
-
-      // assert(stakeDetails2.matured == true)
-      // assert(stakeDetails2.settled == false)
 
       const afterBalance1 = await token.balanceOf(accounts[0].address)
       const afterBalance2 = await token.balanceOf(accounts[1].address)
@@ -393,36 +378,38 @@ describe("Fixed Term Staking", function () {
    })
 
    it("Should allow the user to claim their matured stake and settle if there is enough balance in the contract", async () => {
-      const accounts = await web3.eth.getAccounts()
+      [owner, ...accounts] = await ethers.getSigners();
       const stakeID3 = 3
       const stakeID9 = 9
       await staked.ClaimToInvest()
       await token.transfer(staked.address, 1000000)
 
-      const beforeBalance3 = await token.balanceOf(accounts[3])
-      const beforeBalance4 = await token.balanceOf(accounts[4])
+      const beforeBalance3 = await token.balanceOf(accounts[2].address)
+      const beforeBalance4 = await token.balanceOf(accounts[3].address)
+
       console.log("Balance before user claims the matured Stake : ", beforeBalance3.toNumber())
       console.log("Balance before user claims the matured Stake : ", beforeBalance4.toNumber())
 
-      sleep(190000)
-      await staked.claimMyStake(stakeID3, { from: accounts[3] })
-      await staked.claimMyStake(stakeID9, { from: accounts[4] })
+      sleep(185000)
+
+      await staked.connect(accounts[2]).claimMyStake(stakeID3);
+      await staked.connect(accounts[3]).claimMyStake(stakeID9);
 
       const stakeDetails3 = await staked.getStakeDetailsByStakeID(stakeID3)
       const stakeDetails9 = await staked.getStakeDetailsByStakeID(stakeID9)
 
-      assert(stakeDetails3.matured == true)
-      assert(stakeDetails3.settled == true)
+      expect(stakeDetails3.matured).to.equal(true)
+      expect(stakeDetails3.settled).to.equal(true)
 
-      assert(stakeDetails9.matured == true)
-      assert(stakeDetails9.settled == true)
+      expect(stakeDetails9.matured).to.equal(true)
+      expect(stakeDetails9.settled).to.equal(true)
 
-      const afterBalance3 = await token.balanceOf(accounts[3])
-      const afterBalance4 = await token.balanceOf(accounts[4])
+      const afterBalance3 = await token.balanceOf(accounts[2].address)
+      const afterBalance4 = await token.balanceOf(accounts[3].address)
+
       console.log("*********************************************************")
       console.log("Balance after user claims the matured Stake and settled : ", afterBalance3.toNumber())
       console.log("Balance after user claims the matured Stake and settled: ", afterBalance4.toNumber())
-
    })
 
    it("Should allow the owner to settle cancelled/maturedStakes Stakes", async () => {
