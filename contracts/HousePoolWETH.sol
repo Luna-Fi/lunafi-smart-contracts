@@ -4,7 +4,7 @@ pragma solidity 0.8.3;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract wbtcHousePool is ReentrancyGuard {
+contract housePoolWETH is ReentrancyGuard {
 
   IERC20 wethToken;
   address owner;
@@ -32,12 +32,13 @@ contract wbtcHousePool is ReentrancyGuard {
   function deposit(uint256 _amount) external nonReentrant {
       require(_amount > 0 && _amount <= wethToken.balanceOf(msg.sender));
       wethLiquidity += _amount;
-      userDepositAmount[msg.sender] = _amount;
+      userDepositAmount[msg.sender] += _amount;
       wethToken.transferFrom(msg.sender, address(this), _amount);
   }
 
   function withdraw(uint256 _amount) external nonReentrant {
       require(_amount <= userDepositAmount[msg.sender], "Amount exceeded");
+      wethLiquidity -= _amount;
       userDepositAmount[msg.sender] -= _amount;
       wethToken.transfer(msg.sender, _amount); 
   }
