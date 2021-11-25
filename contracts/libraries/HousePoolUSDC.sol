@@ -5,14 +5,13 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract housePoolUSDC is ReentrancyGuard {
-
   IERC20 usdcToken;
   address owner;
   uint256 usdcLiquidity;
 
   mapping(address => uint256) userDepositAmount;
-  
-  /* 
+
+  /*
     USDC Token Address on Ropsten :
     USDC Token Address on MainNet :
   */
@@ -34,7 +33,7 @@ contract housePoolUSDC is ReentrancyGuard {
       usdcLiquidity += _amount;
       userDepositAmount[msg.sender] += _amount;
       usdcToken.transferFrom(msg.sender,address(this),_amount);
-  } 
+  }
 
   function withdraw(uint256 _amount) external nonReentrant {
       require(_amount > 0 && _amount <= userDepositAmount[msg.sender],"Amount exceeded");
@@ -42,6 +41,4 @@ contract housePoolUSDC is ReentrancyGuard {
       userDepositAmount[msg.sender] -= _amount;
       usdcToken.transfer(msg.sender,_amount);
   }
-
-
 }

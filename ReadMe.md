@@ -1,5 +1,5 @@
 # lunafi-core
-Smart Contracts for [LunaFi](#), a decentralized betting platform, available on various EVM-compatible blockchains.
+Smart Contracts for [LunaFi](#) & [LunaBets](https://lunabets.io/), a betting dapp, available on various EVM-compatible blockchains.
 
 # Setup
 Clone the repo & change to the directory.
@@ -24,6 +24,7 @@ or
 - `/contracts/operations`: High-frequency functions such as to view markets, fill bets, claim proceeds etc.
 
 # Docs
+- [Contribution guidelines for this project](docs/CONTRIBUTING.md)
 - `/docs/devDocs`: Documents for developers consideration during development
 
 # Additional Notes
