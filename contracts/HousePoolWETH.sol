@@ -1,21 +1,32 @@
 //SPDX-License-Identifier:  MIT
-pragma solidity 0.8.3;
+pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract housePoolWETH is ReentrancyGuard {
-    IERC20 wethToken;
+interface WETHclaimTokenInterface {
+    function burn(address account,uint tokens)  external;
+    function mint(address account,uint tokens)  external;
+}
+
+contract housePoolWBTC is ReentrancyGuard {
+    IERC20 wbtcToken;
+    WETHclaimTokenInterface WETHclaimToken;
     address owner;
     uint256 wethLiquidity;
 
+    uint256 WETHclaimTokens = 1;
+    uint256 WETHTokens = 1200;
+    uint256 ExchangeRatio =  WETHclaimTokens / WETHTokens ;
+
     mapping(address => uint256) userDepositAmount;
     /*
-       WETH Token Address on Ropsten :
-       WETH Token Address on MainNet :
+      WBTC Token Address on Ropsten :
+      WBTC Token Address on MainNet :
     */
-    constructor(address _wethToken) {
-        wethToken = IERC20(_wethToken);
+    constructor(address _wethToken, address _WETHclaimToken) {
+        wbtcToken = IERC20(_wethToken);
+        WETHclaimToken = WETHclaimTokenInterface(_WETHclaimToken);
         owner = msg.sender;
     }
 
@@ -28,16 +39,20 @@ contract housePoolWETH is ReentrancyGuard {
     }
 
     function deposit(uint256 _amount) external nonReentrant {
-        require(_amount > 0 && _amount <= wethToken.balanceOf(msg.sender));
+        require(_amount > 0 && _amount <= wbtcToken.balanceOf(msg.sender));
         wethLiquidity += _amount;
         userDepositAmount[msg.sender] += _amount;
-        wethToken.transferFrom(msg.sender, address(this), _amount);
+        wbtcToken.transferFrom(msg.sender, address(this), _amount);
+        uint256 claimTokensToMint = _amount * ExchangeRatio;
+        WETHclaimToken.mint(msg.sender, claimTokensToMint);
     }
 
-    function withdraw(uint256 _amount) external nonReentrant {
-        require(_amount <= userDepositAmount[msg.sender], "Amount exceeded");
+    function withdraw(uint256 _amount) external  nonReentrant {
+        require(_amount >0 && _amount <= userDepositAmount[msg.sender], "Amount exceeded");
         wethLiquidity -= _amount;
         userDepositAmount[msg.sender] -= _amount;
-        wethToken.transfer(msg.sender, _amount);
+        wbtcToken.transfer(msg.sender, _amount);
+        uint256 claimTokensToBurn = _amount * ExchangeRatio;
+        WETHclaimToken.burn(msg.sender, claimTokensToBurn);
     }
 }

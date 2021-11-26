@@ -1,21 +1,32 @@
 //SPDX-License-Identifier:  MIT
-pragma solidity 0.8.3;
+pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
+interface WBTCclaimTokenInterface {
+    function burn(address account,uint tokens)  external;
+    function mint(address account,uint tokens)  external;
+}
+
 contract housePoolWBTC is ReentrancyGuard {
     IERC20 wbtcToken;
+    WBTCclaimTokenInterface WBTCclaimToken;
     address owner;
     uint256 wbtcLiquidity;
+
+    uint256 WBTCclaimTokens = 1;
+    uint256 WBTCTokens = 1200;
+    uint256 ExchangeRatio =  WBTCclaimTokens / WBTCTokens ;
 
     mapping(address => uint256) userDepositAmount;
     /*
       WBTC Token Address on Ropsten :
       WBTC Token Address on MainNet :
     */
-    constructor(address _wbtcToken) {
+    constructor(address _wbtcToken, address _WBTCclaimToken) {
         wbtcToken = IERC20(_wbtcToken);
+        WBTCclaimToken = WBTCclaimTokenInterface(_WBTCclaimToken);
         owner = msg.sender;
     }
 
@@ -32,6 +43,8 @@ contract housePoolWBTC is ReentrancyGuard {
         wbtcLiquidity += _amount;
         userDepositAmount[msg.sender] += _amount;
         wbtcToken.transferFrom(msg.sender, address(this), _amount);
+        uint256 claimTokensToMint = _amount * ExchangeRatio;
+        WBTCclaimToken.mint(msg.sender, claimTokensToMint);
     }
 
     function withdraw(uint256 _amount) external  nonReentrant {
@@ -39,5 +52,7 @@ contract housePoolWBTC is ReentrancyGuard {
         wbtcLiquidity -= _amount;
         userDepositAmount[msg.sender] -= _amount;
         wbtcToken.transfer(msg.sender, _amount);
+        uint256 claimTokensToBurn = _amount * ExchangeRatio;
+        WBTCclaimToken.burn(msg.sender, claimTokensToBurn);
     }
 }
