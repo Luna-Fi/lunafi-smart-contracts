@@ -23,7 +23,7 @@ describe("USDCHousePool", (accounts) => {
     
     const usdchouspoolAddress = await usdchousepool.address   
     await usdcclaimtoken.addAdmin(usdchouspoolAddress)
-    //check it the housepool address is added as an admin
+   
     const isAdmin = await usdcclaimtoken.isAdmin(usdchouspoolAddress)
     expect(isAdmin).equal(true)
     
@@ -33,10 +33,11 @@ describe("USDCHousePool", (accounts) => {
     
     const [owner, account1, account2, account3] = await ethers.getSigners()
     const usdcToDeposit = 100
-
     await usdchousepool.connect(owner).deposit(usdcToDeposit)
-    // This can be verified by checking the balance of the user in housepool. And user's balance in claimToken.
     const balanceInClaim = await usdcclaimtoken.balanceOf(owner.address)
+    
+
+    expect()
     
   })
   
