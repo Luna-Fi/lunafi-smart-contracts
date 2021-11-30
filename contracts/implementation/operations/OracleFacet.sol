@@ -9,4 +9,10 @@ contract OracleFacet is IEventUser {
         LibOracle.enforceIsContractOwner();
         LibOracle.createEvent(LibOracle.getNewEventId(), event);
     }
+    function reportOutcome(uint256 eventId, Status reportedStatus, Proof reportedProof)
+        external {
+        LibOracle.enforceIsContractOwner();
+        LibOracle.updateEventStatus(eventId, reportedStatus);
+        LibOracle.addProofForEvent(eventId, reportedProof);
+    }
 }

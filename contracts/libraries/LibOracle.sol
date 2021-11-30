@@ -3,6 +3,8 @@ pragma solidity ^0.8.10;
 
 import { LibDiamond } from '../libraries/LibDiamond.sol';
 import { EventStorageRepository } from '../repositories/EventStorageRepository.sol';
+import { IProofUser } from '../interfaces/native/IProofUser.sol';
+import { IEventUser } from '../interfaces/native/IEventUser.sol';
 
 contract LibOracle is LibDiamond, EventStorageRepository {
     function createEvent(uint256 id, Event event) internal {
@@ -19,5 +21,9 @@ contract LibOracle is LibDiamond, EventStorageRepository {
         EventsStore storage es = eventsStore();
         es._eventIdCounter.increment();
         eventId = es._eventIdCounter.current();
+    }
+    function updateEventStatus(uint256 eventId, Status newStatus) internal {
+        EventsStore storage es = eventsStore();
+        es.events[eventId].eventStatus = newStatus;
     }
 }
