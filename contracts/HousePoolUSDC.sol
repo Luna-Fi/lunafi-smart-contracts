@@ -14,10 +14,7 @@ contract housePoolUSDC is ReentrancyGuard {
   USDCclaimTokenInterface USDCclaimToken;
   address owner;
   uint256 usdcLiquidity;
-
-  uint256 USDCclaimTokens = 1;
-  uint256 USDCTokens = 1200;
-  uint256 ExchangeRatio = USDCclaimTokens * 10**8 / USDCTokens * 10**8;
+  uint256  ExchangeValue = 100;
 
   mapping(address => uint256) userDepositAmount;
 
@@ -39,16 +36,12 @@ contract housePoolUSDC is ReentrancyGuard {
       return userDepositAmount[msg.sender];
   }
 
-  function _getExchangeAmount(uint256 _amount) view internal returns (uint256) {
-      return _amount * ExchangeRatio ;
-  }
-
   function deposit(uint256 _amount) external nonReentrant {
       require(_amount > 0 && _amount <= usdcToken.balanceOf(msg.sender));
       usdcLiquidity += _amount;
       userDepositAmount[msg.sender] += _amount;
       usdcToken.transferFrom(msg.sender,address(this),_amount);
-      uint256 claimTokensToMint = _getExchangeAmount(_amount);
+      uint256 claimTokensToMint = _amount / ExchangeValue;
       USDCclaimToken.mint(msg.sender, claimTokensToMint);
   }
 
@@ -57,7 +50,7 @@ contract housePoolUSDC is ReentrancyGuard {
       usdcLiquidity -= _amount;
       userDepositAmount[msg.sender] -= _amount;
       usdcToken.transfer(msg.sender,_amount);
-      uint256 claimTokensToBurn = _getExchangeAmount(_amount);
+      uint256 claimTokensToBurn = _amount / ExchangeValue;
       USDCclaimToken.burn(msg.sender, claimTokensToBurn);
   }
 }

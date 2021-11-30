@@ -14,10 +14,7 @@ contract housePoolWBTC is ReentrancyGuard {
     WBTCclaimTokenInterface WBTCclaimToken;
     address owner;
     uint256 wbtcLiquidity;
-
-    uint256 WBTCclaimTokens = 1;
-    uint256 WBTCTokens = 1200;
-    uint256 ExchangeRatio = WBTCclaimTokens * 10**8 / WBTCTokens * 10**8;
+    uint256 ExchangeValue = 100;
 
     mapping(address => uint256) userDepositAmount;
     /*
@@ -38,16 +35,12 @@ contract housePoolWBTC is ReentrancyGuard {
         return userDepositAmount[msg.sender];
     }
 
-    function _getExchangeAmount(uint256 _amount) view internal returns (uint256) {
-      return _amount * ExchangeRatio ;
-    }
-
     function deposit(uint256 _amount) external nonReentrant {
         require(_amount > 0 && _amount <= wbtcToken.balanceOf(msg.sender));
         wbtcLiquidity += _amount;
         userDepositAmount[msg.sender] += _amount;
         wbtcToken.transferFrom(msg.sender, address(this), _amount);
-        uint256 claimTokensToMint = _getExchangeAmount(_amount);
+        uint256 claimTokensToMint = _amount / ExchangeValue;
         WBTCclaimToken.mint(msg.sender, claimTokensToMint);
     }
 
@@ -56,7 +49,7 @@ contract housePoolWBTC is ReentrancyGuard {
         wbtcLiquidity -= _amount;
         userDepositAmount[msg.sender] -= _amount;
         wbtcToken.transfer(msg.sender, _amount);
-        uint256 claimTokensToBurn = _getExchangeAmount(_amount);
+        uint256 claimTokensToBurn = _amount / ExchangeValue;
         WBTCclaimToken.burn(msg.sender, claimTokensToBurn);
     }
 }
