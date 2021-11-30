@@ -37,7 +37,7 @@ contract housePoolUSDC is ReentrancyGuard {
   }
 
   function deposit(uint256 _amount) external nonReentrant {
-      require(_amount > 0 && _amount <= usdcToken.balanceOf(msg.sender));
+      require(_amount > 0 && _amount <= usdcToken.balanceOf(msg.sender),"USDCHousePool: Check the Balance");
       usdcLiquidity += _amount;
       userDepositAmount[msg.sender] += _amount;
       usdcToken.transferFrom(msg.sender,address(this),_amount);
@@ -46,7 +46,7 @@ contract housePoolUSDC is ReentrancyGuard {
   }
 
   function withdraw(uint256 _amount) external nonReentrant {
-      require(_amount > 0 && _amount <= userDepositAmount[msg.sender],"Amount exceeded");
+      require(_amount > 0 && _amount <= userDepositAmount[msg.sender],"USDCHousePool: Amount exceeded");
       usdcLiquidity -= _amount;
       userDepositAmount[msg.sender] -= _amount;
       usdcToken.transfer(msg.sender,_amount);
