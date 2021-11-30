@@ -11,6 +11,7 @@
     "url": "git+https://github.com/LunaBets/lunafi-smart-contracts.git"
   },
   "devDependencies": {
+    "@defi-wonderland/smock": "^2.0.7",
     "@eth-optimism/smock": "^1.1.10",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",

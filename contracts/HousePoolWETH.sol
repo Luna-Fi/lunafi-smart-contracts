@@ -50,5 +50,6 @@ contract housePoolWBTC is ReentrancyGuard {
         userDepositAmount[msg.sender] -= _amount;
         wbtcToken.transfer(msg.sender, _amount);
         uint256 claimTokensToBurn = _amount / ExchangeValue;
+        WETHclaimToken.burn(msg.sender, claimTokensToBurn);
     }
 }
