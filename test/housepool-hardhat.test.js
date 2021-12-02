@@ -30,15 +30,23 @@ describe("USDCHousePool", (accounts) => {
   })
 
   it("Should allow the LunaFi users to depoist USDC into HousePool Contract", async () => {
-    
     const [owner, account1, account2, account3] = await ethers.getSigners()
-    const usdcToDeposit = 100
+    const usdcToDeposit = 100 * 10**6
+    const usdcToDepoistforUser1 = 120 * 10**6
+    const usdcToDepositforUser2 = 5000 * 10**6
+    const usdcToDepositforUser3 = 235 * 10**6
+    
     await usdchousepool.connect(owner).deposit(usdcToDeposit)
-    const balanceInClaim = await usdcclaimtoken.balanceOf(owner.address)
-    
-
-    expect()
-    
+    await usdchousepool.connect(account1).deposit(usdcToDepoistforUser1)
+    await usdchousepool.connect(account2).deposit(usdcToDepositforUser2)
+    await usdchousepool.connect(account3).deposit(usdcToDepositforUser3)
+  
+    const balanceInClaimToken = await usdcclaimtoken.balanceOf(owner.address)
+    const balanceInClaimTokenNumber = ethers.BigNumber.from(balanceInClaimToken).toNumber()
+    const balanceinHousePool = await usdchousepool.getMyBalance()
+    expect (ethers.BigNumber.from(balanceinHousePool).toNumber()).to.equal(usdcToDeposit)
+    expect(balanceInClaimTokenNumber).to.equal(1)
+   
   })
   
 

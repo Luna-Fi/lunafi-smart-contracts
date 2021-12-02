@@ -14,7 +14,7 @@ contract housePoolUSDC is ReentrancyGuard {
   USDCclaimTokenInterface USDCclaimToken;
   address owner;
   uint256 usdcLiquidity;
-  uint256  ExchangeValue = 100;
+  uint256  ExchangeValue = 100 * 10**6;
 
   mapping(address => uint256) userDepositAmount;
 
