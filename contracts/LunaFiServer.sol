@@ -22,7 +22,7 @@ contract LunaFiServer is EventStorageRepository {
         es._eventIdCounter._value = 0;
 
         /* initialize facets */
-        IDiamondCut.FacetCut[] memory cut;
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         bytes4[] memory functionSelectors = new bytes4[](1);
         functionSelectors[0] = IDiamondCut.diamondCut.selector;
 
