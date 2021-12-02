@@ -1,28 +1,29 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import { LibDiamond } from '../libraries/LibDiamond.sol';
 import { EventStorageRepository } from '../repositories/EventStorageRepository.sol';
-import { IProofUser } from '../interfaces/native/IProofUser.sol';
-import { IEventUser } from '../interfaces/native/IEventUser.sol';
+import { IEventUser, IProofUser } from '../interfaces/native/IEventUser.sol';
 
-contract LibOracle is LibDiamond, EventStorageRepository {
-    function createEvent(uint256 id, Event event) internal {
+contract LibOracle is EventStorageRepository {
+    function _createEvent(uint256 id, Event calldata _event) internal {
         EventsStore storage es = eventsStore();
-        es.events[id] = event;
+        es.events[id] = _event;
     }
 
-    function addProofForEvent(uint256 id, Proof proof) {
+    function _addProofForEvent(uint256 id, Proof calldata _proof) internal {
         EventsStore storage es = eventsStore();
-        es.events[id].proofs.push(proof);
+        es.events[id].proofs.push(_proof);
     }
 
-    function getNewEventId() internal returns (uint256 eventId) {
+    function _getNewEventId() internal returns (uint256 eventId) {
         EventsStore storage es = eventsStore();
-        es._eventIdCounter.increment();
-        eventId = es._eventIdCounter.current();
+        unchecked {
+            es._eventIdCounter._value += 1;
+        }
+        eventId = es._eventIdCounter._value;
     }
-    function updateEventStatus(uint256 eventId, Status newStatus) internal {
+
+    function _updateEventStatus(uint256 eventId, Status newStatus) internal {
         EventsStore storage es = eventsStore();
         es.events[eventId].eventStatus = newStatus;
     }
