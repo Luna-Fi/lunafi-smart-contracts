@@ -2,60 +2,24 @@
 pragma solidity ^0.8.10;
 
 import { LibDiamond } from './libraries/LibDiamond.sol';
-import { LibOracle } from './libraries/LibOracle.sol';
-import { IERC165 } from './interfaces/global/IERC165.sol';
+import { LibAccess } from './libraries/LibAccess.sol';
 import { IDiamondCut } from './interfaces/native/IDiamondCut.sol';
-import { IDiamondLoupe } from './interfaces/native/IDiamondLoupe.sol';
-import { EventStorageRepository } from './repositories/EventStorageRepository.sol';
-import { DiamondCutFacet } from './implementation/management/DiamondCutFacet.sol';
-import { DiamondLoupeFacet } from './implementation/operations/DiamondLoupeFacet.sol';
-import { OwnershipFacet } from './implementation/management/OwnershipFacet.sol';
-/* import { OracleFacet } from './implementation/operations/OracleFacet.sol'; */
 
-contract LunaFiServer is EventStorageRepository {
+contract LunaFiServer is LibAccess {
     constructor(address _diamondCutFacet) {
-        /* set access control */
-        LibDiamond.setContractOwner(msg.sender);
-
-        /* initialize data views */
-        (EventsStore storage es) = eventsStore();
-        es._eventIdCounter._value = 0;
-
         /* initialize facets */
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         bytes4[] memory functionSelectors = new bytes4[](1);
         functionSelectors[0] = IDiamondCut.diamondCut.selector;
 
-        /* DiamondLoupeFacet diamondLoupe = new DiamondLoupe(); */
-        /* OwnershipFacet ownershipFacet = new OwnershipFacet(); */
-        /* OracleFacet oracleFacet = new OracleFacet(); */
-
-        /* cut diamond for facets */
-        /* bytes [] memory cut = new bytes[](3); */
+        /* cut diamond for initial facets */
         cut[0] = IDiamondCut.FacetCut({
             facetAddress: _diamondCutFacet,
             action: IDiamondCut.FacetCutAction.Add,
             functionSelectors: functionSelectors
-        });
-    /*     cut[1] = abi.encodePacked( */
-    /*                               diamondLoupe, */
-    /*                               IDiamondLoupe.facetFunctionSelectors.selector, */
-    /*                               IDiamondLoupe.facets.selector, */
-    /*                               IDiamondLoupe.facetAddress.selector, */
-    /*                               IDiamondLoupe.facetAddresses.selector, */
-    /*                               IERC165.supportsInterface.selector */
-    /*                               ); */
-    /*     cut[2] = abi.encodePacked( */
-    /*                               ownershipFacet, */
-    /*                               OwnershipFacet.transferOwnership.selector, */
-    /*                               OwnershipFacet.owner.selector */
-    /*                               ); */
-    /* /\*     cut[3] = abi.encodePacked( *\/ */
-    /*                               oracleFacet, */
-    /*                               OracleFacet.reportOutcome.selector */
-    /*                               ); */
+            });
         LibDiamond.diamondCut(cut, address(0), "");
-        }
+    }
 
     fallback() external payable {
         LibDiamond.DiamondStorage storage ds;
@@ -69,13 +33,13 @@ contract LunaFiServer is EventStorageRepository {
         assembly {
             // copy function selector and any arguments
             calldatacopy(0, 0, calldatasize())
-            // execute function call using the facet
-            let result := delegatecall(gas(), facet, 0, calldatasize(), 0, 0)
-            // get any return value
-            returndatacopy(0, 0, returndatasize())
-            // return any return value or error back to the caller
-            switch result
-            case 0 { revert(0, returndatasize()) }
+                // execute function call using the facet
+                let result := delegatecall(gas(), facet, 0, calldatasize(), 0, 0)
+                // get any return value
+                returndatacopy(0, 0, returndatasize())
+                // return any return value or error back to the caller
+                switch result
+                    case 0 { revert(0, returndatasize()) }
             default { return(0, returndatasize()) }
         }
     }
