@@ -12,7 +12,7 @@ abstract contract ERC20Interface {
   
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
-    event Burn(address from, address, uint256 value);
+    
 
     }
 

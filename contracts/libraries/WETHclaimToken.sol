@@ -61,7 +61,6 @@ contract WETHclaimToken is ERC20Interface, SafeMath {
 
   mapping(address => uint256) internal balances;
   mapping(address => mapping(address => uint256)) internal allowed;
-  mapping(uint256 => uint256) internal token;
   mapping(address => bool) internal admins;
 
    modifier onlyAdmin() {
@@ -79,8 +78,8 @@ contract WETHclaimToken is ERC20Interface, SafeMath {
       symbol = _symbol;
       decimals = _decimals;
       _totalSupply = 0;
-	    initialSupply = _totalSupply;
-	    balances[msg.sender] = _totalSupply;
+	  initialSupply = _totalSupply;
+	  balances[msg.sender] = _totalSupply;
       owner = msg.sender;
       emit Transfer(address(0), msg.sender, _totalSupply);
     }
