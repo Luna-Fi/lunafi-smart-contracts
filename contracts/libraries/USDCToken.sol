@@ -36,19 +36,6 @@ contract SafeMath {
 }
 
 contract tUSDCToken is ERC20Interface, SafeMath{
-    string public name;
-    string public symbol;
-    uint8 public decimals;
-    uint256 public initialSupply;
-    uint256 public _totalSupply;
-    address public owner;
-    uint public totalProfit;
-    uint public profit;
-   
-    mapping(address => uint) internal balances;
-    mapping(address => mapping(address => uint)) internal allowed;
-    mapping(uint256 => uint256) internal token;
-    
     
     constructor()  {
         name = "tUSDC";
