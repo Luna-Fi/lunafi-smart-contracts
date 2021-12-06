@@ -53,4 +53,7 @@ if (require.main === module) {
     })
 }
 
+exports.getSelectors = getSelectors
+exports.FacetCutAction = FacetCutAction
+exports.deployFacet = deployFacet
 exports.deployLunaFiServer = deployLunaFiServer
