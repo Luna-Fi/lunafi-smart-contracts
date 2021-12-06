@@ -25,8 +25,20 @@ Solutions to storage collision:
     Thus we consider diamond storage & app storage approach. Difference boils down to if the storage composability is app-level or at implementation/functionality-level.
 
 ## Upgradeability
-    - 
+Reasons for upgradeable code:
+    - Project Goals
+      - Long-term maintainability
+      - Robust defi integration
     - Bugs are fixable
-    - a
 
 ## Management
+    Openzeppelin defender was considered
+    - Cannot be used with diamond approach since it uses in-built proxy mechanism
+    - Third-party solutions dedicated to solving security such as Wallet infrastructure etc. can be used
+    - Uses AWS APIs for handling keys, which should be considered
+    - Helpful in providing signing transactions as web API token
+    - Helpful in gas relay network management
+
+
+From the above, diamond proxy with diamond storage is considered & Openzeppelin Defender using as backup.
+
