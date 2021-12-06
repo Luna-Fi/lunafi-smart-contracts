@@ -3,10 +3,10 @@ pragma solidity ^0.8.0;
 
 import { LibAccess } from "../../libraries/LibAccess.sol";
 
-contract OwnershipFacet is LibAccess {
+contract AccessControlFacet is LibAccess {
     modifier onlyOwner()
     {
-        require(isOwner(msg.sender), "Access restricted to owners");
+        _enforceIsOwner();
         _;
     }
 

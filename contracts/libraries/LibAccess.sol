@@ -22,6 +22,11 @@ contract LibAccess is AccessStorageRepository {
         adminRoleName_ = _as.DEFAULT_ADMIN_ROLE;
     }
 
+    function _enforceIsOwner() internal view {
+        AccessStore storage _as = accessStore();
+        require(hasRole(_as.DEFAULT_ADMIN_ROLE, msg.sender), "Access restricted to owner");
+    }
+
     /**
      * @dev Returns `true` if `account` has been granted `role`.
      */

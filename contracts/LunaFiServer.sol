@@ -2,11 +2,13 @@
 pragma solidity ^0.8.10;
 
 import { LibDiamond } from './libraries/LibDiamond.sol';
-import { LibAccess } from './libraries/LibAccess.sol';
 import { IDiamondCut } from './interfaces/native/IDiamondCut.sol';
 
-contract LunaFiServer is LibAccess {
+contract LunaFiServer {
     constructor(address _diamondCutFacet) {
+        /* set ownership */
+        LibDiamond.setContractOwner(msg.sender);
+
         /* initialize facets */
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
         bytes4[] memory functionSelectors = new bytes4[](1);

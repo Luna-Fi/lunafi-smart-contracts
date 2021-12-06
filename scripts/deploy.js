@@ -1,27 +1,21 @@
 const { FacetCutAction, getSelectors } = require('./diamondHelpers.js');
+const { deployFacet } = require('./deployFacet.js');
 
-async function deployDiamond () {
+async function deployLunaFiServer() {
   const accounts = await ethers.getSigners();
   const owner = accounts[0];
 
-  // deploy Diamond Cut Facet
-  const DiamondCutFacet = await ethers.getContractFactory('DiamondCutFacet');
-  const diamondCutFacet = await DiamondCutFacet.deploy();
-  await diamondCutFacet.deployed();
-  console.log('Diamond Cut Facet deployed at: ', diamondCutFacet.address);
+  const diamondCutFacetAddress = await deployFacet('DiamondCutFacet');
+  console.log('Diamond Cut Facet deployed at: ', diamondCutFacetAddress);
 
-  // deploy LunaFi diamond server
-  const LFi = await ethers.getContractFactory('LunaFiServer');
-  const lFi = await LFi.deploy(diamondCutFacet.address);
-  await lFi.deployed();
-  console.log('LunaFi diamond server deployed at: ', lFi.address);
+  const lFiAddress = await deployFacet('LunaFiServer', diamondCutFacetAddress);
+  console.log('LunaFi diamond server deployed at: ', lFiAddress);
 
   // deploy facets
   console.log('');
   console.log('Deploying Facets...');
   const FacetNames = [
     'DiamondLoupeFacet',
-    'OwnershipFacet',
     'OracleFacet'
   ]
   const cut = [];
@@ -40,21 +34,23 @@ async function deployDiamond () {
   // upgrade server
   console.log('');
   console.log('Diamond Cut being attempted: ', cut);
-  const diamondCut = await ethers.getContractAt('IDiamondCut', lFi.address);
+  const diamondCut = await ethers.getContractAt('IDiamondCut', lFiAddress);
   let tx, receipt;
-  tx = await diamondCut.diamondCut(cut, ethers.constants.AddressZero, "");
+  tx = await diamondCut.diamondCut(cut, ethers.constants.AddressZero, '0x');
   console.log('LFi server cut attempted by tx:', tx.hash);
   receipt = await tx.wait();
   if (!receipt.status) { throw Error(`Cutting failed: ${tx.hash}`)}
-  console.log('Successfully cut!');
-  return lFi.address;
+  console.log('LunaFi server successfully deployed & setup.');
+  return lFiAddress;
 }
 
 if (require.main === module) {
-  deployDiamond()
+  deployLunaFiServer()
     .then(() => process.exit(0))
     .catch(error => {
       console.error(error)
       process.exit(1)
     })
 }
+
+exports.deployLunaFiServer = deployLunaFiServer
