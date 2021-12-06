@@ -1,3 +1,38 @@
+# Stand alone HousePool contracts.
+ 
+ The contracts here are just to serve the purpose of initial integration 
+
+ USDC Test Token Contract Address ---- 0xB4154989873983c0bc3b19498906d3fd57dB6682
+ USDClaim Token Contract Address  ---- 0xBE8e76368a126D7d3104D8eB2D4528463F5760b0
+ USDCHousePool Contract Address   ---- 0x3739f603F3C088a992a0A784e389aE9C3137bA0f
+ 
+ WBTC Test Token Contract Address ---- 0xF75389433932662c4B96EB87c6836526E30FC63C
+ WBTCClaim Token Contract Address ---- 0xeaCBF26a031186c9416EB8fc5613EF9e14a230ee
+ WBTCHousePool Contract Address   ---- 0x5ff538bbf3be97d27e3bd054de9e9d83ACF81011
+
+ WETH Test Token Contract Address ---- 0x872598eC1339B70F8cc093373891834141E47871
+ WETHClaim Token Contract Address ---- 0xd292B4EE9bA3Ce480D517505d0408C62fB605Df3
+ WETHHousePool Contract Address   ---- 0x555Bbb4455A76D61ca655036ec175963CeA64D46
+
+ 
+
+ABI : 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # lunafi-core
 Smart Contracts for [LunaFi](#) & [LunaBets](https://lunabets.io/), a betting dapp, available on various EVM-compatible blockchains.
 
