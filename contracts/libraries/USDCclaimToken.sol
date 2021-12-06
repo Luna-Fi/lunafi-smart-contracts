@@ -26,8 +26,6 @@ abstract contract ERC20Interface {
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
     event Burn(address from, address, uint256 value);
     event Mint(address from, address, uint256 value);
-   
-
   }
 
 /// @title Safe Math Contract
