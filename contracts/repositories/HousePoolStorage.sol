@@ -1,18 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-contract TokenStorageContract {           
+import { IERC20 } from '../interfaces/IERC20.sol';
+import { claimTokenInterface } from '../interfaces/claimTokenInterface.sol';
+
+
+contract HousePoolStorageContract {           
 
     bytes32 internal constant USDCHOUSEPOOL_STORAGE_POSITION = keccak256("USDC.House.diamond.Pool");
     bytes32 internal constant WETHHOUSEPOOL_STORAGE_POSITION = keccak256("WETH.House.diamond.Pool");
     bytes32 internal constant WBTCHOUSEPOOL_STORAGE_POSITION = keccak256("WBTC.House.diamond.Pool");
 
     struct housePoolStorage {  
-      IERC20 usdcToken;
-      USDCclaimTokenInterface USDCclaimToken;
+      IERC20 stableToken;
+      claimTokenInterface claimToken;
       address owner;
-      uint256 usdcLiquidity;
-      uint256  ExchangeValue = 100;
+      uint256 poolLiquidity;
+      uint256  ExchangeRatio;
       mapping(address => uint256) userDepositAmount;    
     }
 
