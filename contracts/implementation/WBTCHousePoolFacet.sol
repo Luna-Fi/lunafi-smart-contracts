@@ -17,24 +17,24 @@ contract wbtcHousePool is  HousePoolStorageContract, ReentrancyGuard {
     }
 
     function getLiquidityStatus() view external returns(uint256) {
-      housePoolStorage storage wbhps = wbtcHousePoolStorage();
-      return wbhps.poolLiquidity;
+          housePoolStorage storage wbhps = wbtcHousePoolStorage();
+          return wbhps.poolLiquidity;
     }
 
     function getMyBalance() view external returns(uint256) {
-      housePoolStorage storage wbhps = wbtcHousePoolStorage();
-      return wbhps.userDepositAmount[msg.sender];
+          housePoolStorage storage wbhps = wbtcHousePoolStorage();
+          return wbhps.userDepositAmount[msg.sender];
     }
 
     function deposit(uint256 _amount) external nonReentrant {
-      housePoolStorage storage wbhps = wbtcHousePoolStorage();
-      require(_amount > 0 && _amount <= wbhps.stableToken.balanceOf(msg.sender),"WBTCHousePool: Check the Balance");
-      require(_amount > 100 * 10**6, "WBTCHousePool : Too less deposit");
-      wbhps.poolLiquidity += _amount;
-      wbhps.userDepositAmount[msg.sender] += _amount;
-      wbhps.stableToken.transferFrom(msg.sender,address(this),_amount);
-      uint256 LPTokensToMint = _amount / wbhps.ExchangeRatio;
-      wbhps.claimToken.mint(msg.sender, LPTokensToMint);
+          housePoolStorage storage wbhps = wbtcHousePoolStorage();
+          require(_amount > 0 && _amount <= wbhps.stableToken.balanceOf(msg.sender),"WBTCHousePool: Check the Balance");
+          require(_amount > 100 * 10**6, "WBTCHousePool : Too less deposit");
+          wbhps.poolLiquidity += _amount;
+          wbhps.userDepositAmount[msg.sender] += _amount;
+          wbhps.stableToken.transferFrom(msg.sender,address(this),_amount);
+          uint256 LPTokensToMint = _amount / wbhps.ExchangeRatio;
+          wbhps.claimToken.mint(msg.sender, LPTokensToMint);
     }
 
     function withdraw(uint256 _LPTokens) external nonReentrant {
