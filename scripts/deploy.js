@@ -16,7 +16,7 @@ async function deployLunaFiServer() {
   console.log('Deploying Facets...');
   const FacetNames = [
     'DiamondLoupeFacet',
-    'OracleFacet'
+    'OwnershipFacet'
   ]
   const cut = [];
   for (const FacetName of FacetNames) {

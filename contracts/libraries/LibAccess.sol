@@ -2,36 +2,30 @@
 // OpenZeppelin Contracts v4.4.0 (access/AccessControl.sol)
 pragma solidity ^0.8.10;
 
-import { AccessStorageRepository } from '../repositories/AccessStorageRepository.sol';
+import '../repositories/AccessStorageRepository.sol';
 
-contract LibAccess is AccessStorageRepository {
-    constructor() {
-        /* initialize admin access */
-        AccessStore storage _as = accessStore();
-        _grantRole(_as.DEFAULT_ADMIN_ROLE, msg.sender);
-    }
-
+library LibAccess {
     modifier onlyRole(bytes32 role) {
-        AccessStore storage _as = accessStore();
+        AccessStorageRepository.AccessStore storage _as = AccessStorageRepository.accessStore();
         _checkRole(role, msg.sender);
         _;
     }
 
     function _getDefaultAdminRoleName() internal view returns (bytes32 adminRoleName_) {
-        AccessStore storage _as = accessStore();
+        AccessStorageRepository.AccessStore storage _as = AccessStorageRepository.accessStore();
         adminRoleName_ = _as.DEFAULT_ADMIN_ROLE;
     }
 
-    function _enforceIsOwner() internal view {
-        AccessStore storage _as = accessStore();
-        require(hasRole(_as.DEFAULT_ADMIN_ROLE, msg.sender), "Access restricted to owner");
+    function _enforceIsDefaultAdmin() internal view {
+        AccessStorageRepository.AccessStore storage _as = AccessStorageRepository.accessStore();
+        require(hasRole(_as.DEFAULT_ADMIN_ROLE, msg.sender), "Access restricted to Default Admin");
     }
 
     /**
      * @dev Returns `true` if `account` has been granted `role`.
      */
     function hasRole(bytes32 role, address account) public view returns (bool) {
-        AccessStore storage _as = accessStore();
+        AccessStorageRepository.AccessStore storage _as = AccessStorageRepository.accessStore();
         return _as._roles[role].members[account];
     }
 
@@ -55,7 +49,7 @@ contract LibAccess is AccessStorageRepository {
      * To change a role's admin, use {_setRoleAdmin}.
      */
     function getRoleAdmin(bytes32 role) public view returns (bytes32) {
-        AccessStore storage _as = accessStore();
+        AccessStorageRepository.AccessStore storage _as = AccessStorageRepository.accessStore();
         return _as._roles[role].adminRoleName;
     }
 
@@ -69,7 +63,7 @@ contract LibAccess is AccessStorageRepository {
      *
      * - the caller must have ``role``'s admin role.
      */
-    function grantRole(bytes32 role, address account) public virtual onlyRole(getRoleAdmin(role)) {
+    function grantRole(bytes32 role, address account) public onlyRole(getRoleAdmin(role)) {
         _grantRole(role, account);
     }
 
@@ -82,7 +76,7 @@ contract LibAccess is AccessStorageRepository {
      *
      * - the caller must have ``role``'s admin role.
      */
-    function revokeRole(bytes32 role, address account) public virtual onlyRole(getRoleAdmin(role)) {
+    function revokeRole(bytes32 role, address account) public onlyRole(getRoleAdmin(role)) {
         _revokeRole(role, account);
     }
 
@@ -100,7 +94,7 @@ contract LibAccess is AccessStorageRepository {
      *
      * - the caller must be `account`.
      */
-    function renounceRole(bytes32 role, address account) public virtual {
+    function renounceRole(bytes32 role, address account) public {
         require(account == msg.sender, "AccessControl: can only renounce roles for self");
         _revokeRole(role, account);
     }
@@ -110,9 +104,9 @@ contract LibAccess is AccessStorageRepository {
      *
      * Emits a {RoleAdminChanged} event.
      */
-    function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal virtual {
+    function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal {
         bytes32 previousAdminRole = getRoleAdmin(role);
-        AccessStore storage _as = accessStore();
+        AccessStorageRepository.AccessStore storage _as = AccessStorageRepository.accessStore();
         _as._roles[role].adminRoleName = adminRole;
     }
 
@@ -121,9 +115,9 @@ contract LibAccess is AccessStorageRepository {
      *
      * Internal function without access restriction.
      */
-    function _grantRole(bytes32 role, address account) internal virtual {
+    function _grantRole(bytes32 role, address account) internal {
         if (!hasRole(role, account)) {
-            AccessStore storage _as = accessStore();
+            AccessStorageRepository.AccessStore storage _as = AccessStorageRepository.accessStore();
             _as._roles[role].members[account] = true;
         }
     }
@@ -133,9 +127,9 @@ contract LibAccess is AccessStorageRepository {
      *
      * Internal function without access restriction.
      */
-    function _revokeRole(bytes32 role, address account) internal virtual {
+    function _revokeRole(bytes32 role, address account) internal {
         if (hasRole(role, account)) {
-            AccessStore storage _as = accessStore();
+            AccessStorageRepository.AccessStore storage _as = AccessStorageRepository.accessStore();
             _as._roles[role].members[account] = false;
         }
     }

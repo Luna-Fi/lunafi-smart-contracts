@@ -1,7 +1,7 @@
 const { getSelectors, FacetCutAction, deployFacet, deployLunaFiServer } = require('../scripts/deploy.js');
 const { assert } = require('chai');
 
-describe('LunaFiTests', async function () {
+describe('LunaFiServerTests', async function () {
   let tx, receipt, result;
   let lFiAddress
 
@@ -23,14 +23,23 @@ describe('LunaFiTests', async function () {
     assert.equal(addresses.length, 3);
   })
 
-  it ('should add a new facet functions - access control facet', async () => {
-    const accessControlFacetAddress = await deployFacet('AccessControlFacet');
+  it ('should add a new facet functions -- cut in access control facet', async () => {
+    // const accessControlFacetAddress = await deployFacet('AccessControlFacet');
+    const libAccess = await ethers.getContractAt('LibAccess', lFiAddress);
+    const AccessControlFacet = await ethers.getContractFactory('AccessControlFacet', {
+      libraries: {
+        LibAccess: libAccess.address,
+        // LibDiamond:
+      }
+    });
+    const accessControlFacet = await AccessControlFacet.deploy();
+    await accessControlFacet.deployed();
 
-    const accessControlFacet = await ethers.getContractFactory('AccessControlFacet');
-    const selectors = getSelectors(accessControlFacet);
+    const selectors = getSelectors(AccessControlFacet);
+
     tx = await diamondCutFacet.diamondCut(
       [{
-        facetAddress: accessControlFacetAddress,
+        facetAddress: accessControlFacet.address,
         action: FacetCutAction.Add,
         functionSelectors: selectors
       }],
@@ -41,7 +50,7 @@ describe('LunaFiTests', async function () {
     if(!receipt.status) {
       throw Error(`Upgrade failed: $(tx.hash)`)
     }
-    result = await diamondLoupeFacet.facetFunctionSelectors(accessControlFacetAddress);
+    result = await diamondLoupeFacet.facetFunctionSelectors(accessControlFacet.address);
     assert.sameMembers(result, selectors);
   })
 })
