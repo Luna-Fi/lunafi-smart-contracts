@@ -3,13 +3,13 @@ pragma solidity ^0.8.10;
 
 import { IERC20 } from '../interfaces/IERC20.sol';
 import { claimTokenInterface } from '../interfaces/claimTokenInterface.sol';
-import  '../repositories/HousePoolStorage.sol';
+import  '../repositories/HousePoolStorageRepository.sol';
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract wethHousePool is  HousePoolStorageContract, ReentrancyGuard {
+contract wethHousePool is ReentrancyGuard {
     
     constructor(address _wethtoken, address _WETHclaimToken) {
-        housePoolStorage storage wehps = wethHousePoolStorage();
+        HousePoolStorageContract.housePoolStorage storage wehps = HousePoolStorageContract.wethHousePoolStorage();
         wehps.stableToken = IERC20(_wethtoken);
         wehps.claimToken = claimTokenInterface(_WETHclaimToken);
         wehps.owner = msg.sender;
@@ -17,19 +17,19 @@ contract wethHousePool is  HousePoolStorageContract, ReentrancyGuard {
     }
 
     function getLiquidityStatus() view external returns(uint256) {
-        housePoolStorage storage wehps = wethHousePoolStorage();
+        HousePoolStorageContract.housePoolStorage storage wehps = HousePoolStorageContract.wethHousePoolStorage();
         return wehps.poolLiquidity;
     }
 
     function getMyBalance() view external returns(uint256) {
-        housePoolStorage storage wehps = wethHousePoolStorage();
+        HousePoolStorageContract.housePoolStorage storage wehps = HousePoolStorageContract.wethHousePoolStorage();
         return wehps.userDepositAmount[msg.sender];
     }
 
     function deposit(uint256 _amount) external nonReentrant {
-        housePoolStorage storage wehps = wethHousePoolStorage();
+        HousePoolStorageContract.housePoolStorage storage wehps = HousePoolStorageContract.wethHousePoolStorage();
         require(_amount > 0 && _amount <= wehps.stableToken.balanceOf(msg.sender),"WETHHousePool: Check the Balance");
-        require(_amount > 100 * 10**6, "WETHHousePool : Too less deposit");
+        require(_amount >= 100 * 10**18, "WETHHousePool : Too less deposit");
         wehps.poolLiquidity += _amount;
         wehps.userDepositAmount[msg.sender] += _amount;
         wehps.stableToken.transferFrom(msg.sender,address(this),_amount);
@@ -38,7 +38,7 @@ contract wethHousePool is  HousePoolStorageContract, ReentrancyGuard {
     }
 
     function withdraw(uint256 _LPTokens) external nonReentrant {
-        housePoolStorage storage wehps = wethHousePoolStorage();
+        HousePoolStorageContract.housePoolStorage storage wehps = HousePoolStorageContract.wethHousePoolStorage();
         require(_LPTokens > 0,"WETHHousePool: Zero Amount");
         require(_LPTokens <= wehps.claimToken.balanceOf(msg.sender),"WETHHousePool: Amount exceeded");
         uint256 amountToTransfer = _LPTokens * wehps.ExchangeRatio;
