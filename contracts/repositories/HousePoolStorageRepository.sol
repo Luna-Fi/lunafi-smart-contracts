@@ -5,7 +5,7 @@ import { IERC20 } from '../interfaces/IERC20.sol';
 import { claimTokenInterface } from '../interfaces/claimTokenInterface.sol';
 
 
-contract HousePoolStorageContract {           
+library HousePoolStorageContract {           
 
     bytes32 internal constant USDCHOUSEPOOL_STORAGE_POSITION = keccak256("USDC.House.diamond.Pool");
     bytes32 internal constant WETHHOUSEPOOL_STORAGE_POSITION = keccak256("WETH.House.diamond.Pool");

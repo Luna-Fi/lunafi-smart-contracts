@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-contract TokenStorageContract {           
+library TokenStorageContract {           
 
     bytes32 internal constant USDCTESTTOKEN_STORAGE_POSITION = keccak256("USDCToken.token.diamond.ERC20Token");
     bytes32 internal constant WETHTESTTOKEN_STORAGE_POSITION = keccak256("WETHToken.token.diamond.ERC20Token");
@@ -36,7 +36,6 @@ contract TokenStorageContract {
              
     }
 
-    
 
     function usdcTestTokenStorage() internal pure returns(ERC20TokenStorage storage ds) {
         bytes32 position = USDCTESTTOKEN_STORAGE_POSITION;

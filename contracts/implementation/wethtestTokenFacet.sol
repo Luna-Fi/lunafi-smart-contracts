@@ -2,74 +2,75 @@
 pragma solidity ^0.8.10;
 
 import { IERC20 } from '../interfaces/IERC20.sol';
-import  '../repositories/ERC20Storage.sol';
+import  '../repositories/ERC20StorageRepository.sol';
 
-contract usdctestToken is IERC20, TokenStorageContract {
+contract wethtestToken is IERC20 {
   
     constructor()  {
-        ERC20TokenStorage storage gts = wethTestTokenStorage();
-        gts.name = "tWETH";
-        gts.symbol = "tWETH";
-        gts.decimals = 18;
-        gts._totalSupply = 1000000000 * 10 ** uint256(gts.decimals);
-        gts.initialSupply = gts._totalSupply;
-        gts.balances[msg.sender] = gts._totalSupply;
-        gts.owner = msg.sender;
-        emit Transfer(address(0), msg.sender, gts._totalSupply);
+        
+        TokenStorageContract.ERC20TokenStorage storage wetts = TokenStorageContract.wethTestTokenStorage();
+        wetts.name = "tWETH";
+        wetts.symbol = "tWETH";
+        wetts.decimals = 18;
+        wetts._totalSupply = 1000000000 * 10 ** uint256(wetts.decimals);
+        wetts.initialSupply = wetts._totalSupply;
+        wetts.balances[msg.sender] = wetts._totalSupply;
+        wetts.owner = msg.sender;
+        emit Transfer(address(0), msg.sender, wetts._totalSupply);
     }
     
     function name() external view override returns(string memory tokenName) {
-        ERC20TokenStorage storage gts = wethTestTokenStorage();
-        tokenName = gts.name;
+        TokenStorageContract.ERC20TokenStorage storage wetts = TokenStorageContract.wethTestTokenStorage();
+        tokenName = wetts.name;
     }
 
     function symbol() external view override returns(string memory tokenSymbol) {
-        ERC20TokenStorage storage gts = wethTestTokenStorage();
-        tokenSymbol = gts.symbol;
+        TokenStorageContract.ERC20TokenStorage storage wetts = TokenStorageContract.wethTestTokenStorage();
+        tokenSymbol = wetts.symbol;
     }
 
     function decimals() external view override returns(uint8) {
-        ERC20TokenStorage storage gts = wethTestTokenStorage();
-        return gts.decimals;
+        TokenStorageContract.ERC20TokenStorage storage wetts = TokenStorageContract.wethTestTokenStorage();
+        return wetts.decimals;
     }
 
     function totalSupply() external view override returns(uint) {
-        ERC20TokenStorage storage gts = wethTestTokenStorage();
-        return gts._totalSupply;
+        TokenStorageContract.ERC20TokenStorage storage wetts = TokenStorageContract.wethTestTokenStorage();
+        return wetts._totalSupply;
     }
 
     function balanceOf(address tokenOwner) external view override returns (uint getBalance) {
-        ERC20TokenStorage storage gts = wethTestTokenStorage();
-        getBalance = gts.balances[tokenOwner];
+        TokenStorageContract.ERC20TokenStorage storage wetts = TokenStorageContract.wethTestTokenStorage();
+        getBalance = wetts.balances[tokenOwner];
     }
 
     function allowance(address tokenOwner, address spender) external view override returns (uint remaining) {
-        ERC20TokenStorage storage gts = wethTestTokenStorage();
-        remaining = gts.allowed[tokenOwner][spender];
+        TokenStorageContract.ERC20TokenStorage storage wetts = TokenStorageContract.wethTestTokenStorage();
+        remaining = wetts.allowed[tokenOwner][spender];
     }
 
     function approve(address spender, uint tokens) external override returns (bool success) {
-        ERC20TokenStorage storage gts = wethTestTokenStorage();
-        gts.allowed[msg.sender][spender] = tokens;
+        TokenStorageContract.ERC20TokenStorage storage wetts = TokenStorageContract.wethTestTokenStorage();
+        wetts.allowed[msg.sender][spender] = tokens;
         emit Approval(msg.sender, spender, tokens);
         return true;
     }
 
     function transfer(address to, uint tokens) external override returns (bool success) {
         require(to != address(0));
-        ERC20TokenStorage storage gts = wethTestTokenStorage();
-        gts.balances[msg.sender] = gts.balances[msg.sender] - tokens;
-        gts.balances[to] = gts.balances[to] + tokens;
+        TokenStorageContract.ERC20TokenStorage storage wetts = TokenStorageContract.wethTestTokenStorage();
+        wetts.balances[msg.sender] = wetts.balances[msg.sender] - tokens;
+        wetts.balances[to] = wetts.balances[to] + tokens;
         emit Transfer(msg.sender, to, tokens);
         return true;
     }
   
     function transferFrom(address from, address to, uint tokens) external override returns (bool success) {
         require(to != address(0));
-        ERC20TokenStorage storage gts = wethTestTokenStorage();
-        gts.balances[from] = gts.balances[from] - tokens;
-        gts.allowed[from][msg.sender] = gts.allowed[from][msg.sender] - tokens;
-        gts.balances[to] = gts.balances[to] - tokens;
+        TokenStorageContract.ERC20TokenStorage storage wetts = TokenStorageContract.wethTestTokenStorage();
+        wetts.balances[from] = wetts.balances[from] - tokens;
+        wetts.allowed[from][msg.sender] = wetts.allowed[from][msg.sender] - tokens;
+        wetts.balances[to] = wetts.balances[to] - tokens;
         emit Transfer(from, to, tokens);
         return true;
     }
