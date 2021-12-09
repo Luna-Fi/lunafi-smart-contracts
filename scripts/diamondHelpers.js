@@ -14,4 +14,4 @@ function getSelectors (contract) {
 }
 
 exports.getSelectors = getSelectors
-exports.FacetCutAction = FacetCutActiont
+exports.FacetCutAction = FacetCutAction
