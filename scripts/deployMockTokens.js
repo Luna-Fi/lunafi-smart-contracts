@@ -9,10 +9,9 @@ const main = async () => {
   const WBTCToken = await mockWBTCToken.deploy();
 
   console.log("MockUSDCToken deployed to : ", USDCToken.address);
-
-
-
-
+  console.log("MockWBTCToken deployed to : ", WBTCToken.address);
+  console.log("MockWETHToken deployed to : ", WETHToken.address);
+  
 }
 
 main()
