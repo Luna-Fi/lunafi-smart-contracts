@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import { IERC20 } from '../interfaces/IERC20.sol';
 import  '../repositories/ERC20StorageRepository.sol';
 
-contract usdctestToken is IERC20 {
+contract usdctestTokenFacet is IERC20 {
   
     constructor()  {
         TokenStorageContract.ERC20TokenStorage storage usdtts = TokenStorageContract.usdcTestTokenStorage();

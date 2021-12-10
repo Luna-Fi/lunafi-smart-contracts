@@ -4,14 +4,14 @@ pragma solidity ^0.8.10;
 import { IERC20 } from '../interfaces/IERC20.sol';
 import  '../repositories/ERC20StorageRepository.sol';
 
-contract usdcClaimToken is IERC20 {
+contract usdcClaimTokenFacet is IERC20 {
 
   constructor()  {
       TokenStorageContract.ClaimTokenStorage storage usdcts = TokenStorageContract.usdcClaimTokenStorage();
       usdcts.name = "usdcClaimToken";
       usdcts.symbol = "UDCT";
       usdcts.decimals = 6;
-      usdcts._totalSupply = 1000000000 * 10 ** uint256(usdcts.decimals);
+      usdcts._totalSupply = 0 * 10 ** uint256(usdcts.decimals);
 	  usdcts.initialSupply = usdcts._totalSupply;
 	  usdcts.balances[msg.sender] = usdcts._totalSupply;
       usdcts.owner = msg.sender;

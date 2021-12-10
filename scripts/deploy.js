@@ -17,8 +17,9 @@ async function deployLunaFiServer() {
   const FacetNames = [
     'DiamondLoupeFacet',
     'OracleFacet',
-    'OwnershipFacet'
+    'OwnershipFacet',
   ]
+
   const cut = [];
   for (const FacetName of FacetNames) {
     const Facet = await ethers.getContractFactory(FacetName);

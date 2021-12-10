@@ -11,7 +11,7 @@ contract wbtcClaimToken is IERC20 {
         wbtcts.name = "wbtcClaimToken";
         wbtcts.symbol = "WBCT";
         wbtcts.decimals = 8;
-        wbtcts._totalSupply = 1000000000 * 10 ** uint256(wbtcts.decimals);
+        wbtcts._totalSupply = 0 * 10 ** uint256(wbtcts.decimals);
         wbtcts.initialSupply = wbtcts._totalSupply;
         wbtcts.balances[msg.sender] = wbtcts._totalSupply;
         wbtcts.owner = msg.sender;
