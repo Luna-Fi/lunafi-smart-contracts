@@ -2,18 +2,28 @@
 
 pragma solidity 0.8.10;
 
+//--------------------------------------
+//   WETH claim Token Contract 
+//
+// Symbol      : wETHCT
+// Name        : wETHClaimToken
+// Total supply: 0
+// Decimals    : 18
+//--------------------------------------
+
+/// @title An ERC20 Interface
+/// @author Chay
 /// @title An ERC20 Interface
 /// @author Chay
 
 abstract contract ERC20Interface {
-
     function totalSupply() virtual external view returns (uint256);
     function balanceOf(address tokenOwner) virtual external view returns (uint);
     function allowance(address tokenOwner, address spender) virtual external view returns (uint);
     function transfer(address to, uint tokens) virtual external returns (bool);
     function approve(address spender, uint tokens) virtual external returns (bool);
     function transferFrom(address from, address to, uint tokens) virtual external returns (bool);
-
+    
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
     event Burn(address from, address, uint256 value);
@@ -39,8 +49,8 @@ contract SafeMath {
 
 }
 
-contract WBTCclaimToken is ERC20Interface, SafeMath {
-    
+contract WETHclaimToken is ERC20Interface, SafeMath {
+
     uint8 public decimals;
     address public owner;
     uint256 public _totalSupply;
@@ -63,13 +73,13 @@ contract WBTCclaimToken is ERC20Interface, SafeMath {
     }
 
     constructor()  {
-        name = "WBTCClaimToken";
-        symbol = "wBTCT";
-        decimals = 8;
+        name = "wETHClaimToken";
+        symbol = "wETHCT";
+        decimals = 18;
         _totalSupply = 0;
 	    initialSupply = _totalSupply;
-	    balances[msg.sender] = _totalSupply;
         owner = msg.sender;
+	    balances[msg.sender] = _totalSupply;
         emit Transfer(address(0), msg.sender, _totalSupply);
     }
 
@@ -106,7 +116,7 @@ contract WBTCclaimToken is ERC20Interface, SafeMath {
     }
     
     function transfer(address to, uint tokens) external override returns (bool success) {
-        require(to != address(0),"WBTCclaimToken: Address should not be a zero");
+        require(to != address(0),"WETHclaimToken: Address should not be a zero");
         balances[msg.sender] = safeSub(balances[msg.sender], tokens);
         balances[to] = safeAdd(balances[to], tokens);
         emit Transfer(msg.sender, to, tokens);
@@ -114,28 +124,29 @@ contract WBTCclaimToken is ERC20Interface, SafeMath {
     }
     
    function transferFrom(address from, address to, uint tokens) external override returns (bool success) {
-        require(to != address(0),"WBTCclaimToken: Address should not be a zero");
+        require(to != address(0),"WETHclaimToken: Address should not be a zero");
         balances[from] = safeSub(balances[from], tokens);
         allowed[from][msg.sender] = safeSub(allowed[from][msg.sender], tokens);
         balances[to] = safeAdd(balances[to], tokens);
         emit Transfer(from, to, tokens);
         return true;
     }
-   
+    
     function burn(address account,uint tokens) external onlyAdmin {
-        require(account != address(0),"WBTCclaimToken: Burn from a zero address");
+        require(account != address(0),"WETHclaimToken: Burn from a zero address");
         uint256 accountBalance = balances[account];
-        require(accountBalance >= tokens , "WBTCclaimToken: Burn amount exceeds Balance");
+        require(accountBalance >= tokens , "WETHclaimToken: Burn amount exceeds Balance");
         balances[account] = safeSub(accountBalance,tokens);
         _totalSupply = safeSub(_totalSupply,tokens);
         emit Burn(msg.sender,address(0), tokens);
     }
     
     function mint(address account,uint tokens) external onlyAdmin {
-        require(account != address(0),"WBTCclaimToken: Mint from a zero address");
+        require(account != address(0),"WETHclaimToken: Mint from a zero address");
         balances[account] = safeAdd(balances[owner],tokens);
         _totalSupply = safeAdd(_totalSupply,tokens);
         emit Mint(msg.sender,address(0),tokens);  
     }
+
 
 }

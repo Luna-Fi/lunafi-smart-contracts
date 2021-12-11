@@ -2,6 +2,15 @@
 
 pragma solidity 0.8.10;
 
+//--------------------------------------
+//   USDC claim Token Contract 
+//
+// Symbol      : USDCCT
+// Name        : USDCClaimToken
+// Total supply: 0
+// Decimals    : 6
+//--------------------------------------
+
 /// @title An ERC20 Interface
 /// @author Chay
 
@@ -64,7 +73,7 @@ contract USDCclaimToken is ERC20Interface, SafeMath {
 
     constructor()  {
         name = "USDCClaimToken";
-        symbol = "UDCT";
+        symbol = "USDCCT";
         decimals = 6;
         _totalSupply = 0;
 	    initialSupply = _totalSupply;

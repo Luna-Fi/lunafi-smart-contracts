@@ -4,30 +4,30 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-interface WBTCclaimTokenInterface {
+interface WETHclaimTokenInterface {
     function burn(address account,uint tokens)  external;
     function mint(address account,uint tokens)  external;
     function balanceOf(address tokenOwner) external view  returns (uint getBalance);
 }
 
-contract housePoolWBTC is ReentrancyGuard {
+contract HousePoolWETH is ReentrancyGuard {
     
-    IERC20 wbtcToken;
-    WBTCclaimTokenInterface WBTCclaimToken;
+    IERC20 wethToken;
+    WETHclaimTokenInterface WETHclaimToken;
     address owner;
-    uint256 wbtcLiquidity;
+    uint256 wethLiquidity;
     uint256  ExchangeRatio = 100 ;
     
     mapping(address => uint256) userDepositAmount;
 
-    constructor(address _wbtcToken, address _WBTCclaimToken) {
-        wbtcToken = IERC20(_wbtcToken);
-        WBTCclaimToken = WBTCclaimTokenInterface(_WBTCclaimToken);
+    constructor(address _wethToken, address _WETHclaimToken) {
+        wethToken = IERC20(_wethToken);
+        WETHclaimToken = WETHclaimTokenInterface(_WETHclaimToken);
         owner = msg.sender;
     }
 
     function getLiquidityStatus() view external returns(uint256) {
-        return wbtcLiquidity;
+        return wethLiquidity;
     }
 
     function getUserBalance() view external returns(uint256) {
@@ -35,23 +35,23 @@ contract housePoolWBTC is ReentrancyGuard {
     }
 
     function deposit(uint256 _amount) external nonReentrant {
-        require(_amount > 0 && _amount <= wbtcToken.balanceOf(msg.sender),"WBTCHousePool: Check the Balance");
-        require(_amount > 100 * 10**8, "WBTCHousePool : Too less deposit");
-        wbtcLiquidity += _amount;
+        require(_amount > 0 && _amount <= wethToken.balanceOf(msg.sender),"WETHHousePool: Check the Balance");
+        require(_amount > 100 * 10**18, "WETHHousePool: Too less deposit");
+        wethLiquidity += _amount;
         userDepositAmount[msg.sender] += _amount;
-        wbtcToken.transferFrom(msg.sender, address(this), _amount);
+        wethToken.transferFrom(msg.sender, address(this), _amount);
         uint256 claimTokensToMint = _amount / ExchangeRatio;
-        WBTCclaimToken.mint(msg.sender, claimTokensToMint);
+        WETHclaimToken.mint(msg.sender, claimTokensToMint);
     }
 
     function withdraw(uint256 _LPTokens) external nonReentrant {
         require(_LPTokens > 0,"USDCHousePool: Zero Amount");
-        require(_LPTokens <= WBTCclaimToken.balanceOf(msg.sender),"WBTCHousePool: Amount exceeded");
+        require(_LPTokens <= WETHclaimToken.balanceOf(msg.sender),"WETHHousePool: Amount exceeded");
         uint256 amountToTransfer = _LPTokens * ExchangeRatio;
-        wbtcLiquidity -= amountToTransfer;
+        wethLiquidity -= amountToTransfer;
         userDepositAmount[msg.sender] -= amountToTransfer;
-        wbtcToken.transfer(msg.sender,amountToTransfer);
-        WBTCclaimToken.burn(msg.sender, _LPTokens);
+        wethToken.transfer(msg.sender,amountToTransfer);
+        WETHclaimToken.burn(msg.sender, _LPTokens);
     }
-    
+
 }

@@ -10,7 +10,7 @@ interface USDCclaimTokenInterface {
     function balanceOf(address tokenOwner) external view  returns (uint getBalance);
 }
 
-contract housePoolUSDC is ReentrancyGuard {
+contract HousePoolUSDC is ReentrancyGuard {
     
     IERC20 usdcToken;
     USDCclaimTokenInterface USDCclaimToken;

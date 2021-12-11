@@ -2,8 +2,14 @@
 
 pragma solidity 0.8.10;
 
-/// @title An ERC20 Interface
-/// @author Chay
+//--------------------------------------
+//  Mock WBTC Contract 
+//
+// Symbol      : tWBTC
+// Name        : mockWBTCToken
+// Total supply: 1000000000
+// Decimals    : 8
+//--------------------------------------
 
 abstract contract ERC20Interface {
     function totalSupply() virtual external view returns (uint256);
@@ -15,14 +21,12 @@ abstract contract ERC20Interface {
     
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
-    event Burn(address from, address, uint256 value);
-    event Mint(address from, address, uint256 value);
-   
-  }
 
-/// @title Safe Math Contract
-/// @notice This is used for safe add and safe subtract. This overcomes the overflow errors.
+}
 
+// ----------------------------------------------------------------------------
+// Safe Math Library 
+// ----------------------------------------------------------------------------
 contract SafeMath {
     function safeAdd(uint a, uint b) public pure returns (uint c) {
         c = a + b;
@@ -38,54 +42,28 @@ contract SafeMath {
 
 }
 
-contract WETHclaimToken is ERC20Interface, SafeMath {
-
-    uint8 public decimals;
-    address public owner;
-    uint256 public _totalSupply;
-    uint256 public initialSupply;
+contract mockWBTCToken is ERC20Interface, SafeMath{
     string public name;
     string public symbol;
+    uint8 public decimals;
+    uint256 public initialSupply;
+    uint256 public _totalSupply;
+    address public owner;
 
-    mapping(address => uint256) internal balances;
-    mapping(address => mapping(address => uint256)) internal allowed;
-    mapping(address => bool) internal admins;
-
-    modifier onlyAdmin() {
-        require(admins[msg.sender]);
-        _;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
-    }
-
-    constructor()  {
-        name = "wETHClaimToken";
-        symbol = "wECT";
-        decimals = 18;
-        _totalSupply = 0;
+    mapping(address => uint) internal balances;
+    mapping(address => mapping(address => uint)) internal allowed;
+    
+    constructor(){
+        name = "mockWBTCToken";
+        symbol = "tWBTC";
+        decimals = 8;
+        _totalSupply = 1000000000 * 10 ** uint256(decimals);
 	    initialSupply = _totalSupply;
-        owner = msg.sender;
 	    balances[msg.sender] = _totalSupply;
+        owner = msg.sender;
         emit Transfer(address(0), msg.sender, _totalSupply);
     }
-
-
-    function addAdmin(address account) public onlyOwner {
-        admins[account] = true;
-    }
-
-    function removeAdmin(address account) public onlyOwner {
-        admins[account] = false;
-    }
-
-    function isAdmin(address account) public view onlyOwner returns (bool) {
-        return admins[account];
-    }
-
-
+    
     function totalSupply() external view override returns (uint256) {
         return safeSub(_totalSupply, balances[address(0)]);
     }
@@ -93,7 +71,7 @@ contract WETHclaimToken is ERC20Interface, SafeMath {
     function balanceOf(address tokenOwner) external view override returns (uint getBalance) {
         return balances[tokenOwner];
     }
-
+ 
     function allowance(address tokenOwner, address spender) external view override returns (uint remaining) {
         return allowed[tokenOwner][spender];
     }
@@ -105,7 +83,7 @@ contract WETHclaimToken is ERC20Interface, SafeMath {
     }
     
     function transfer(address to, uint tokens) external override returns (bool success) {
-        require(to != address(0),"WETHclaimToken: Address should not be a zero");
+        require(to != address(0));
         balances[msg.sender] = safeSub(balances[msg.sender], tokens);
         balances[to] = safeAdd(balances[to], tokens);
         emit Transfer(msg.sender, to, tokens);
@@ -113,29 +91,12 @@ contract WETHclaimToken is ERC20Interface, SafeMath {
     }
     
    function transferFrom(address from, address to, uint tokens) external override returns (bool success) {
-        require(to != address(0),"WETHclaimToken: Address should not be a zero");
+        require(to != address(0));
         balances[from] = safeSub(balances[from], tokens);
         allowed[from][msg.sender] = safeSub(allowed[from][msg.sender], tokens);
         balances[to] = safeAdd(balances[to], tokens);
         emit Transfer(from, to, tokens);
         return true;
-    }
-    
-    function burn(address account,uint tokens) external onlyAdmin {
-        require(account != address(0),"WETHclaimToken: Burn from a zero address");
-        uint256 accountBalance = balances[account];
-        require(accountBalance >= tokens , "WETHclaimToken: Burn amount exceeds Balance");
-        balances[account] = safeSub(accountBalance,tokens);
-        _totalSupply = safeSub(_totalSupply,tokens);
-        emit Burn(msg.sender,address(0), tokens);
-    }
-    
-    function mint(address account,uint tokens) external onlyAdmin {
-        require(account != address(0),"WETHclaimToken: Mint from a zero address");
-        balances[account] = safeAdd(balances[owner],tokens);
-        _totalSupply = safeAdd(_totalSupply,tokens);
-        emit Mint(msg.sender,address(0),tokens);  
-    }
+   }
 
-
-}
+ }

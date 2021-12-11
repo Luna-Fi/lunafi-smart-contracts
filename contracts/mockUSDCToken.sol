@@ -1,6 +1,16 @@
+
 // SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.10;
+
+//--------------------------------------
+//  Mock USDC Contract 
+//
+// Symbol      : tUSDC
+// Name        : mockUSDCToken
+// Total supply: 1000000000
+// Decimals    : 6
+//--------------------------------------
 
 abstract contract ERC20Interface {
     function totalSupply() virtual external view returns (uint256);
@@ -9,10 +19,10 @@ abstract contract ERC20Interface {
     function transfer(address to, uint tokens) virtual external returns (bool);
     function approve(address spender, uint tokens) virtual external returns (bool);
     function transferFrom(address from, address to, uint tokens) virtual external returns (bool);
-  
+    
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
-   
+
 }
 
 // ----------------------------------------------------------------------------
@@ -33,24 +43,21 @@ contract SafeMath {
 
 }
 
-contract tWBTCToken is ERC20Interface, SafeMath{
+contract mockUSDCToken is ERC20Interface, SafeMath{
     string public name;
     string public symbol;
     uint8 public decimals;
     uint256 public initialSupply;
     uint256 public _totalSupply;
     address public owner;
-    uint public totalProfit;
-    uint public profit;
-   
+
     mapping(address => uint) internal balances;
     mapping(address => mapping(address => uint)) internal allowed;
-    
-    
-    constructor()  {
-        name = "tWBTC";
-        symbol = "tWB";
-        decimals = 8;
+   
+    constructor(){
+        name = "mockUSDCToken";
+        symbol = "tUSDC";
+        decimals = 6;
         _totalSupply = 1000000000 * 10 ** uint256(decimals);
 	    initialSupply = _totalSupply;
 	    balances[msg.sender] = _totalSupply;
@@ -92,5 +99,5 @@ contract tWBTCToken is ERC20Interface, SafeMath{
         emit Transfer(from, to, tokens);
         return true;
    }
-  
-}
+
+ }
