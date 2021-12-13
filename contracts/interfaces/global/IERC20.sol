@@ -6,7 +6,7 @@ interface IERC20 {
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Burn(address from, address, uint256 value);
     event Mint(address from, address, uint256 value);
-    
+
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
     function decimals() external view returns (uint8);
