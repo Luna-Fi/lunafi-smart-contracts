@@ -36,7 +36,6 @@ contract HousePoolWETH is ReentrancyGuard {
 
     function deposit(uint256 _amount) external nonReentrant {
         require(_amount > 0 && _amount <= wethToken.balanceOf(msg.sender),"WETHHousePool: Check the Balance");
-        require(_amount > 100 * 10**18, "WETHHousePool: Too less deposit");
         wethLiquidity += _amount;
         userDepositAmount[msg.sender] += _amount;
         wethToken.transferFrom(msg.sender, address(this), _amount);

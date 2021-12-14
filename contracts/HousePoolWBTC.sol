@@ -36,7 +36,6 @@ contract HousePoolWBTC is ReentrancyGuard {
 
     function deposit(uint256 _amount) external nonReentrant {
         require(_amount > 0 && _amount <= wbtcToken.balanceOf(msg.sender),"WBTCHousePool: Check the Balance");
-        require(_amount > 100 * 10**8, "WBTCHousePool : Too less deposit");
         wbtcLiquidity += _amount;
         userDepositAmount[msg.sender] += _amount;
         wbtcToken.transferFrom(msg.sender, address(this), _amount);

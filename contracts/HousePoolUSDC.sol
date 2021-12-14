@@ -36,7 +36,6 @@ contract HousePoolUSDC is ReentrancyGuard {
 
     function deposit(uint256 _amount) external nonReentrant {
         require(_amount > 0 && _amount <= usdcToken.balanceOf(msg.sender),"USDCHousePool: Check the Balance");
-        require(_amount > 100 * 10**6, "USDCHousePool : Too less deposit");
         usdcLiquidity += _amount;
         userDepositAmount[msg.sender] += _amount;
         usdcToken.transferFrom(msg.sender,address(this),_amount);
