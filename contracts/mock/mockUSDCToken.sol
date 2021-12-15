@@ -12,8 +12,9 @@ abstract contract ERC20Interface {
   
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
-   
-}
+    
+
+    }
 
 // ----------------------------------------------------------------------------
 // Safe Math Library 
@@ -33,7 +34,7 @@ contract SafeMath {
 
 }
 
-contract tWBTCToken is ERC20Interface, SafeMath{
+contract mockUSDCToken is ERC20Interface, SafeMath{
     string public name;
     string public symbol;
     uint8 public decimals;
@@ -46,18 +47,18 @@ contract tWBTCToken is ERC20Interface, SafeMath{
     mapping(address => uint) internal balances;
     mapping(address => mapping(address => uint)) internal allowed;
     
-    
     constructor()  {
-        name = "tWBTC";
-        symbol = "tWB";
-        decimals = 8;
+        name = "mockUSDC";
+        symbol = "tUSDC";
+        decimals = 6;
         _totalSupply = 1000000000 * 10 ** uint256(decimals);
-	    initialSupply = _totalSupply;
-	    balances[msg.sender] = _totalSupply;
+	      initialSupply = _totalSupply;
+	      balances[msg.sender] = _totalSupply;
         owner = msg.sender;
         emit Transfer(address(0), msg.sender, _totalSupply);
     }
     
+ 
     function totalSupply() external view override returns (uint256) {
         return safeSub(_totalSupply, balances[address(0)]);
     }
@@ -84,13 +85,13 @@ contract tWBTCToken is ERC20Interface, SafeMath{
         return true;
     }
     
-   function transferFrom(address from, address to, uint tokens) external override returns (bool success) {
+    function transferFrom(address from, address to, uint tokens) external override returns (bool success) {
         require(to != address(0));
         balances[from] = safeSub(balances[from], tokens);
         allowed[from][msg.sender] = safeSub(allowed[from][msg.sender], tokens);
         balances[to] = safeAdd(balances[to], tokens);
         emit Transfer(from, to, tokens);
         return true;
-   }
+    }
   
-}
+ }

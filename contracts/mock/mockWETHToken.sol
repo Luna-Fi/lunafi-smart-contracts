@@ -34,7 +34,7 @@ contract SafeMath {
 
 }
 
-contract tWETHToken is ERC20Interface, SafeMath{
+contract mockWETHToken is ERC20Interface, SafeMath{
     string public name;
     string public symbol;
     uint8 public decimals;
@@ -48,12 +48,12 @@ contract tWETHToken is ERC20Interface, SafeMath{
     mapping(address => mapping(address => uint)) internal allowed;
     
     constructor()  {
-        name = "tWETH";
-        symbol = "tWE";
+        name = "mockWETH";
+        symbol = "tWETH";
         decimals = 18;
         _totalSupply = 1000000000 * 10 ** uint256(decimals);
-	    initialSupply = _totalSupply;
-	    balances[msg.sender] = _totalSupply;
+	      initialSupply = _totalSupply;
+	      balances[msg.sender] = _totalSupply;
         owner = msg.sender;
         emit Transfer(address(0), msg.sender, _totalSupply);
     }
@@ -85,7 +85,7 @@ contract tWETHToken is ERC20Interface, SafeMath{
         return true;
     }
     
-   function transferFrom(address from, address to, uint tokens) external override returns (bool success) {
+    function transferFrom(address from, address to, uint tokens) external override returns (bool success) {
         require(to != address(0));
         balances[from] = safeSub(balances[from], tokens);
         allowed[from][msg.sender] = safeSub(allowed[from][msg.sender], tokens);
@@ -93,6 +93,5 @@ contract tWETHToken is ERC20Interface, SafeMath{
         emit Transfer(from, to, tokens);
         return true;
     }
-  
-    
+   
  }

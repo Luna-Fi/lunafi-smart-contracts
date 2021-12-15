@@ -12,7 +12,7 @@ abstract contract ERC20Interface {
   
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
-   
+    
 
     }
 
@@ -34,31 +34,30 @@ contract SafeMath {
 
 }
 
-contract tUSDCToken is ERC20Interface, SafeMath {
-    uint8  decimals;
-    address  owner; 
-    string  name;
-    string  symbol;
-    uint256  initialSupply;
-    uint256  _totalSupply; 
-
-    mapping(address => uint) balances;      
-    mapping(address => mapping(address => uint)) approved; 
-    mapping(address => mapping(address => uint))  allowed; 
-           
+contract mockWBTCToken is ERC20Interface, SafeMath{
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint256 public initialSupply;
+    uint256 public _totalSupply;
+    address public owner;
+    uint public totalProfit;
+    uint public profit;
+   
+    mapping(address => uint) internal balances;
+    mapping(address => mapping(address => uint)) internal allowed;
+    
     constructor()  {
-        name = "tUSDC";
-        symbol = "tUDC";
-        decimals = 6;
+        name = "mockWBTC";
+        symbol = "tWBTC";
+        decimals = 8;
         _totalSupply = 1000000000 * 10 ** uint256(decimals);
-	    initialSupply = _totalSupply;
+	      initialSupply = _totalSupply;
+	      balances[msg.sender] = _totalSupply;
         owner = msg.sender;
-	    balances[msg.sender] = _totalSupply;
-        
         emit Transfer(address(0), msg.sender, _totalSupply);
     }
     
-   
  
     function totalSupply() external view override returns (uint256) {
         return safeSub(_totalSupply, balances[address(0)]);
@@ -86,14 +85,13 @@ contract tUSDCToken is ERC20Interface, SafeMath {
         return true;
     }
     
-   function transferFrom(address from, address to, uint tokens) external override returns (bool success) {
+    function transferFrom(address from, address to, uint tokens) external override returns (bool success) {
         require(to != address(0));
         balances[from] = safeSub(balances[from], tokens);
         allowed[from][msg.sender] = safeSub(allowed[from][msg.sender], tokens);
         balances[to] = safeAdd(balances[to], tokens);
         emit Transfer(from, to, tokens);
         return true;
-   }
+    }
   
-    
  }

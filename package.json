@@ -11,15 +11,16 @@
     "url": "git+https://github.com/LunaBets/lunafi-smart-contracts.git"
   },
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.11",
+    "@defi-wonderland/smock": "^2.0.7",
+    "@eth-optimism/smock": "^1.1.10",
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@openzeppelin/contracts": "^4.3.3",
     "chai": "^4.3.4",
     "dotenv": "^10.0.0",
     "ethereum-waffle": "^3.4.0",
-    "ethers": "^5.5.2",
-    "hardhat": "^2.7.0",
-    "hardhat-deploy": "^0.9.14"
+    "ethers": "^5.5.1",
+    "hardhat": "^2.7.1"
   },
   "keywords": [
     "solidity",

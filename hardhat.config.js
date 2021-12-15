@@ -6,7 +6,7 @@ require('dotenv').config();
 require('hardhat-deploy');
 // require('hardhat-deploy-ethers');
 // require('hardhat-gas-reporter');
-const {node_url, accounts} = require('./scripts/network.js');
+const { node_url, accounts } = require('./scripts/network.js');
 
 const config = {
   solidity: {
@@ -53,6 +53,13 @@ const config = {
       accounts: accounts('rinkeby'),
       tags: ["staging"]
     },
+  },
+  settings: {
+    outputSelection: {
+      "*": {
+        "*": ["storageLayout"]
+      }
+    }
   }
   //   gasReporter: {
   //   currency: 'USD',
