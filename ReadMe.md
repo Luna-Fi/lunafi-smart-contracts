@@ -8,15 +8,15 @@
 
  `USDC Test Token Contract Address ---- 0xb1DB29B83d4e1329d8C28BA8DF69e75c25e57235` <br />
  `USDClaim Token Contract Address  ---- 0x1E3b2b406E5307468A7db6Ff81C4FF591BC3b515` <br />
- `USDCHousePool Contract Address   ---- 0xd9145CCE52D386f254917e481eB44e9943F39138` <br />
+ `USDCHousePool Contract Address   ---- 0xdD715145FF0551e8Ef6a7859Ea8e40e81889D396` <br />
  
  `WBTC Test Token Contract Address ---- 0x9F5b3Eeffb978cF50b897Cb1f44d1a2Ca66acCF9` <br />
  `WBTCClaim Token Contract Address ---- 0x51C124831eF8E18513B664cDc1348D9073D2F14D` <br />
- `WBTCHousePool Contract Address   ---- 0xf8e81D47203A594245E36C48e151709F0C19fBe8` <br />
+ `WBTCHousePool Contract Address   ---- 0x8947e7EDC1C31300E01fe2C7F071640347724F94` <br />
 
  `WETH Test Token Contract Address ---- 0xcaF1a42750C277bf06862012Ce5458EDBeA6e9E4` <br />
  `WETHClaim Token Contract Address ---- 0x246bB3384ED24D810F2b568E463Cf876DF68C10E` <br />
- `WETHHousePool Contract Address   ---- 0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8` <br />
+ `WETHHousePool Contract Address   ---- 0xb52be4F7a3a6D8F4689DD067Fe67d4fbBC1D2Ae1` <br />
 
  
 
