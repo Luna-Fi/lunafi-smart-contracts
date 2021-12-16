@@ -5,9 +5,9 @@ import { LibDiamond } from './libraries/LibDiamond.sol';
 import { IDiamondCut } from './interfaces/IDiamond.sol';
 
 contract LunaFiServer {
-    constructor(address _diamondCutFacet) {
+    constructor(address _diamondCutFacet, address _diamondOwner) {
         /* set ownership */
-        LibDiamond.setContractOwner(msg.sender);
+        LibDiamond.setContractOwner(_diamondOwner);
 
         /* initialize facets */
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
