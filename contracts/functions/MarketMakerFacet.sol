@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { LibAccess } from "../../libraries/LibAccess.sol";
+import { LibAccess } from "../libraries/LibAccess.sol";
 
 contract MarketMakerFacet {
     bytes32 public constant MM_ROLE = keccak256("lunafi.marketmaker");

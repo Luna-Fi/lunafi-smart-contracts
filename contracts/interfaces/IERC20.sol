@@ -1,12 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
+/// @notice Interface as defined in EIP20, with changes for compliance to compiler
 interface IERC20 {
-    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
-    event Transfer(address indexed _from, address indexed _to, uint256 _value);
-    event Burn(address from, address, uint256 value);
-    event Mint(address from, address, uint256 value);
-
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
     function decimals() external view returns (uint8);
@@ -16,4 +12,7 @@ interface IERC20 {
     function transferFrom(address _from, address _to, uint256 _value) external returns (bool success);
     function approve(address _spender, uint256 _value) external returns (bool success);
     function allowance(address _owner, address _spender) external view returns (uint256 remaining);
+
+    event Transfer(address indexed _from, address indexed _to, uint256 _value);
+    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 }

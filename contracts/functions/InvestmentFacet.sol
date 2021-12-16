@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import { LibInvestment } from '../../libraries/LibInvestment.sol';
-import { LibAccess } from '../../libraries/LibAccess.sol';
+import { LibInvestment } from '../libraries/LibInvestment.sol';
+import { LibAccess } from '../libraries/LibAccess.sol';
 
 contract InvestmentFacet {
 

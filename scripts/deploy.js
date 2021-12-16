@@ -6,18 +6,17 @@ async function deployLunaFiServer() {
   const owner = accounts[0];
 
   const diamondCutFacetAddress = await deployFacet('DiamondCutFacet');
-  console.log('Diamond Cut Facet deployed at: ', diamondCutFacetAddress);
+  // console.log('Diamond Cut Facet deployed at: ', diamondCutFacetAddress);
 
   const lFiAddress = await deployFacet('LunaFiServer', diamondCutFacetAddress);
-  console.log('LunaFi diamond server deployed at: ', lFiAddress);
+  // console.log('LunaFi diamond server deployed at: ', lFiAddress);
 
   // deploy facets
-  console.log('');
-  console.log('Deploying Facets...');
+  // console.log('');
+  // console.log('Deploying Facets...');
   const FacetNames = [
     'DiamondLoupeFacet',
-    'OracleFacet',
-    'OwnershipFacet',
+    'OwnershipFacet'
   ]
 
   const cut = [];
@@ -25,7 +24,7 @@ async function deployLunaFiServer() {
     const Facet = await ethers.getContractFactory(FacetName);
     const facet = await Facet.deploy();
     await facet.deployed();
-    console.log(`${FacetName} deployed: ${facet.address}`);
+    // console.log(`${FacetName} deployed: ${facet.address}`);
     cut.push({
       facetAddress: facet.address,
       action: FacetCutAction.Add,
@@ -34,15 +33,15 @@ async function deployLunaFiServer() {
   }
 
   // upgrade server
-  console.log('');
-  console.log('Diamond Cut being attempted: ', cut);
+  // console.log('');
+  // console.log('Diamond Cut being attempted: ', cut);
   const diamondCut = await ethers.getContractAt('IDiamondCut', lFiAddress);
   let tx, receipt;
   tx = await diamondCut.diamondCut(cut, ethers.constants.AddressZero, '0x');
-  console.log('LFi server cut attempted by tx:', tx.hash);
+  // console.log('LFi server cut attempted by tx:', tx.hash);
   receipt = await tx.wait();
   if (!receipt.status) { throw Error(`Cutting failed: ${tx.hash}`)}
-  console.log('LunaFi server successfully deployed & setup.');
+  // console.log('LunaFi server successfully deployed & setup.');
   return lFiAddress;
 }
 

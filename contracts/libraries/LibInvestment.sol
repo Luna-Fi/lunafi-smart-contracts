@@ -8,9 +8,11 @@ library LibInvestment {
     function invest(uint256 amountToInvest, address investor, bytes32 currency) internal {
         _validateInvestor(investor);
         /* LibERC20.acceptWETH(amountToInvest); */
+        /* ClaimTokenWETHFacet.transfer(); */
+        /* ClaimTokenWBTC.transfer(); */
 
         // mint claim tokens
-        /* uint256 claimTokensMinted = LibERC20.mintWETHClaimTokens(amountToInvest); */
+        /* uint256 claimTokensMinted = LibERC20.mint(currency, amountToInvest); */
 
         // transfer claim tokens
         /* LibERC20.transferFrom(currency, investor, treasuryAddress, amountToInvest); */

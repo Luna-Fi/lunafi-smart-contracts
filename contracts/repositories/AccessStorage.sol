@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-library AccessStorageRepository {
-    bytes32 internal constant ACCESS_STORAGE_POSITION = keccak256("lunafi.access");
+library AccessStorage {
+    bytes32 internal constant ACCESS_STORAGE_POSITION = keccak256("lunafi.store.access");
 
     struct RoleData {
         mapping(address => bool) members;

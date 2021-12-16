@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import { IEventUser, IProofUser } from '../interfaces/native/IEventUser.sol';
+import { IEventUser, IProofUser } from '../interfaces/IEventUser.sol';
 
-contract EventStorageRepository is IEventUser, IProofUser {
-
+library EventStorage {
     bytes32 internal constant EVENT_STORAGE_POSITION = keccak256("lunafi.event");
 
     struct Counter {
@@ -13,7 +12,7 @@ contract EventStorageRepository is IEventUser, IProofUser {
 
     struct EventsStore {
         Counter _eventIdCounter;
-        mapping(uint256 => Event) events;
+        mapping(uint256 => IEventUser.Event) events;
     }
 
     function eventsStore()

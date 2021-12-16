@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import { LibDiamond } from './libraries/LibDiamond.sol';
-import { IDiamondCut } from './interfaces/native/IDiamondCut.sol';
+import { IDiamondCut } from './interfaces/IDiamond.sol';
 
 contract LunaFiServer {
     constructor(address _diamondCutFacet) {

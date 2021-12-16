@@ -1,97 +1,119 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import  '../repositories/ERC20StorageRepository.sol';
+import  '../repositories/ERC20Storage.sol';
+import { IERC20DataUser } from '../interfaces/IERC20User.sol';
+import "hardhat/console.sol";
 
 library LibERC20 {
-    function initializeERC20(bytes32 erc20SymbolInBytes32) internal {
-        ERC20StorageRepository.ClaimTokenStore storage cts = ERC20StorageRepository.claimTokenStore();
-        string memory erc20Symbol = string(abi.encodePacked(erc20SymbolInBytes32));
-        cts.acceptedCryptos[erc20SymbolInBytes32].symbol = erc20Symbol;
+    event Approved(address indexed _owner, address indexed _spender, uint256 _value, bytes32 _currencyKey);
+    event Transferred(address indexed _from, address indexed _to, uint256 _value, bytes32 _currencyKey);
+    event Burnt(address _from, uint256 _value, bytes32 _currencyKey);
+    event Minted(address _from, uint256 _value, bytes32 _currencyKey);
+
+    function getName(bytes32 currencyKey)
+        internal view returns(string memory)
+    {
+        ERC20Storage.ERC20Store storage ts = ERC20Storage.erc20Store();
+        return ts.erc20Tokens[currencyKey].tokenMetadata.name;
     }
 
-    /* /// @dev warning! from https://ethereum.stackexchange.com/a/9152 */
-    /* function stringToBytes32(string memory source) internal pure returns (bytes32 result) { */
-    /*     bytes memory temp = bytes(source); */
-    /*     if (temp.length == 0) { */
-    /*         return 0x0; */
-    /*     } */
-    /*     assembly { result := mload(add(source, 32)) } */
-    /* } */
-
-    /* function name(bytes32 cryptoName) internal view returns(string memory tokenName) { */
-    /* } */
-
-    function symbol(bytes32 erc20) external view returns(string memory tokenSymbol) {
-        ERC20StorageRepository.ClaimTokenStore storage cts = ERC20StorageRepository.claimTokenStore();
-        tokenSymbol = cts.acceptedCryptos[erc20].symbol;
+    function getSymbol(bytes32 currencyKey)
+        internal view returns(string memory)
+    {
+        ERC20Storage.ERC20Store storage ts = ERC20Storage.erc20Store();
+        return ts.erc20Tokens[currencyKey].tokenMetadata.symbol;
     }
 
-    /*  function decimals() external view override returns(uint8) { */
-    /*     TokenStorageContract.ClaimTokenStorage storage usdcts = TokenStorageContract.usdcClaimTokenStorage(); */
-    /*     return usdcts.decimals; */
-    /*  } */
+    function getDecimals(bytes32 currencyKey)
+        internal view returns(uint8)
+    {
+        ERC20Storage.ERC20Store storage ts = ERC20Storage.erc20Store();
+        return ts.erc20Tokens[currencyKey].tokenMetadata.decimals;
+    }
 
-    /* function totalSupply() external view override returns(uint) { */
-    /*     TokenStorageContract.ClaimTokenStorage storage usdcts = TokenStorageContract.usdcClaimTokenStorage(); */
-    /*     return usdcts._totalSupply; */
-    /* } */
 
-    /* function balanceOf(address tokenOwner) external view override returns (uint getBalance) { */
-    /*     TokenStorageContract.ClaimTokenStorage storage usdcts = TokenStorageContract.usdcClaimTokenStorage(); */
-    /*     getBalance = usdcts.balances[tokenOwner]; */
-    /* } */
+    function getTotalSupply(bytes32 currencyKey) internal view returns(uint256) {
+        ERC20Storage.ERC20Store storage ts = ERC20Storage.erc20Store();
+        return ts.erc20Tokens[currencyKey].totalSupply;
+    }
 
-    /* function allowance(address tokenOwner, address spender) external view override returns (uint remaining) { */
-    /*     TokenStorageContract.ClaimTokenStorage storage usdcts = TokenStorageContract.usdcClaimTokenStorage(); */
-    /*     remaining = usdcts.allowed[tokenOwner][spender]; */
-    /* } */
+    function mint(address account, uint256 amount, bytes32 currencyKey)
+        internal
+    {
+        require(account != address(0), "LibERC20: mint from a zero address");
 
-    /* function approve(address spender, uint tokens) external override returns (bool success) { */
-    /*     TokenStorageContract.ClaimTokenStorage storage usdcts = TokenStorageContract.usdcClaimTokenStorage(); */
-    /*     usdcts.allowed[msg.sender][spender] = tokens; */
-    /*     emit Approval(msg.sender, spender, tokens); */
-    /*     return true; */
-    /* } */
+        ERC20Storage.ERC20Store storage ts = ERC20Storage.erc20Store();
+        IERC20DataUser.ERC20Data storage erc20data = ts.erc20Tokens[currencyKey];
 
-    /* function transfer(address to, uint tokens) external override returns (bool success) { */
-    /*     require(to != address(0)); */
-    /*     TokenStorageContract.ClaimTokenStorage storage usdcts = TokenStorageContract.usdcClaimTokenStorage(); */
-    /*     usdcts.balances[msg.sender] = usdcts.balances[msg.sender] - tokens; */
-    /*     usdcts.balances[to] = usdcts.balances[to] + tokens; */
-    /*     emit Transfer(msg.sender, to, tokens); */
-    /*     return true; */
-    /* } */
+        erc20data.totalSupply += amount;
+        erc20data.balances[account] += amount;
 
-    function transferFrom(bytes32 currency, address from, address to, uint tokens) external returns (bool success) {
-        require(to != address(0));
-        ERC20StorageRepository.ClaimTokenStore storage cts = ERC20StorageRepository.claimTokenStore();
-        ERC20StorageRepository.ERC20TokenStore storage _weth = cts.acceptedCryptos[currency];
-        /* TokenStorageContract.ClaimTokenStorage storage usdcts = TokenStorageContract.usdcClaimTokenStorage(); */
-        /* usdcts.balances[from] = usdcts.balances[from] - tokens; */
-        /* usdcts.allowed[from][msg.sender] = usdcts.allowed[from][msg.sender] - tokens; */
-        /* usdcts.balances[to] = usdcts.balances[to] - tokens; */
-        /* emit Transfer(from, to, tokens); */
-        _weth.balances[to] = _weth.balances[to] + tokens;
+        emit Minted(account, amount, currencyKey);
+     }
+
+    function burn(address account, uint256 amount, bytes32 currencyKey)
+        internal
+    {
+        require(account != address(0),"LibERC20: Burn from a zero address");
+
+        ERC20Storage.ERC20Store storage ts = ERC20Storage.erc20Store();
+        IERC20DataUser.ERC20Data storage erc20data = ts.erc20Tokens[currencyKey];
+
+        uint256 accountBalance = erc20data.balances[account];
+        require(accountBalance >= amount, "LibERC20: burn amount exceeds balance");
+
+        unchecked {
+            erc20data.balances[account] = accountBalance - amount;
+        }
+        erc20data.totalSupply -= amount;
+
+        emit Burnt(account, amount, currencyKey);
+    }
+
+    function getBalanceOf(address account, bytes32 currencyId) internal view returns(uint256) {
+        ERC20Storage.ERC20Store storage ts = ERC20Storage.erc20Store();
+        return ts.erc20Tokens[currencyId].balances[account];
+    }
+
+    function getAllowance(address tokenOwner, address spender, bytes32 currencyId)
+        internal view returns(uint256)
+    {
+        ERC20Storage.ERC20Store storage ts = ERC20Storage.erc20Store();
+        return ts.erc20Tokens[currencyId].allowances[tokenOwner][spender];
+    }
+
+    function approve(address tokenOwner, address spender, uint256 amount, bytes32 currencyKey)
+        internal returns (bool)
+    {
+        require(tokenOwner != address(0), "LibERC20: approval from zero address");
+        require(spender != address(0), "LibERC20: approval for zero address");
+
+        ERC20Storage.ERC20Store storage ts = ERC20Storage.erc20Store();
+        ts.erc20Tokens[currencyKey].allowances[tokenOwner][spender] = amount;
+
+        emit Approved(tokenOwner, spender, amount, currencyKey);
         return true;
     }
 
-    /*  function burn(address account,uint tokens) external onlyAdmin { */
-    /*     require(account != address(0),"USDCclaimToken: Burn from a zero address"); */
-    /*     TokenStorageContract.ClaimTokenStorage storage usdcts = TokenStorageContract.usdcClaimTokenStorage(); */
-    /*     uint256 accountBalance = usdcts.balances[account]; */
-    /*     require(accountBalance >= tokens , "USDCclaimToken: Burn amount exceeds Balance"); */
-    /*     usdcts.balances[account] = accountBalance - tokens; */
-    /*     usdcts._totalSupply = usdcts._totalSupply - tokens; */
-    /*     emit Burn(msg.sender,address(0), tokens); */
-    /*  } */
+    function transfer(address sender, address recipient, uint256 amount, bytes32 currencyKey)
+        internal returns (bool)
+    {
+        require(sender != address(0), "LibERC20: approval for zero address");
+        require(recipient != address(0), "LibERC20: approval for zero address");
 
-    /*  function mint(address account,uint tokens) external onlyAdmin { */
-    /*     require(account != address(0),"USDCclaimToken: Mint from a zero address"); */
-    /*     TokenStorageContract.ClaimTokenStorage storage usdcts = TokenStorageContract.usdcClaimTokenStorage(); */
-    /*     usdcts.balances[account] = usdcts.balances[usdcts.owner] + tokens; */
-    /*     usdcts._totalSupply = usdcts._totalSupply + tokens; */
-    /*     emit Mint(msg.sender,address(0),tokens);   */
-    /*  } */
+        ERC20Storage.ERC20Store storage ts = ERC20Storage.erc20Store();
+        IERC20DataUser.ERC20Data storage erc20data = ts.erc20Tokens[currencyKey];
 
+        uint256 senderBalance = erc20data.balances[sender];
+        require(senderBalance >= amount, "LibERC20: transfer amount exceeds balance");
+
+        unchecked {
+            erc20data.balances[sender] = senderBalance - amount;
+        }
+        erc20data.balances[recipient] += amount;
+
+        emit Transferred(sender, recipient, amount, currencyKey);
+        return true;
+    }
 }
