@@ -30,8 +30,8 @@ contract HousePoolWETH is ReentrancyGuard {
         return wethLiquidity;
     }
 
-    function getUserBalance() view external returns(uint256) {
-        return userDepositAmount[msg.sender];
+    function getMyBalance(address _user) view external returns(uint256) {
+        return userDepositAmount[_user];
     }
 
     function deposit(uint256 _amount) external nonReentrant {
