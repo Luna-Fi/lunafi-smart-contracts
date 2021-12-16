@@ -75,7 +75,7 @@ contract WETHclaimToken is ERC20Interface, SafeMath {
     constructor()  {
         name = "wETHClaimToken";
         symbol = "wETHCT";
-        decimals = 18;
+        decimals = 8;
         _totalSupply = 0;
 	    initialSupply = _totalSupply;
         owner = msg.sender;

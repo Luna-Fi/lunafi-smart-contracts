@@ -74,7 +74,7 @@ contract USDCclaimToken is ERC20Interface, SafeMath {
     constructor()  {
         name = "USDCClaimToken";
         symbol = "USDCCT";
-        decimals = 6;
+        decimals = 8;
         _totalSupply = 0;
 	    initialSupply = _totalSupply;
         owner = msg.sender;
