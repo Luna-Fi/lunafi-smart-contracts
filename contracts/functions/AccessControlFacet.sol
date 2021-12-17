@@ -27,14 +27,4 @@ contract AccessControlFacet {
     {
         LibAccess.grantRole(roleName, newUser);
     }
-
-    /* bytes32 internal constant DATA_PROVIDER_ROLE = keccak256("lunafi.dataprovider"); */
-    /* event DataProviderAdded(address _newDataProvider); */
-
-    /* function addDataProvider(address newDataProvider) public { */
-    /*     bytes32 admin_ = LibAccess.getRoleAdmin(DATA_PROVIDER_ROLE); */
-    /*     require(LibAccess.hasRole(admin_, msg.sender), "Restricted to data provider admins only "); */
-    /*     LibAccess.grantRole(DATA_PROVIDER_ROLE, newDataProvider); */
-    /*     emit DataProviderAdded(newDataProvider); */
-    /* } */
 }

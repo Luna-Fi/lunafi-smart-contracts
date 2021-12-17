@@ -13,7 +13,9 @@
   "devDependencies": {
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@openzeppelin/contracts": "^4.3.3",
-    "chai": "^4.3.4"
+    "chai": "^4.3.4",
+    "dotenv": "^10.0.0",
+    "hardhat-deploy": "^0.9.14"
   },
   "keywords": [
     "solidity",

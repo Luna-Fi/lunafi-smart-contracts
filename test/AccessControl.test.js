@@ -9,7 +9,6 @@ describe('AccessControlTests', async function () {
   let lunaFi, diamondLoupeFacet
 
   before(async function () {
-    await hre.network.provider.send("hardhat_reset");
     [owner, ...accounts] = await ethers.getSigners();
     lunaFi = await deployLunaFiServer();
     diamondLoupeFacet = await ethers.getContractAt('DiamondLoupeFacet', lunaFi);
