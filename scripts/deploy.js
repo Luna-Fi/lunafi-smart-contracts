@@ -6,14 +6,14 @@ async function deployLunaFiServer() {
   const defaultOwner = accounts[0];
 
   const diamondCutFacetAddress = await deployFacet('DiamondCutFacet');
-  console.log('Diamond Cut Facet deployed at: ', diamondCutFacetAddress);
+  // console.log('Diamond Cut Facet deployed at: ', diamondCutFacetAddress);
 
   const lFiAddress = await deployFacet('LunaFiServer', diamondCutFacetAddress, defaultOwner.address);
-  console.log('LunaFi diamond server deployed at: ', lFiAddress);
+  // console.log('LunaFi diamond server deployed at: ', lFiAddress);
 
   // deploy facets
-  console.log('');
-  console.log('Deploying Facets...');
+  // console.log('');
+  // console.log('Deploying Facets...');
   const FacetNames = [
     'DiamondLoupeFacet',
     'OwnershipFacet'
