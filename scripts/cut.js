@@ -12,7 +12,7 @@ async function main(lunaFiServerAddress, facetAddress_, selectors, action_, init
   const receipt = await tx.wait();
   if(!receipt.status) {
     throw Error(`Upgrade failed: $(tx.hash)`)
-  } else { console.log(" -- LunaFi server diamond was cut!") }
+  } // else { console.log(" -- LunaFi server diamond was cut!") }
 }
 
 if (require.main === module) {

@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import { LibDiamond } from "../libraries/LibDiamond.sol";
 import { LibAccess } from "../libraries/LibAccess.sol";
+import 'hardhat/console.sol';
 
 contract AccessControlFacet {
-    function init() external {
+    function initAccessControl() external {
         // Initially, makes the diamond owner the default admin
         bytes32 roleName = LibAccess._getDefaultAdminRoleName();
         LibAccess._grantRole(roleName, LibDiamond.contractOwner());
