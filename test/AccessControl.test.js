@@ -24,16 +24,16 @@ describe('AccessControlTests', async function () {
   it('deploys access control facet', async function () {
     const AccessControlFacet = await ethers.getContractFactory('AccessControlFacet');
     const selectors = getSelectors(AccessControlFacet);
+
     const selectorsAvailable = await diamondLoupeFacet.facetFunctionSelectors(accessControlFacet.address);
+
     assert.sameMembers(selectorsAvailable, selectors);
   })
 
   it('should initilize access control facet', async function () {
-    const ownershipFacet = await ethers.getContractAt('OwnershipFacet', lunaFi);
-    expect(await ownershipFacet.owner())
-      .to.equal(owner.address);
     const acf = await ethers.getContractAt('AccessControlFacet', lunaFi);
-    await expect(acf.connect(owner).initAccessControl()).to.not.be.revertedWith();
+    await expect(acf.connect(owner).initAccessControl())
+      .to.not.be.revertedWith();
   })
 
   it('adds a new admin as default admin', async function() {
