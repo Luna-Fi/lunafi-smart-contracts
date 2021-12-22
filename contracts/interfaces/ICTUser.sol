@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import { IERC20MetadataUser } from '../interfaces/IERC20User.sol';
+// import { IERC20MetadataUser } from '../interfaces/IERC20User.sol';
 // struct ERC20Metadata {
 //     uint8 decimals;
 //     string name;
@@ -10,7 +10,7 @@ import { IERC20MetadataUser } from '../interfaces/IERC20User.sol';
 
 interface IClaimTokenDataUser {
     struct ClaimTokenData {
-        IERC20MetadataUser.ERC20Metadata claimTokenMetadata;
+        // IERC20MetadataUser.ERC20Metadata claimTokenMetadata;
         address forERC20;
     }
 }

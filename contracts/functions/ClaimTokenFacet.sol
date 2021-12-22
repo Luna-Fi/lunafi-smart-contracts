@@ -1,14 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import { LibAccess } from '../libraries/LibAccess.sol';
-import { LibERC20 } from '../libraries/LibERC20.sol';
+import { LibDiamond } from '../libraries/LibDiamond.sol';
+import { LibToken } from '../libraries/LibToken.sol';
+import { IERC20MetadataUser } from '../interfaces/IERC20User.sol';
+
 import 'hardhat/console.sol';
 
 contract ClaimTokenFacet {
-    function registerToken()
+    function registerToken(IERC20MetadataUser.ERC20Metadata calldata _tokenMetadata,
+                           address _serverAddress,
+                           address _forERC20)
         external returns(bool success)
     {
-        console.log(msg.sender);
+        LibDiamond.enforceIsContractOwner();
+        LibToken.createClaimToken(_tokenMetadata, _serverAddress, _forERC20);
     }
 }

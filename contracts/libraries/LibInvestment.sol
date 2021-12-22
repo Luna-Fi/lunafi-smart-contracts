@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import { LibAccess } from '../libraries/LibAccess.sol';
-import { LibERC20 } from '../libraries/LibERC20.sol';
+// import { LibERC20 } from '../libraries/LibERC20.sol';
 
 library LibInvestment {
     function invest(uint256 amountToInvest, address investor, bytes32 currency) internal {

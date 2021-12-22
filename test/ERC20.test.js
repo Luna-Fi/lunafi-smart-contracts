@@ -25,7 +25,6 @@ describe('MockTokens', async function () {
     const ef = await ethers.getContractAt('ERC20Facet', lunaFi);
     const erc20Metadata = [18, 'Wrapped Ethereum', 'WETH'];
 
-    console.log(await ef.connect(owner).createERC20(erc20Metadata, lunaFi));
     await expect(ef.createERC20(erc20Metadata, lunaFi))
       .to.not.be.revertedWith();
   })
