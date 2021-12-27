@@ -1,12 +1,12 @@
-const { getSelectors, FacetCutAction, deployFacet, deployLunaFiServer } = require('../scripts/deploy.js')
+const { getSelectors, FacetCutAction, deployLunaFiServer } = require('../scripts/deploy.js')
 const { cut } = require('../scripts/cut.js')
 const { assert, expect } = require('chai')
 
 describe('ClaimTokens', async function () {
-  let tx, receipt, result;
+  
   let owner, accounts
 
-  let lunaFi, diamondLoupeFacet, accessControlFacet
+  let lunaFi, diamondLoupeFacet
 
   before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
