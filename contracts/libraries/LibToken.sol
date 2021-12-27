@@ -16,10 +16,10 @@ library LibToken {
     event Created(address _creator, bytes32 _currencyKey, address _erc20Address);
     // TODO // event Destroyed(address _creator, bytes32 _currencyKey);
 
-    function tokenExists(bytes32 currencyKey) internal returns (bool)
+    function tokenExists(bytes32 currencyKey) view internal returns (bool)
     {
         TokenStorage.TokenStore storage ts = TokenStorage.tokenStore();
-        return ts.erc20Tokens[currencyKey].erc20Implementation == address(0);
+        return ts.erc20Tokens[currencyKey].erc20Implementation != address(0);
     }
 
     function createClaimToken(IERC20MetadataUser.ERC20Metadata calldata _tokenMetadata,
