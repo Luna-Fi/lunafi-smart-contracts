@@ -16,6 +16,10 @@ contract HousePoolUSDC is ReentrancyGuard {
     USDCclaimTokenInterface USDCclaimToken;
     address owner;
     uint256 usdcLiquidity;
+    uint256 bettingStakes;
+    uint256 maxExposure;
+    uint256 ev;
+    uint256 usdcLPTokenPrice;
     uint256  ExchangeRatio = 100 ;
 
     mapping(address => uint256) userDepositAmount;
@@ -26,6 +30,31 @@ contract HousePoolUSDC is ReentrancyGuard {
         owner = msg.sender;
     }
 
+    function setTokenPrice() internal {
+        uint256 TVLOfPool = usdcLiquidity + ev;
+        usdcLPTokenPrice = TVLOfPool / usdcToken.totalSupply();     
+    }
+
+    function getLPPrice() view external returns(uint256) {
+        return usdcLPTokenPrice;
+    }
+
+    function setMaxExposure(uint256 exposure) external {
+        ev = exposure;
+    }
+
+    function getMaxExposure() view external returns(uint256) {
+        return maxExposure;
+    }
+
+    function setBettingStakes(uint256 bettingAmount) external {
+        bettingStakes = bettingAmount;
+    }
+
+    function getBettingStakes() view external returns(uint256) {
+        return bettingStakes;
+    }
+
     function getLiquidityStatus() view external returns(uint256) {
         return usdcLiquidity;
     }
@@ -34,12 +63,13 @@ contract HousePoolUSDC is ReentrancyGuard {
         return userDepositAmount[_user];
     }
 
-    function deposit(uint256 _amount) external nonReentrant {
-        require(_amount > 0 && _amount <= usdcToken.balanceOf(msg.sender),"USDCHousePool: Check the Balance");
-        usdcLiquidity += _amount;
-        userDepositAmount[msg.sender] += _amount;
-        usdcToken.transferFrom(msg.sender,address(this),_amount);
-        uint256 LPTokensToMint = _amount / ExchangeRatio;
+    function deposit(uint256 amount) external nonReentrant {
+        require(amount > 0 && amount <= usdcToken.balanceOf(msg.sender),"USDCHousePool: Check the Balance");
+        usdcLiquidity += amount;
+        userDepositAmount[msg.sender] += amount;
+        usdcToken.transferFrom(msg.sender,address(this),amount);
+        setTokenPrice();
+        uint256 LPTokensToMint = amount / usdcLPTokenPrice;
         USDCclaimToken.mint(msg.sender, LPTokensToMint);
     }
 
