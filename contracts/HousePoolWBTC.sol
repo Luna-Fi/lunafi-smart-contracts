@@ -14,7 +14,6 @@ contract HousePoolWBTC is ReentrancyGuard {
     
     IERC20 wbtcToken;
     WBTCclaimTokenInterface WBTCclaimToken;
-    address owner;
     uint256 wbtcLiquidity;
     uint256  ExchangeRatio = 100 ;
     
@@ -23,7 +22,6 @@ contract HousePoolWBTC is ReentrancyGuard {
     constructor(address _wbtcToken, address _WBTCclaimToken) {
         wbtcToken = IERC20(_wbtcToken);
         WBTCclaimToken = WBTCclaimTokenInterface(_WBTCclaimToken);
-        owner = msg.sender;
     }
 
     function getLiquidityStatus() view external returns(uint256) {

@@ -14,7 +14,6 @@ contract HousePoolWETH is ReentrancyGuard {
     
     IERC20 wethToken;
     WETHclaimTokenInterface WETHclaimToken;
-    address owner;
     uint256 wethLiquidity;
     uint256  ExchangeRatio = 100 ;
     
@@ -23,7 +22,6 @@ contract HousePoolWETH is ReentrancyGuard {
     constructor(address _wethToken, address _WETHclaimToken) {
         wethToken = IERC20(_wethToken);
         WETHclaimToken = WETHclaimTokenInterface(_WETHclaimToken);
-        owner = msg.sender;
     }
 
     function getLiquidityStatus() view external returns(uint256) {
