@@ -9,6 +9,7 @@ interface USDCclaimTokenInterface {
     function burn(address account,uint tokens)  external;
     function mint(address account,uint tokens)  external;
     function balanceOf(address tokenOwner) external view  returns (uint getBalance);
+    function totalSupply() external view returns (uint256);
 }
 
 contract HousePoolUSDC is ReentrancyGuard, Ownable {
@@ -19,7 +20,7 @@ contract HousePoolUSDC is ReentrancyGuard, Ownable {
     uint256 bettingStakes;
     uint256 maxExposure;
     uint256 ev;
-    uint256 usdcLPTokenPrice = 100;
+    uint256 LPTokenPrice = 100;
     uint256 tvl;
     uint256  ExchangeRatio = 100 ;
 
@@ -30,17 +31,18 @@ contract HousePoolUSDC is ReentrancyGuard, Ownable {
         USDCclaimToken = USDCclaimTokenInterface(_USDCclaimToken);
     }
 
-    function setTokenPrice() internal onlyOwner {
-        usdcLPTokenPrice = tvl / usdcToken.totalSupply();     
+    function setTokenPrice() internal  {
+        LPTokenPrice = tvl / usdcToken.totalSupply();     
     }
 
-    function getTVL() view internal returns(uint256) {
+    function getTokenPrice() view external returns (uint256) {
+        return LPTokenPrice;
+    }
+
+    function getTVLofPool() view external returns(uint256) {
         return tvl;
     }
-    function getLPPrice() view external returns(uint256) {
-        return usdcLPTokenPrice;
-    }
-
+    
     function setMaxExposure(uint256 exposure) external onlyOwner {
         maxExposure = exposure;
     }
@@ -81,10 +83,10 @@ contract HousePoolUSDC is ReentrancyGuard, Ownable {
         tvl += amount;
         userDepositAmount[msg.sender] += amount;
         usdcToken.transferFrom(msg.sender,address(this),amount);
-        if(usdcToken.totalSupply() != 0) {
+        if(USDCclaimToken.totalSupply() != 0) {
             setTokenPrice();
         }
-        uint256 LPTokensToMint = amount / usdcLPTokenPrice;
+        uint256 LPTokensToMint = amount / LPTokenPrice;
         USDCclaimToken.mint(msg.sender, LPTokensToMint);
         
     }
