@@ -41,7 +41,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
 
     function setTokenPrice() internal {
         LPTokenPrice = tvl / USDCclaimToken.totalSupply();
-        LPTokenPrice = LPTokenPrice * 10**POOL_PRECISION;
+        LPTokenPrice = LPTokenPrice ;
     }
 
     function getTokenPrice() external view returns (uint256) {
