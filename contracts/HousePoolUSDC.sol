@@ -4,7 +4,7 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "hardhat/console.sol";
+
 
 interface USDCclaimTokenInterface {
     function burn(address account, uint256 tokens) external;

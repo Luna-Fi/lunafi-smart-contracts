@@ -1,3 +1,14 @@
+# Updated USDC HousePool contract details:
+
+`USDC Test Token Contract Address ---- 0xb1DB29B83d4e1329d8C28BA8DF69e75c25e57235` <br />
+`USDClaim Token Contract Address  ---- 0xAa448618922182D27F2CEeB9374744dc8d654eE8` <br />
+`USDCHousePool Contract Address   ---- 0xA54452f247Fc36545Fa37ecc7754e794409E32FE` <br />
+
+
+` As of now this account "0xdd8eBa4604D2a9C6c77e4bC557B1884119174726" serves as the owner of the contract.`
+`Private key for the account is available in .env.example file.`
+` The above account is a test account created for LunaFI testing purpose. Don't send any main net Ether to that account.`
+
 # Stand alone HousePool contracts.
  
  The contracts here are just to serve the purpose of initial integration <br />
