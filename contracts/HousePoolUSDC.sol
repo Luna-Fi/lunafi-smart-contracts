@@ -43,7 +43,6 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
 
     function setTokenPrice() internal {
         LPTokenPrice = (tvl * 10**POOL_PRECISION) / USDCclaimToken.totalSupply();
-        console.log("Token Price", LPTokenPrice);
     }
 
     function getTokenPrice() external view returns (uint256) {
@@ -117,12 +116,10 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
 
     function withdraw(uint256 amount) external nonReentrant {
         require(amount > 0, "USDCHousePool: Zero Amount");
-        console.log(USDCclaimToken.balanceOf(msg.sender) / 10**POOL_PRECISION);
         require(
             amount <=  (USDCclaimToken.balanceOf(msg.sender) / 10**POOL_PRECISION) * LPTokenPrice  &&  
             amount <  usdcLiquidity - maxExposure,"USDCHousePool : can't withdraw");
         uint256 LPTokensToBurn = (amount * 10**POOL_PRECISION)/ (LPTokenPrice);
-        console.log(LPTokensToBurn);
         usdcLiquidity -= amount;
         userDepositAmount[msg.sender] -= amount;
         usdcToken.transfer(msg.sender, amount);
