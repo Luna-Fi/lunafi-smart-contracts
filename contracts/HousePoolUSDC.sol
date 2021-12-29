@@ -28,8 +28,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
     uint256 constant POOL_PRECISION = 6;
     uint256 LPTokenPrice = 100 * 10**POOL_PRECISION;
     uint256 tvl;
-    uint256 ExchangeRatio = 100;
-
+    
     bytes32 public constant HOUSE_POOL_DATA_PROVIDER = keccak256("HOUSEPOOL_DATA_PROVIDER");
 
     mapping(address => uint256) userDepositAmount;
@@ -42,6 +41,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
 
     function setTokenPrice() internal {
         LPTokenPrice = tvl / USDCclaimToken.totalSupply();
+        LPTokenPrice = LPTokenPrice * 10**POOL_PRECISION;
     }
 
     function getTokenPrice() external view returns (uint256) {
@@ -108,16 +108,15 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
         }
     }
 
-    function withdraw(uint256 _LPTokens) external nonReentrant {
-        require(_LPTokens > 0, "USDCHousePool: Zero Amount");
+    function withdraw(uint256 amount) external nonReentrant {
+        require(amount > 0, "USDCHousePool: Zero Amount");
         require(
-            _LPTokens <= USDCclaimToken.balanceOf(msg.sender),
-            "USDCHousePool: Amount exceeded"
-        );
-        uint256 amountToTransfer = _LPTokens * ExchangeRatio;
-        usdcLiquidity -= amountToTransfer;
-        userDepositAmount[msg.sender] -= amountToTransfer;
-        usdcToken.transfer(msg.sender, amountToTransfer);
-        USDCclaimToken.burn(msg.sender, _LPTokens);
+            amount <= USDCclaimToken.balanceOf(msg.sender) * LPTokenPrice && 
+            (amount < ( usdcLiquidity - maxExposure)));
+        uint256 LPTokens = amount / LPTokenPrice;
+        usdcLiquidity -= amount;
+        userDepositAmount[msg.sender] -= amount;
+        usdcToken.transfer(msg.sender, amount);
+        USDCclaimToken.burn(msg.sender, LPTokens);
     }
 }
