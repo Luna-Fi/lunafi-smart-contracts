@@ -143,7 +143,7 @@ contract WETHclaimToken is ERC20Interface, SafeMath {
     
     function mint(address account,uint tokens) external onlyAdmin {
         require(account != address(0),"WETHclaimToken: Mint from a zero address");
-        balances[account] = safeAdd(balances[owner],tokens);
+        balances[account] = safeAdd(balances[account],tokens);
         _totalSupply = safeAdd(_totalSupply,tokens);
         emit Mint(msg.sender,address(0),tokens);  
     }

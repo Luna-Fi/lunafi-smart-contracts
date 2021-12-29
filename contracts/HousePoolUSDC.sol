@@ -4,6 +4,7 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "hardhat/console.sol";
 
 interface USDCclaimTokenInterface {
     function burn(address account, uint256 tokens) external;
@@ -26,7 +27,8 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
     uint256 maxExposure;
     uint256 ev;
     uint256 constant POOL_PRECISION = 6;
-    uint256 LPTokenPrice = 100 * 10**POOL_PRECISION;
+    uint256 IntialLPTokenPrice = 100*10**POOL_PRECISION ;
+    uint256 LPTokenPrice ;
     uint256 tvl;
     
     bytes32 public constant HOUSE_POOL_DATA_PROVIDER = keccak256("HOUSEPOOL_DATA_PROVIDER");
@@ -40,8 +42,8 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
     }
 
     function setTokenPrice() internal {
-        LPTokenPrice = tvl / USDCclaimToken.totalSupply();
-        LPTokenPrice = LPTokenPrice ;
+        LPTokenPrice = (tvl * 10**POOL_PRECISION) / USDCclaimToken.totalSupply();
+        console.log("Token Price", LPTokenPrice);
     }
 
     function getTokenPrice() external view returns (uint256) {
@@ -66,7 +68,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
     external onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
         ev = expectedValue;
-        tvl += ev;
+        tvl += expectedValue;
         setTokenPrice();
     }
 
@@ -101,22 +103,29 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
         tvl += amount;
         userDepositAmount[msg.sender] += amount;
         usdcToken.transferFrom(msg.sender, address(this), amount);
-        uint256 LPTokensToMint = amount / LPTokenPrice;
-        USDCclaimToken.mint(msg.sender, LPTokensToMint);
-        if (USDCclaimToken.totalSupply() != 0) {
+        if(USDCclaimToken.totalSupply() == 0) {
+            uint256 LPTokensToMint = (amount * 10**POOL_PRECISION)/ (IntialLPTokenPrice);
+            USDCclaimToken.mint(msg.sender, LPTokensToMint);
             setTokenPrice();
+        }else {
+           uint256 LPTokensToMint = (amount * 10**POOL_PRECISION)/ (LPTokenPrice);
+           USDCclaimToken.mint(msg.sender, LPTokensToMint);
+           setTokenPrice(); 
         }
+        
     }
 
     function withdraw(uint256 amount) external nonReentrant {
         require(amount > 0, "USDCHousePool: Zero Amount");
+        console.log(USDCclaimToken.balanceOf(msg.sender) / 10**POOL_PRECISION);
         require(
-            amount <= USDCclaimToken.balanceOf(msg.sender) * LPTokenPrice && 
-            (amount < ( usdcLiquidity - maxExposure)));
-        uint256 LPTokens = amount / LPTokenPrice;
+            amount <=  (USDCclaimToken.balanceOf(msg.sender) / 10**POOL_PRECISION) * LPTokenPrice  &&  
+            amount <  usdcLiquidity - maxExposure,"USDCHousePool : can't withdraw");
+        uint256 LPTokensToBurn = (amount * 10**POOL_PRECISION)/ (LPTokenPrice);
+        console.log(LPTokensToBurn);
         usdcLiquidity -= amount;
         userDepositAmount[msg.sender] -= amount;
         usdcToken.transfer(msg.sender, amount);
-        USDCclaimToken.burn(msg.sender, LPTokens);
+        USDCclaimToken.burn(msg.sender, LPTokensToBurn);
     }
 }
