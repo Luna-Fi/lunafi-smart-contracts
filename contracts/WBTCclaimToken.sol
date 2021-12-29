@@ -2,6 +2,9 @@
 
 pragma solidity 0.8.10;
 
+import "./libraries/SafeMath.sol";
+import "./interfaces/ERC20Interface.sol";
+
 //--------------------------------------
 //   WBTC claim Token Contract 
 //
@@ -10,43 +13,6 @@ pragma solidity 0.8.10;
 // Total supply: 0
 // Decimals    : 8
 //--------------------------------------
-
-/// @title An ERC20 Interface
-/// @author Chay
-
-abstract contract ERC20Interface {
-
-    function totalSupply() virtual external view returns (uint256);
-    function balanceOf(address tokenOwner) virtual external view returns (uint);
-    function allowance(address tokenOwner, address spender) virtual external view returns (uint);
-    function transfer(address to, uint tokens) virtual external returns (bool);
-    function approve(address spender, uint tokens) virtual external returns (bool);
-    function transferFrom(address from, address to, uint tokens) virtual external returns (bool);
-
-    event Transfer(address indexed from, address indexed to, uint tokens);
-    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
-    event Burn(address from, address, uint256 value);
-    event Mint(address from, address, uint256 value);
-   
-  }
-
-/// @title Safe Math Contract
-/// @notice This is used for safe add and safe subtract. This overcomes the overflow errors.
-
-contract SafeMath {
-    function safeAdd(uint a, uint b) public pure returns (uint c) {
-        c = a + b;
-        require(c >= a, "SafeMath: addition overflow");
-        return c;
-    }
-
-    function safeSub(uint a, uint b) public pure returns (uint c) {
-        require(b <= a, "SafeMath: subtraction overflow"); 
-        c = a - b; 
-        return c;
-    }
-
-}
 
 contract WBTCclaimToken is ERC20Interface, SafeMath {
     
