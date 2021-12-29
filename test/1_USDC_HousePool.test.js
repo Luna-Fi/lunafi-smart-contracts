@@ -2,40 +2,40 @@ const { expect } = require("chai");
 
 describe("USDC HousePool", () => {
    
+    let MOCKUSDC
+    let USDCCLAIMTOKEN
+    let USDCHOUSEPOOL 
+    let usdcHousePool
+    let usdcClaimToken
     let mockUSDC
-    let USDCClaimToken
-    let USDCHousePool 
-    let usdc_house_pool
-    let usdc_claim_token
-    let mock_usdc
 
     before(async () => {
         
         const approvalAmount = 1000000 * 10**8
         const [owner,user1] = await ethers.getSigners()
 
-        mockUSDC = await ethers.getContractFactory("mockUSDCToken")
-        mock_usdc = await mockUSDC.deploy()
-        await mock_usdc.deployed()
-        console.log(" Mock USDC Token Address  : ", mock_usdc.address)
+        MOCKUSDC = await ethers.getContractFactory("mockUSDCToken")
+        mockUSDC = await MOCKUSDC.deploy()
+        await mockUSDC.deployed()
+        console.log(" Mock USDC Token Address  : ", mockUSDC.address)
         
-        USDCClaimToken = await ethers.getContractFactory("USDCclaimToken")
-        usdc_claim_token = await USDCClaimToken.deploy()
-        await usdc_claim_token.deployed()
-        console.log(" USDC Claim Token Address : ", usdc_claim_token.address)
+        USDCCLAIMTOKEN = await ethers.getContractFactory("USDCclaimToken")
+        usdcClaimToken = await USDCCLAIMTOKEN.deploy()
+        await usdcClaimToken.deployed()
+        console.log(" USDC Claim Token Address : ", usdcClaimToken.address)
 
-        USDCHousePool = await ethers.getContractFactory("HousePoolUSDC")
-        usdc_house_pool = await USDCHousePool.deploy(owner.address,mock_usdc.address,usdc_claim_token.address)
-        await usdc_house_pool.deployed()
-        console.log(" USDC House Pool  Address  : ", usdc_house_pool.address)
+        USDCHOUSEPOOL = await ethers.getContractFactory("HousePoolUSDC")
+        usdcHousePool = await USDCHOUSEPOOL.deploy(owner.address,mockUSDC.address,usdcClaimToken.address)
+        await usdcHousePool.deployed()
+        console.log(" USDC House Pool  Address  : ", usdcHousePool.address)
 
-        await mock_usdc.approve(usdc_house_pool.address, approvalAmount)
-        await usdc_claim_token.approve(usdc_house_pool.address,approvalAmount)
-        await usdc_claim_token.addAdmin(usdc_house_pool.address)
+        await mockUSDC.approve(usdcHousePool.address, approvalAmount)
+        await usdcClaimToken.approve(usdcHousePool.address,approvalAmount)
+        await usdcClaimToken.addAdmin(usdcHousePool.address)
 
-        await mock_usdc.connect(user1).approve(usdc_house_pool.address, approvalAmount)
-        await usdc_claim_token.connect(user1).approve(usdc_house_pool.address,approvalAmount)
-        await mock_usdc.transfer(user1.address,10000*10**6)
+        await mockUSDC.connect(user1).approve(usdcHousePool.address, approvalAmount)
+        await usdcClaimToken.connect(user1).approve(usdcHousePool.address,approvalAmount)
+        await mockUSDC.transfer(user1.address,10000*10**6)
     })
 
     it(`Should allow the first user to deposit USDC Tokens into the house pool and get pool Tokens
@@ -45,11 +45,11 @@ describe("USDC HousePool", () => {
         const amount = 5000 * 10**6
         let lpTokenPrice = 100 * 10**6
         
-        await usdc_house_pool.deposit(amount)
-        const liquidity = await usdc_house_pool.getLiquidityStatus()
-        const TVLOfPool = await usdc_house_pool.getTVLofPool()
-        const LPTokenPrice = await usdc_house_pool.getTokenPrice()
-        const LpTokensIssued = await usdc_claim_token.balanceOf(owner.address)
+        await usdcHousePool.deposit(amount)
+        const liquidity = await usdcHousePool.getLiquidityStatus()
+        const TVLOfPool = await usdcHousePool.getTVLofPool()
+        const LPTokenPrice = await usdcHousePool.getTokenPrice()
+        const LpTokensIssued = await usdcClaimToken.balanceOf(owner.address)
 
         expect(liquidity.toNumber()).to.equal(amount)
         expect(TVLOfPool.toNumber()).to.equal(amount)
@@ -62,15 +62,15 @@ describe("USDC HousePool", () => {
 
         const [owner] = await ethers.getSigners()
         const evValue = 15 * 10**6;
-        const DataProviderValue = await usdc_house_pool.HOUSE_POOL_DATA_PROVIDER()
-        await usdc_house_pool.grantRole(DataProviderValue,owner.address)
+        const DataProviderValue = await usdcHousePool.HOUSE_POOL_DATA_PROVIDER()
+        await usdcHousePool.grantRole(DataProviderValue,owner.address)
 
-        await usdc_house_pool.setEV(evValue)
+        await usdcHousePool.setEV(evValue)
 
-        const TVLOfPool = await usdc_house_pool.getTVLofPool()
-        const liquidity = await usdc_house_pool.getLiquidityStatus()
-        const LPTokenPrice = await usdc_house_pool.getTokenPrice()
-        const LPTotalSupply = await usdc_claim_token.totalSupply()
+        const TVLOfPool = await usdcHousePool.getTVLofPool()
+        const liquidity = await usdcHousePool.getLiquidityStatus()
+        const LPTokenPrice = await usdcHousePool.getTokenPrice()
+        const LPTotalSupply = await usdcClaimToken.totalSupply()
         const LpTokenPrice = TVLOfPool.toNumber()/LPTotalSupply.toNumber()
         
         expect(TVLOfPool.toNumber()).to.equal(liquidity.toNumber() + evValue)
@@ -85,22 +85,21 @@ describe("USDC HousePool", () => {
         const amount = 10000 * 10**6
         const approvalAmount = 1000000 * 10**8
 
-        const currentLPTokenPrice = await usdc_house_pool.getTokenPrice()
+        const currentLPTokenPrice = await usdcHousePool.getTokenPrice()
 
-        const currentTVLOfValue = await usdc_house_pool.getTVLofPool()
-        const currentLiquidity = await usdc_house_pool.getLiquidityStatus()
-        const currentClaimTokens = await usdc_claim_token.totalSupply()
-        const currentBalanceOfUser = await usdc_claim_token.balanceOf(user1.address)
-        const currentLPPrice = await usdc_house_pool.getTokenPrice()
-        console.log("Current LP Price",currentLPPrice.toNumber())
+        const currentTVLOfValue = await usdcHousePool.getTVLofPool()
+        const currentLiquidity = await usdcHousePool.getLiquidityStatus()
+        const currentClaimTokens = await usdcClaimToken.totalSupply()
+        const currentBalanceOfUser = await usdcClaimToken.balanceOf(user1.address)
+        const currentLPPrice = await usdcHousePool.getTokenPrice()
+        
+        await usdcHousePool.connect(user1).deposit(amount)
 
-        await usdc_house_pool.connect(user1).deposit(amount)
-
-        const updatedTVlOfPool = await usdc_house_pool.getTVLofPool()
-        const updatedLiquidity = await usdc_house_pool.getLiquidityStatus()
-        const updatedclaimTokens = await usdc_claim_token.totalSupply()
-        const updatedBalanceOfUser = await usdc_claim_token.balanceOf(user1.address)
-        const updatedLPPrice = await usdc_house_pool.getTokenPrice()
+        const updatedTVlOfPool = await usdcHousePool.getTVLofPool()
+        const updatedLiquidity = await usdcHousePool.getLiquidityStatus()
+        const updatedclaimTokens = await usdcClaimToken.totalSupply()
+        const updatedBalanceOfUser = await usdcClaimToken.balanceOf(user1.address)
+        const updatedLPPrice = await usdcHousePool.getTokenPrice()
         
         expect(updatedTVlOfPool.toNumber()).to.equal(amount + currentTVLOfValue.toNumber())
         expect(updatedLiquidity.toNumber()).to.equal(currentLiquidity.toNumber() + amount);
