@@ -27,8 +27,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
     uint256 maxExposure;
     uint256 ev;
     uint256 constant POOL_PRECISION = 6;
-    uint256 IntialLPTokenPrice = 100*10**POOL_PRECISION ;
-    uint256 LPTokenPrice ;
+    uint256 LPTokenPrice = 100*10**POOL_PRECISION ;
     uint256 tvl;
     
     bytes32 public constant HOUSE_POOL_DATA_PROVIDER = keccak256("HOUSEPOOL_DATA_PROVIDER");
@@ -102,16 +101,12 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
         tvl += amount;
         userDepositAmount[msg.sender] += amount;
         usdcToken.transferFrom(msg.sender, address(this), amount);
-        if(USDCclaimToken.totalSupply() == 0) {
-            uint256 LPTokensToMint = (amount * 10**POOL_PRECISION)/ (IntialLPTokenPrice);
-            USDCclaimToken.mint(msg.sender, LPTokensToMint);
+        uint256 LPTokensToMint = (amount * 10**POOL_PRECISION)/ (LPTokenPrice);
+        USDCclaimToken.mint(msg.sender, LPTokensToMint);
+        if(USDCclaimToken.totalSupply() != 0) {
             setTokenPrice();
-        }else {
-           uint256 LPTokensToMint = (amount * 10**POOL_PRECISION)/ (LPTokenPrice);
-           USDCclaimToken.mint(msg.sender, LPTokensToMint);
-           setTokenPrice(); 
         }
-        
+           
     }
 
     function withdraw(uint256 amount) external nonReentrant {
