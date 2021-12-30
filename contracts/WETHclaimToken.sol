@@ -2,9 +2,6 @@
 
 pragma solidity 0.8.10;
 
-import "./libraries/SafeMath.sol";
-import "./interfaces/ERC20Interface.sol";
-
 //--------------------------------------
 //   WETH claim Token Contract 
 //
@@ -13,6 +10,41 @@ import "./interfaces/ERC20Interface.sol";
 // Total supply: 0
 // Decimals    : 18
 //--------------------------------------
+
+/// @title An ERC20 Interface
+/// @author Chay
+
+abstract contract ERC20Interface {
+    function totalSupply() virtual external view returns (uint256);
+    function balanceOf(address tokenOwner) virtual external view returns (uint);
+    function allowance(address tokenOwner, address spender) virtual external view returns (uint);
+    function transfer(address to, uint tokens) virtual external returns (bool);
+    function approve(address spender, uint tokens) virtual external returns (bool);
+    function transferFrom(address from, address to, uint tokens) virtual external returns (bool);
+    
+    event Transfer(address indexed from, address indexed to, uint tokens);
+    event Approval(address indexed tokenOwner, address indexed spender, uint tokens); 
+
+}
+
+
+/// @title Safe Math Contract
+/// @notice This is used for safe add and safe subtract. This overcomes the overflow errors.
+
+contract SafeMath {
+    function safeAdd(uint a, uint b) public pure returns (uint c) {
+        c = a + b;
+        require(c >= a, "SafeMath: addition overflow");
+        return c;
+    }
+
+    function safeSub(uint a, uint b) public pure returns (uint c) {
+        require(b <= a, "SafeMath: subtraction overflow"); 
+        c = a - b; 
+        return c;
+    }
+
+}
 
 contract WETHclaimToken is ERC20Interface, SafeMath {
 
@@ -40,7 +72,7 @@ contract WETHclaimToken is ERC20Interface, SafeMath {
     constructor()  {
         name = "wETHClaimToken";
         symbol = "wETHCT";
-        decimals = 8;
+        decimals = 18;
         _totalSupply = 0;
 	    initialSupply = _totalSupply;
         owner = msg.sender;
@@ -103,14 +135,14 @@ contract WETHclaimToken is ERC20Interface, SafeMath {
         require(accountBalance >= tokens , "WETHclaimToken: Burn amount exceeds Balance");
         balances[account] = safeSub(accountBalance,tokens);
         _totalSupply = safeSub(_totalSupply,tokens);
-        emit Burn(msg.sender,address(0), tokens);
+        emit Transfer(msg.sender,address(0), tokens);
     }
     
     function mint(address account,uint tokens) external onlyAdmin {
         require(account != address(0),"WETHclaimToken: Mint from a zero address");
         balances[account] = safeAdd(balances[account],tokens);
         _totalSupply = safeAdd(_totalSupply,tokens);
-        emit Mint(msg.sender,address(0),tokens);  
+        emit Transfer(address(0),msg.sender,tokens);  
     }
 
 
