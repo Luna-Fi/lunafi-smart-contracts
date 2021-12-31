@@ -29,7 +29,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
     uint256 ev;
     uint256 constant POOL_PRECISION = 6 ;
     uint256 LPTokenPrice = 100*10**POOL_PRECISION ;
-    uint256 withdrawlPrice ;
+    uint256 LPTokenWithdrawlPrice = 100*10**POOL_PRECISION ;
     uint256 tvl ;
     
     bytes32 public constant HOUSE_POOL_DATA_PROVIDER = keccak256("HOUSEPOOL_DATA_PROVIDER");
@@ -46,8 +46,16 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
         LPTokenPrice = (tvl * 10**POOL_PRECISION) / USDCclaimToken.totalSupply();
     }
 
+    function setLPTokenWithdrawlPrice() internal {
+        LPTokenWithdrawlPrice = (usdcLiquidity * 10**POOL_PRECISION)/USDCclaimToken.totalSupply();
+    }
+
     function getTokenPrice() external view returns (uint256) {
         return LPTokenPrice;
+    }
+
+    function getTokenWithdrawlPrice() external view returns(uint256) {
+        return LPTokenWithdrawlPrice;
     }
 
     function getTVLofPool() external view returns (uint256) {
@@ -105,21 +113,24 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
         usdcToken.transferFrom(msg.sender, address(this), amount);
         uint256 LPTokensToMint = (amount * 10**POOL_PRECISION)/ (LPTokenPrice);
         USDCclaimToken.mint(msg.sender, LPTokensToMint);
-        if(USDCclaimToken.totalSupply() != 0) {
-            setTokenPrice();
-        }
-           
+        setTokenPrice();
+        setLPTokenWithdrawlPrice();     
     }
+
+    
 
     function withdraw(uint256 amount) external nonReentrant {
         require(amount > 0, "USDCHousePool: Zero Amount");
         require(
-            amount <=  (USDCclaimToken.balanceOf(msg.sender) / 10**POOL_PRECISION) * LPTokenPrice  &&  
+            amount <=  (USDCclaimToken.balanceOf(msg.sender) / 10**POOL_PRECISION) * LPTokenWithdrawlPrice  &&  
             amount <  usdcLiquidity - maxExposure,"USDCHousePool : can't withdraw");
-        uint256 LPTokensToBurn = (amount * 10**POOL_PRECISION)/ (LPTokenPrice);
+        uint256 LPTokensToBurn = (amount * 10**POOL_PRECISION)/ (LPTokenWithdrawlPrice);
         usdcLiquidity -= amount;
+        tvl -= amount;
         userDepositAmount[msg.sender] -= amount;
         usdcToken.transfer(msg.sender, amount);
         USDCclaimToken.burn(msg.sender, LPTokensToBurn);
+        setLPTokenWithdrawlPrice();
     }
+
 }
