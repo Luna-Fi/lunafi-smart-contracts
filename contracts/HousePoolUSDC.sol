@@ -27,9 +27,10 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl {
     uint256 bettingStakes;
     uint256 maxExposure;
     uint256 ev;
-    uint256 constant POOL_PRECISION = 6;
+    uint256 constant POOL_PRECISION = 6 ;
     uint256 LPTokenPrice = 100*10**POOL_PRECISION ;
-    uint256 tvl;
+    uint256 withdrawlPrice ;
+    uint256 tvl ;
     
     bytes32 public constant HOUSE_POOL_DATA_PROVIDER = keccak256("HOUSEPOOL_DATA_PROVIDER");
 

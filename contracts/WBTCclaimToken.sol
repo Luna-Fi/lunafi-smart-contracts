@@ -138,14 +138,14 @@ contract WBTCclaimToken is ERC20Interface, SafeMath {
         require(accountBalance >= tokens , "WBTCclaimToken: Burn amount exceeds Balance");
         balances[account] = safeSub(accountBalance,tokens);
         _totalSupply = safeSub(_totalSupply,tokens);
-        emit Transfer(msg.sender,address(0), tokens);
+        emit Transfer(account,address(0), tokens);
     }
     
     function mint(address account,uint tokens) external onlyAdmin {
         require(account != address(0),"WBTCclaimToken: Mint from a zero address");
         balances[account] = safeAdd(balances[account],tokens);
         _totalSupply = safeAdd(_totalSupply,tokens);
-        emit Transfer(address(0),msg.sender,tokens);  
+        emit Transfer(address(0),account,tokens);  
     }
 
 }
