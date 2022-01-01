@@ -54,9 +54,14 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
                 )
             )
         );
-        SignatureChecker.isValidSignatureNow(_data.signer, _digest, _signature);
+        require(
+            SignatureChecker.isValidSignatureNow(_data.signer, _digest, _signature),
+            "HousePoolUSDC: invalid signature"
+        );
 
-        require(_data.signer != address(0), "HousePoolUSDC: invalid signer");
+        require(
+            _data.signer != address(0),
+            "HousePoolUSDC: invalid signer");
 
         require(
             hasRole(HOUSE_POOL_DATA_PROVIDER, _data.signer),
