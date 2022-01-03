@@ -31,6 +31,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     uint256 LPTokenPrice = 100*10**POOL_PRECISION ;
     uint256 LPTokenWithdrawlPrice = 100*10**POOL_PRECISION ;
     uint256 tvl ;
+    uint256 treasuryAmount ;
 
     bytes32 public constant HDATA_PROVIDER_ORACLE =
         keccak256("HDATA_PROVIDER_ORACLE");
@@ -87,6 +88,18 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         usdcToken = IERC20(_usdctoken);
         USDCclaimToken = USDCclaimTokenInterface(_USDCclaimToken);
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
+    }
+
+    // TODO DELETE
+
+    function simulateOutcome(bool outcome, uint256 betAmount) external {
+        if(outcome == false) {
+            treasuryAmount += betAmount/100;
+            usdcLiquidity += (betAmount/100) * 99;
+        } else {
+            treasuryAmount += bettingStakes/100;
+            bettingStakes -= betAmount;
+        }
     }
 
     function setEVFromSignedData(
