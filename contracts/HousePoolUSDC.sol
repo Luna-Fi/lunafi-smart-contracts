@@ -98,11 +98,21 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     function setTokenPrice() internal {
-        LPTokenPrice = (tvl * 10**POOL_PRECISION) / USDCclaimToken.totalSupply();
+        if(USDCclaimToken.totalSupply() != 0) {
+            LPTokenPrice = 
+                (tvl * 10**POOL_PRECISION) / 
+                USDCclaimToken.totalSupply();
+        }
+        
     }
 
     function setLPTokenWithdrawlPrice() internal {
-        LPTokenWithdrawlPrice = (usdcLiquidity * 10**POOL_PRECISION)/USDCclaimToken.totalSupply();
+        if(USDCclaimToken.totalSupply() != 0) {
+            LPTokenWithdrawlPrice = 
+                (usdcLiquidity * 10**POOL_PRECISION) / 
+                USDCclaimToken.totalSupply();
+        }
+        
     }
 
     function getTokenPrice() external view returns (uint256) {
