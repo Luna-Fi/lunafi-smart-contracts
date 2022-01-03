@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 
+
 describe("USDC HousePool", () => {
    
     let MOCKUSDC
@@ -166,46 +167,100 @@ describe("USDC HousePool", () => {
         expect(updatedLiquidity.toNumber()).to.equal(currentLiquidity.toNumber() + amount);
         expect(updatedLPPrice.toNumber()).to.equal(Math.floor(updatedTVlOfPool.toNumber()/updatedclaimTokens.toNumber()*10**6))
         expect(updatedLPWithdrawPrice.toNumber()).to.equal(Math.floor(updatedLiquidity.toNumber()/updatedclaimTokens.toNumber()*10**6) )
-
-        
+ 
     })
 
-    it(`Should allow the user to withdraw the USDC from the house pool.
-        This Should Burn the proportionate LP tokens`, async () => {
+    it(`Should update the ev value`, async () => {
+
+        const [owner] = await ethers.getSigners()
+        const evValue = 490 * 10**6;
+        const DataProviderValue = await usdcHousePool.DATA_PROVIDER_ORACLE()
+        await usdcHousePool.grantRole(DataProviderValue,owner.address)
+        await usdcHousePool.grantRole(usdcHousePool.HOUSE_POOL_DATA_PROVIDER(),owner.address)
+
+        const _chain = await ethers.provider.getNetwork();
+        const _deadline = (await ethers.provider.getBlockNumber()) + 4;
+
+        const _signature = await owner._signTypedData(
+            {
+                name: "",
+                version: "",
+                chainId: _chain.chainId,
+                verifyingContract: usdcHousePool.address,
+            },
+            {
+                VoI: [
+                    { name: "signer", type: "address" },
+                    { name: "value", type: "int256" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "deadline", type: "uint256" }
+                ],
+            },
+            {
+                signer: owner.address,
+                value: evValue,
+                nonce: 0,
+                deadline: _deadline
+            }
+        );
+        await usdcHousePool.setEVFromSignedData(
+            _signature,
+            {
+                value: evValue,
+                deadline: _deadline,
+                signer: owner.address
+            });
+
+        const TVLOfPool = await usdcHousePool.getTVLofPool()
+        const liquidity = await usdcHousePool.getLiquidityStatus()
+        const LPTokenPrice = await usdcHousePool.getTokenPrice()
+        const LPTotalSupply = await usdcClaimToken.totalSupply()
+        const TVPNumber = TVLOfPool.toNumber()
+        const LPTotalNumber = LPTotalSupply.toNumber()
+        const res = TVPNumber/LPTotalNumber;
         
-        const [owner,user1] = await ethers.getSigners();
-        const Amount = 5000 * 10**6
+        expect(TVLOfPool.toNumber()).to.equal(liquidity.toNumber() + evValue)
+        expect(LPTokenPrice.toNumber()).to.equal(res*10**6)
+        
 
-        const beforeLiquidity = await usdcHousePool.getLiquidityStatus()
-        const WithdrawPrice = await usdcHousePool.getTokenPrice()
-        const beforeLPWPrice = await usdcHousePool.getTokenWithdrawlPrice()
-        const beforeTVLPrice = await usdcHousePool.getTVLofPool()
+    } )
 
+    // it(`Should allow the user to withdraw the USDC from the house pool.
+    //     This Should Burn the proportionate LP tokens`, async () => {
+        
+    //     const [owner,user1] = await ethers.getSigners();
+    //     const Amount = 5000 * 10**6
 
-        console.log("Liquidity before withdrawl :", beforeLiquidity.toNumber())
-        console.log("LPToken Price before withdrawl :", WithdrawPrice.toNumber())
-        console.log("LPwithdrawPrice before withdrawl :", beforeLPWPrice.toNumber())
-        console.log("TVL before withdrawl :", beforeTVLPrice.toNumber())
-
-        await usdcHousePool.connect(user1).withdraw(Amount);
-
-        const afterLiquidity = await usdcHousePool.getLiquidityStatus()
-        const TokenPriceafterWithdrawPrice = await usdcHousePool.getTokenPrice()
-        const afterLPWPrice = await usdcHousePool.getTokenWithdrawlPrice()
-        const afterTVLPrice = await usdcHousePool.getTVLofPool()
-        const claimTokens = await usdcClaimToken.totalSupply()
-
-        console.log("---------------------------------------------------")
-
-        console.log("Liquiduty after withdrawl :", afterLiquidity.toNumber())
-        console.log("LP Token price after withdrawl :", TokenPriceafterWithdrawPrice.toNumber())
-        console.log("LP Token withdrawl Price :",afterLPWPrice.toNumber())
-        console.log("TVL after withdraw :", afterTVLPrice.toNumber())
-
-        expect(afterLiquidity.toNumber()).to.equal(beforeLiquidity.toNumber() - Amount);
-        expect(TokenPriceafterWithdrawPrice.toNumber()).to.equal(Math.floor(afterTVLPrice.toNumber()/claimTokens.toNumber()*10**6))
-        expect(afterLPWPrice.toNumber()).to.equal(Math.floor(afterLiquidity.toNumber()/claimTokens.toNumber()*10**6) )
+    //     const beforeLiquidity = await usdcHousePool.getLiquidityStatus()
+    //     const WithdrawPrice = await usdcHousePool.getTokenPrice()
+    //     const beforeLPWPrice = await usdcHousePool.getTokenWithdrawlPrice()
+    //     const beforeTVLPrice = await usdcHousePool.getTVLofPool()
 
 
-    })
+    //     console.log("Liquidity before withdrawl :", beforeLiquidity.toNumber())
+    //     console.log("LPToken Price before withdrawl :", WithdrawPrice.toNumber())
+    //     console.log("LPwithdrawPrice before withdrawl :", beforeLPWPrice.toNumber())
+    //     console.log("TVL before withdrawl :", beforeTVLPrice.toNumber())
+
+    //     await usdcHousePool.connect(user1).withdraw(Amount);
+
+    //     const afterLiquidity = await usdcHousePool.getLiquidityStatus()
+    //     const TokenPriceafterWithdrawPrice = await usdcHousePool.getTokenPrice()
+    //     const afterLPWPrice = await usdcHousePool.getTokenWithdrawlPrice()
+    //     const afterTVLPrice = await usdcHousePool.getTVLofPool()
+    //     const claimTokens = await usdcClaimToken.totalSupply()
+
+    //     console.log("---------------------------------------------------")
+
+    //     console.log("Liquiduty after withdrawl :", afterLiquidity.toNumber())
+    //     console.log("LP Token price after withdrawl :", TokenPriceafterWithdrawPrice.toNumber())
+    //     console.log("LP Token withdrawl Price :",afterLPWPrice.toNumber())
+    //     console.log("TVL after withdraw :", afterTVLPrice.toNumber())
+
+    //     expect(afterLiquidity.toNumber()).to.equal(beforeLiquidity.toNumber() - Amount);
+    //     expect(TokenPriceafterWithdrawPrice.toNumber()).to.equal(Math.floor(afterTVLPrice.toNumber()/claimTokens.toNumber()*10**6))
+    //     expect(afterLPWPrice.toNumber()).to.equal(Math.floor(afterLiquidity.toNumber()/claimTokens.toNumber()*10**6) )
+
+
+    // })
 })

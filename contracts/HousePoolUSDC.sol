@@ -90,7 +90,11 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
     }
 
-    // TODO DELETE
+    // TODO DELETE ONCE ORDER PLACEMENT IS BUILT
+    // Following methods are only for simulating end to end order placement functionality which has not been built yet
+    // Outcome provider method used to simulate outcome for a particular betting stake amount
+    // oucome = true represents a bet won by the user and the beAmount is the bet amount for the bet
+    // outcome = false represents a bet lost by the user and the betAmount is the bet amount for the bet
     function simulateOutcome(bool outcome, uint256 betAmount) external {
         if(outcome == false) {
             treasuryAmount += betAmount/100;
