@@ -199,7 +199,7 @@ describe("USDC HousePool", () => {
             {
                 signer: owner.address,
                 value: evValue,
-                nonce: 0,
+                nonce: 1,
                 deadline: _deadline
             }
         );
