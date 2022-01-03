@@ -90,20 +90,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
     }
 
-    // TODO DELETE ONCE ORDER PLACEMENT IS BUILT
-    // Following methods are only for simulating end to end order placement functionality which has not been built yet
-    // Outcome provider method used to simulate outcome for a particular betting stake amount
-    // oucome = true represents a bet won by the user and the beAmount is the bet amount for the bet
-    // outcome = false represents a bet lost by the user and the betAmount is the bet amount for the bet
-    function simulateOutcome(bool outcome, uint256 betAmount) external {
-        if(outcome == false) {
-            treasuryAmount += betAmount/100;
-            usdcLiquidity += (betAmount/100) * 99;
-        } else {
-            treasuryAmount += bettingStakes/100;
-            bettingStakes -= betAmount;
-        }
-    }
+    
 
     function setEVFromSignedData(
         bytes memory signature,
@@ -113,29 +100,6 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         _setEV(data);
     }
 
-    function setTokenPrice() internal {
-        if(USDCclaimToken.totalSupply() != 0) {
-            LPTokenPrice = (tvl * 10**POOL_PRECISION) / USDCclaimToken.totalSupply();
-        }
-    }
-
-    function setLPTokenWithdrawlPrice() internal {
-        if(USDCclaimToken.totalSupply() != 0) {
-            LPTokenWithdrawlPrice = (usdcLiquidity * 10**POOL_PRECISION) / USDCclaimToken.totalSupply();
-        }
-    }
-
-    function getTokenPrice() external view returns (uint256) {
-        return LPTokenPrice;
-    }
-
-    function getTokenWithdrawlPrice() external view returns(uint256) {
-        return LPTokenWithdrawlPrice;
-    }
-
-    function getTVLofPool() external view returns (uint256) {
-        return tvl;
-    }
 
     function setMaxExposure(uint256 exposure)
         external
@@ -149,8 +113,13 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     function _setEV(VoI memory expectedValue) private {
+        if(ev.value == 0){
+           tvl += uint(expectedValue.value); 
+        }else {
+            tvl -= uint(ev.value);
+            tvl += uint(expectedValue.value);
+        }
         ev = expectedValue;
-        tvl += uint(expectedValue.value);
         setTokenPrice();
     }
 
@@ -158,16 +127,6 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         return ev.value;
     }
 
-    function setBettingStakes(uint256 bettingAmount)
-        external
-        onlyRole(DATA_PROVIDER_ORACLE)
-    {
-        bettingStakes = bettingAmount;
-    }
-
-    function getBettingStakes() external view returns (uint256) {
-        return bettingStakes;
-    }
 
     function getLiquidityStatus() external view returns (uint256) {
         return usdcLiquidity;
@@ -206,5 +165,81 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         usdcToken.transfer(msg.sender, amount);
         USDCclaimToken.burn(msg.sender, LPTokensToBurn);
         setLPTokenWithdrawlPrice();
+        setTokenPrice();
     }
+
+
+
+    // TODO DELETE ONCE ORDER PLACEMENT IS BUILT
+    // Following methods are only for simulating end to end order placement functionality which has not been built yet
+    // Outcome provider method used to simulate outcome for a particular betting stake amount
+    // oucome = true represents a bet won by the user and the beAmount is the bet amount for the bet
+    // outcome = false represents a bet lost by the user and the betAmount is the bet amount for the bet
+    function simulateOutcome(bool outcome, uint256 betAmount) external {
+        if(outcome == false) {
+            treasuryAmount += betAmount/100;
+            usdcLiquidity += (betAmount/100) * 99;
+        } else {
+            treasuryAmount += bettingStakes/100;
+            bettingStakes -= betAmount;
+        }
+        ev.value = 0;
+        maxExposure = 0;
+        tvl += treasuryAmount;
+        setTokenPrice();
+        setLPTokenWithdrawlPrice(); 
+    }
+
+    function getTreasuryAmount() view external returns(uint256) {
+        return treasuryAmount;
+    }
+
+    function setTokenPrice() internal {
+        if(USDCclaimToken.totalSupply() != 0) {
+            LPTokenPrice = (tvl * 10**POOL_PRECISION) / USDCclaimToken.totalSupply();
+        }
+    }
+
+    function setLPTokenWithdrawlPrice() internal {
+        if(USDCclaimToken.totalSupply() != 0) {
+            LPTokenWithdrawlPrice = (usdcLiquidity * 10**POOL_PRECISION) / USDCclaimToken.totalSupply();
+        }
+    }
+
+    function setTokenPrice() internal {
+        if(USDCclaimToken.totalSupply() != 0) {
+            LPTokenPrice = (tvl * 10**POOL_PRECISION) / USDCclaimToken.totalSupply();
+        }
+    }
+
+    function setLPTokenWithdrawlPrice() internal {
+        if(USDCclaimToken.totalSupply() != 0) {
+            LPTokenWithdrawlPrice = (usdcLiquidity * 10**POOL_PRECISION) / USDCclaimToken.totalSupply();
+        }
+    }
+
+    function getTokenPrice() external view returns (uint256) {
+        return LPTokenPrice;
+    }
+
+    function getTokenWithdrawlPrice() external view returns(uint256) {
+        return LPTokenWithdrawlPrice;
+    }
+
+    function getTVLofPool() external view returns (uint256) {
+        return tvl;
+    }
+
+    function setBettingStakes(uint256 bettingAmount)
+        external
+        onlyRole(DATA_PROVIDER_ORACLE)
+    {
+        bettingStakes = bettingAmount;
+    }
+
+    function getBettingStakes() external view returns (uint256) {
+        return bettingStakes;
+    }
+
+    
 }
