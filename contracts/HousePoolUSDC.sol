@@ -17,7 +17,7 @@ interface USDCclaimTokenInterface {
 
 contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     struct VoI {
-        uint256 value;
+        int256 value;
         uint256 deadline;
         address signer;
     }
@@ -33,8 +33,8 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     uint256 tvl ;
     uint256 treasuryAmount ;
 
-    bytes32 public constant HDATA_PROVIDER_ORACLE =
-        keccak256("HDATA_PROVIDER_ORACLE");
+    bytes32 public constant DATA_PROVIDER_ORACLE =
+        keccak256("DATA_PROVIDER_ORACLE");
     bytes32 public constant HOUSE_POOL_DATA_PROVIDER =
         keccak256("HOUSEPOOL_DATA_PROVIDER");
 
@@ -46,7 +46,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
             keccak256(
                 abi.encode(
                     keccak256(
-                        "VoI(address signer,uint256 value,uint256 nonce,uint256 deadline)"
+                        "VoI(address signer,int256 value,uint256 nonce,uint256 deadline)"
                     ),
                     _data.signer,
                     _data.value,
@@ -65,7 +65,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
             "HousePoolUSDC: invalid signer");
 
         require(
-            hasRole(HDATA_PROVIDER_ORACLE, _data.signer),
+            hasRole(DATA_PROVIDER_ORACLE, _data.signer),
             "HousePoolUSDC: unauthorised signer"
         );
 
@@ -91,7 +91,6 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     // TODO DELETE
-
     function simulateOutcome(bool outcome, uint256 betAmount) external {
         if(outcome == false) {
             treasuryAmount += betAmount/100;
@@ -112,20 +111,14 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
 
     function setTokenPrice() internal {
         if(USDCclaimToken.totalSupply() != 0) {
-            LPTokenPrice = 
-                (tvl * 10**POOL_PRECISION) / 
-                USDCclaimToken.totalSupply();
+            LPTokenPrice = (tvl * 10**POOL_PRECISION) / USDCclaimToken.totalSupply();
         }
-        
     }
 
     function setLPTokenWithdrawlPrice() internal {
         if(USDCclaimToken.totalSupply() != 0) {
-            LPTokenWithdrawlPrice = 
-                (usdcLiquidity * 10**POOL_PRECISION) / 
-                USDCclaimToken.totalSupply();
+            LPTokenWithdrawlPrice = (usdcLiquidity * 10**POOL_PRECISION) / USDCclaimToken.totalSupply();
         }
-        
     }
 
     function getTokenPrice() external view returns (uint256) {
@@ -153,24 +146,17 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
 
     function _setEV(VoI memory expectedValue) private {
         ev = expectedValue;
-        tvl += expectedValue.value;
+        tvl += uint(expectedValue.value);
         setTokenPrice();
     }
 
-    // TODO DELETE
-    function setEV(uint256 expectedValue) external {
-        ev.value = expectedValue;
-        tvl += expectedValue;
-        setTokenPrice();
-    }
-
-    function getEV() external view returns (uint256) {
+    function getEV() external view returns (int256) {
         return ev.value;
     }
 
     function setBettingStakes(uint256 bettingAmount)
         external
-        onlyRole(HDATA_PROVIDER_ORACLE)
+        onlyRole(DATA_PROVIDER_ORACLE)
     {
         bettingStakes = bettingAmount;
     }
@@ -196,7 +182,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         tvl += amount;
         userDepositAmount[msg.sender] += amount;
         usdcToken.transferFrom(msg.sender, address(this), amount);
-        uint256 LPTokensToMint = (amount * 10**POOL_PRECISION)/ (LPTokenPrice);
+        uint256 LPTokensToMint = (amount * 10**POOL_PRECISION) / (LPTokenPrice);
         USDCclaimToken.mint(msg.sender, LPTokensToMint);
         setTokenPrice();
         setLPTokenWithdrawlPrice();
@@ -206,8 +192,10 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         require(amount > 0, "USDCHousePool: Zero Amount");
         require(
             amount <=  (USDCclaimToken.balanceOf(msg.sender) / 10**POOL_PRECISION) * LPTokenWithdrawlPrice  &&  
-            amount <  usdcLiquidity - maxExposure,"USDCHousePool : can't withdraw");
-        uint256 LPTokensToBurn = (amount * 10**POOL_PRECISION)/ (LPTokenWithdrawlPrice);
+            amount <  usdcLiquidity - maxExposure,
+            "USDCHousePool : can't withdraw"
+        );
+        uint256 LPTokensToBurn = (amount * 10**POOL_PRECISION) / (LPTokenWithdrawlPrice);
         usdcLiquidity -= amount;
         tvl -= amount;
         userDepositAmount[msg.sender] -= amount;

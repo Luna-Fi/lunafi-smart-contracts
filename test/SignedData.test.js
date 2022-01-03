@@ -21,14 +21,14 @@ describe("Signature Tests", async function () {
         const contract = await USDCHP.deploy(owner.address, mt.address, ct.address, name, version);
         await contract.deployed();
 
-        await contract.connect(owner).grantRole(contract.HOUSE_POOL_DATA_PROVIDER(), dataProvider.address);
-        await contract.connect(owner).grantRole(contract.HOUSE_POOL_OPERATOR(), operator.address);
+        await contract.connect(owner).grantRole(contract.DATA_PROVIDER_ORACLE(), dataProvider.address);
+        await contract.connect(owner).grantRole(contract.HOUSE_POOL_DATA_PROVIDER(), operator.address);
 
         const initialEV = await contract.getEV();
         console.log(`Initial EV value is: ${ethers.utils.formatEther(initialEV)}`);
 
-        // Random value to set as EV -- random value between 1 to 1000 ether
-        const _evValue = ethers.utils.parseUnits((Math.random() * 1000).toString(), 18);
+        // Random value to set as EV -- random value between -500 to 500 ether
+        const _evValue = ethers.utils.parseUnits(((Math.random() * 1000) - 500).toString(), 18);
         console.log(`Attempting update EV value to: ${ethers.utils.formatEther(_evValue, { pad: true })}`);
 
         // Prepare deadline
@@ -49,7 +49,7 @@ describe("Signature Tests", async function () {
         const _eip712Types = {
             VoI: [
                 { name: "signer", type: "address" },
-                { name: "value", type: "uint256" },
+                { name: "value", type: "int256" },
                 { name: "nonce", type: "uint256" },
                 { name: "deadline", type: "uint256" }
             ],

@@ -66,10 +66,42 @@ describe("USDC HousePool", () => {
 
         const [owner] = await ethers.getSigners()
         const evValue = 15 * 10**6;
-        const DataProviderValue = await usdcHousePool.HOUSE_POOL_DATA_PROVIDER()
+        const DataProviderValue = await usdcHousePool.DATA_PROVIDER_ORACLE()
         await usdcHousePool.grantRole(DataProviderValue,owner.address)
+        await usdcHousePool.grantRole(usdcHousePool.HOUSE_POOL_DATA_PROVIDER(),owner.address)
 
-        await usdcHousePool.setEV(evValue)
+        const _chain = await ethers.provider.getNetwork();
+        const _deadline = (await ethers.provider.getBlockNumber()) + 4;
+
+        const _signature = await owner._signTypedData(
+            {
+                name: "",
+                version: "",
+                chainId: _chain.chainId,
+                verifyingContract: usdcHousePool.address,
+            },
+            {
+                VoI: [
+                    { name: "signer", type: "address" },
+                    { name: "value", type: "int256" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "deadline", type: "uint256" }
+                ],
+            },
+            {
+                signer: owner.address,
+                value: evValue,
+                nonce: 0,
+                deadline: _deadline
+            }
+        );
+        await usdcHousePool.setEVFromSignedData(
+            _signature,
+            {
+                value: evValue,
+                deadline: _deadline,
+                signer: owner.address
+            });
 
         const TVLOfPool = await usdcHousePool.getTVLofPool()
         const liquidity = await usdcHousePool.getLiquidityStatus()
