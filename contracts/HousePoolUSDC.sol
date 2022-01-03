@@ -32,10 +32,10 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     uint256 LPTokenWithdrawlPrice = 100*10**POOL_PRECISION ;
     uint256 tvl ;
 
+    bytes32 public constant HDATA_PROVIDER_ORACLE =
+        keccak256("HDATA_PROVIDER_ORACLE");
     bytes32 public constant HOUSE_POOL_DATA_PROVIDER =
         keccak256("HOUSEPOOL_DATA_PROVIDER");
-    bytes32 public constant HOUSE_POOL_OPERATOR =
-        keccak256("HOUSEPOOL_OPERATOR");
 
     mapping(address => uint256) nonces;
     mapping(address => uint256) userDepositAmount;
@@ -64,7 +64,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
             "HousePoolUSDC: invalid signer");
 
         require(
-            hasRole(HOUSE_POOL_DATA_PROVIDER, _data.signer),
+            hasRole(HDATA_PROVIDER_ORACLE, _data.signer),
             "HousePoolUSDC: unauthorised signer"
         );
 
@@ -92,7 +92,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     function setEVFromSignedData(
         bytes memory signature,
         VoI memory data
-    ) external onlyValid(data, signature) onlyRole(HOUSE_POOL_OPERATOR)
+    ) external onlyValid(data, signature) onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
         _setEV(data);
     }
@@ -129,7 +129,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
 
     function setMaxExposure(uint256 exposure)
         external
-        onlyRole(HOUSE_POOL_OPERATOR)
+        onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
         maxExposure = exposure;
     }
@@ -157,7 +157,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
 
     function setBettingStakes(uint256 bettingAmount)
         external
-        onlyRole(HOUSE_POOL_DATA_PROVIDER)
+        onlyRole(HDATA_PROVIDER_ORACLE)
     {
         bettingStakes = bettingAmount;
     }
