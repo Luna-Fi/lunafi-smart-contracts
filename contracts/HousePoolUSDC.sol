@@ -168,7 +168,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         setTokenPrice();
     }
 
-
+// ********************************************  Functions to simulate the functionality **********************************
 
     // TODO DELETE ONCE ORDER PLACEMENT IS BUILT
     // Following methods are only for simulating end to end order placement functionality which has not been built yet
