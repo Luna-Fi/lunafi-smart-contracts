@@ -16,23 +16,25 @@ interface claimTokenInterface {
 }
 
 contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
-    struct VoI {
-        int256 value;
+    struct ValuesOfInterest {
+        int256 expectedValue;
+        uint256 maxExposure;
         uint256 deadline;
         address signer;
     }
 
+    uint256 bettingStakes;
+    uint256 liquidity;
+    uint256 treasuryAmount;
+    uint256 tvl;
     IERC20 token;
     claimTokenInterface claimToken;
-    uint256 liquidity;
-    uint256 bettingStakes;
-    uint256 maxExposure;
-    VoI ev;
-    uint256 constant POOL_PRECISION = 6 ;
-    uint256 lpTokenPrice = 100*10**POOL_PRECISION ;
-    uint256 lpTokenWithdrawlPrice = 100*10**POOL_PRECISION ;
-    uint256 tvl ;
-    uint256 treasuryAmount ;
+    ValuesOfInterest voi;
+
+    uint256 constant POOL_PRECISION = 6;
+    uint256 lpTokenPrice = 100*10**POOL_PRECISION;
+    uint256 lpTokenWithdrawlPrice = 100*10**POOL_PRECISION;
+
 
     bytes32 public constant DATA_PROVIDER_ORACLE =
         keccak256("DATA_PROVIDER_ORACLE");
@@ -40,17 +42,18 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         keccak256("HOUSEPOOL_DATA_PROVIDER");
 
     mapping(address => uint256) nonces;
-    mapping(address => uint256) userDepositAmount;
+    mapping(address => uint256) deposits;
 
-    modifier onlyValid(VoI memory data, bytes memory signature) {
+    modifier onlyValid(ValuesOfInterest memory data, bytes memory signature) {
         bytes32 digest = _hashTypedDataV4(
             keccak256(
                 abi.encode(
                     keccak256(
-                        "VoI(address signer,int256 value,uint256 nonce,uint256 deadline)"
+                        "VoI(address signer,int256 expectedValue,uint256 maxExposure,uint256 nonce,uint256 deadline)"
                     ),
                     data.signer,
-                    data.value,
+                    data.expectedValue,
+                    data.maxExposure,
                     nonces[data.signer],
                     data.deadline
                 )
@@ -80,76 +83,42 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     constructor(
-        address owner,
-        address mockTokenAddress,
-        address claimTokenAddress,
-        string memory name,
-        string memory version
-    ) EIP712(name, version) {
-        token = IERC20(mockTokenAddress);
-        claimToken = claimTokenInterface(claimTokenAddress);
-        _setupRole(DEFAULT_ADMIN_ROLE, owner);
+        address _owner,
+        address _usdc,
+        address _claimToken,
+        string memory _name,
+        string memory _version
+    ) EIP712(_name, _version) {
+        token = IERC20(_usdc);
+        claimToken = claimTokenInterface(_claimToken);
+        _setupRole(DEFAULT_ADMIN_ROLE, _owner);
     }
 
-    function setEVFromSignedData(
-        bytes memory signature,
-        VoI memory data
-    ) external onlyValid(data, signature) onlyRole(HOUSE_POOL_DATA_PROVIDER)
+    function setVOI(bytes memory signature, ValuesOfInterest memory data)
+        external onlyValid(data, signature) onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
-        _setEV(data);
+        if(data.expectedValue != 0) {_setEV(data.expectedValue);}
+        if(data.maxExposure != 0) {_setME(data.maxExposure);}
     }
 
-    function setMaxExposure(uint256 exposure)
-        external
-        onlyRole(HOUSE_POOL_DATA_PROVIDER)
+    function deposit(uint256 amountUSDC, bytes memory approval, ValuesOfInterest memory approvedParams)
+        external onlyValid(approvedParams, approval)
+        {
+            _deposit(amountUSDC);
+        }
+
+    function withdraw(uint256 amountUSDC, bytes memory approval, ValuesOfInterest memory approvedParams)
+        external onlyValid(approvedParams, approval)
     {
-        maxExposure = exposure;
-    }
-
-    function deposit(uint256 amount) external nonReentrant {
-        require(
-            amount > 0 && amount <= token.balanceOf(msg.sender),
-            "USDCHousePool: Check the Balance"
-        );
-        liquidity += amount;
-        tvl += amount;
-        userDepositAmount[msg.sender] += amount;
-        token.transferFrom(msg.sender, address(this), amount);
-        uint256 LPTokensToMint = (amount * 10**POOL_PRECISION) / (lpTokenPrice);
-        claimToken.mint(msg.sender, LPTokensToMint);
-        setTokenPrice();
-        setTokenWithdrawlPrice();
-    }
-
-    function withdraw(uint256 amount) external nonReentrant {
-        require(amount > 0, "USDCHousePool: Zero Amount");
-        require(
-            amount <=  (
-                claimToken.balanceOf(msg.sender) / 
-                10**POOL_PRECISION) * lpTokenWithdrawlPrice  &&  
-                amount <  liquidity - maxExposure,
-                "USDCHousePool : can't withdraw"
-        );
-        uint256 LPTokensToBurn = (amount * 10**POOL_PRECISION) / (lpTokenWithdrawlPrice);
-        liquidity -= amount;
-        tvl -= amount;
-        userDepositAmount[msg.sender] -= amount;
-        token.transfer(msg.sender, amount);
-        claimToken.burn(msg.sender, LPTokensToBurn);
-        setTokenWithdrawlPrice();
-        setTokenPrice();
+        _withdraw(amountUSDC);
     }
 
     function getTokenPrice() external view returns (uint256) {
         return lpTokenPrice;
     }
 
-    function getTreasuryAmount() view external returns(uint256) {
+    function getTreasuryAmount() external view returns(uint256) {
         return treasuryAmount;
-    }
-
-    function getMaxExposure() external view returns (uint256) {
-        return maxExposure;
     }
 
     function getTokenWithdrawlPrice() external view returns(uint256) {
@@ -160,9 +129,12 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         return tvl;
     }
 
-
     function getEV() external view returns (int256) {
-        return ev.value;
+        return voi.expectedValue;
+    }
+
+    function getMaxExposure() external view returns (uint256) {
+        return voi.maxExposure;
     }
 
     function getLiquidityStatus() external view returns (uint256) {
@@ -170,33 +142,65 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     function getMyBalance(address _user) external view returns (uint256) {
-        return userDepositAmount[_user];
+        return deposits[_user];
     }
 
     function setTokenPrice() internal {
         if(claimToken.totalSupply() != 0) {
-            lpTokenPrice = (
-                tvl * 10**POOL_PRECISION) / 
-                claimToken.totalSupply();
+            lpTokenPrice = (tvl * 10**POOL_PRECISION) / claimToken.totalSupply();
         }
     }
 
     function setTokenWithdrawlPrice() internal {
         if(claimToken.totalSupply() != 0) {
-            lpTokenWithdrawlPrice = (
-                liquidity * 10**POOL_PRECISION) / 
-                claimToken.totalSupply();
+            lpTokenWithdrawlPrice = (liquidity * 10**POOL_PRECISION) / claimToken.totalSupply();
         }
     }
 
-    function _setEV(VoI memory expectedValue) private {
-        if(ev.value == 0){
-           tvl += uint(expectedValue.value); 
-        }else {
-            tvl -= uint(ev.value);
-            tvl += uint(expectedValue.value);
+    function _setEV(int256 expectedValue) internal {
+        if(voi.expectedValue == 0){
+           tvl += uint(expectedValue);
+        } else {
+            tvl -= uint(voi.expectedValue);
+            tvl += uint(expectedValue);
         }
-        ev = expectedValue;
+        voi.expectedValue = expectedValue;
+        setTokenPrice();
+    }
+
+    function _setME(uint256 exposure) internal {
+        voi.maxExposure = exposure;
+    }
+
+    function _deposit(uint256 amount) internal nonReentrant {
+        require(
+            amount > 0 && amount <= token.balanceOf(msg.sender),
+            "USDCHousePool: Check the Balance"
+        );
+        liquidity += amount;
+        tvl += amount;
+        deposits[msg.sender] += amount;
+        token.transferFrom(msg.sender, address(this), amount);
+        uint256 LPTokensToMint = (amount * 10**POOL_PRECISION) / (lpTokenPrice);
+        claimToken.mint(msg.sender, LPTokensToMint);
+        setTokenPrice();
+        setTokenWithdrawlPrice();
+    }
+
+    function _withdraw(uint256 amount) internal nonReentrant {
+        require(amount > 0, "USDCHousePool: Zero Amount");
+        require(
+            amount <=  (claimToken.balanceOf(msg.sender) / 10**POOL_PRECISION) * lpTokenWithdrawlPrice  &&
+                amount <  liquidity - voi.maxExposure,
+                "USDCHousePool : can't withdraw"
+        );
+        uint256 LPTokensToBurn = (amount * 10**POOL_PRECISION) / (lpTokenWithdrawlPrice);
+        liquidity -= amount;
+        tvl -= amount;
+        deposits[msg.sender] -= amount;
+        token.transfer(msg.sender, amount);
+        claimToken.burn(msg.sender, LPTokensToBurn);
+        setTokenWithdrawlPrice();
         setTokenPrice();
     }
 
@@ -215,22 +219,18 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
             treasuryAmount += bettingStakes/100;
             bettingStakes -= betAmount;
         }
-        ev.value = 0;
-        maxExposure = 0;
+        voi.expectedValue = 0;
+        voi.maxExposure = 0;
         tvl += treasuryAmount;
         setTokenPrice();
-        setTokenWithdrawlPrice(); 
+        setTokenWithdrawlPrice();
     }
 
-    function setBettingStakes(uint256 bettingAmount)
-        external
-    {
+    function setBettingStakes(uint256 bettingAmount) external {
         bettingStakes = bettingAmount;
     }
 
     function getBettingStakes() external view returns (uint256) {
         return bettingStakes;
     }
-
-    
 }

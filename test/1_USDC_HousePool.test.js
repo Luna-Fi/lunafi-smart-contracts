@@ -46,8 +46,47 @@ describe("USDC HousePool", () => {
         const amount = 5000 * 10**6
         let cTokenPrice = 100 * 10**6
         let cTokenWithdrawPrice = 100 * 10**6
+
+        await usdcHousePool.connect(owner).grantRole(usdcHousePool.DATA_PROVIDER_ORACLE(), owner.address);
+        await usdcHousePool.connect(owner).grantRole(usdcHousePool.HOUSE_POOL_DATA_PROVIDER(), owner.address);
+        const _evValue = 0;
+        const _meValue = 0;
+        const _chain = await ethers.provider.getNetwork();
+        const _deadline = (await ethers.provider.getBlockNumber()) + 4;
+        const _signature = await owner._signTypedData(
+            {
+                name: "",
+                version: "",
+                chainId: _chain.chainId,
+                verifyingContract: usdcHousePool.address,
+            },
+            {
+                VoI: [
+                    { name: "signer", type: "address" },
+                    { name: "expectedValue", type: "int256" },
+                    { name: "maxExposure", type: "uint256" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "deadline", type: "uint256" }
+                ],
+            },
+            {
+                signer: owner.address,
+                expectedValue: _evValue,
+                maxExposure: _meValue,
+                nonce: 0,
+                deadline: _deadline
+            }
+        );
         
-        await usdcHousePool.deposit(amount)
+        await usdcHousePool.deposit(
+            amount,
+            _signature,
+            {
+                expectedValue: _evValue,
+                maxExposure: _meValue,
+                deadline: _deadline,
+                signer: owner.address
+            })
 
         const liquidity = await usdcHousePool.getLiquidityStatus()
         const tvlOfPool = await usdcHousePool.getTVLofPool()
@@ -88,6 +127,7 @@ describe("USDC HousePool", () => {
 
         const [owner] = await ethers.getSigners()
         const evValue = 15 * 10**6;
+        const meValue = 0;
         const bet = 500 * 10**6
         const DataProviderValue = await usdcHousePool.DATA_PROVIDER_ORACLE()
         
@@ -108,22 +148,25 @@ describe("USDC HousePool", () => {
             {
                 VoI: [
                     { name: "signer", type: "address" },
-                    { name: "value", type: "int256" },
+                    { name: "expectedValue", type: "int256" },
+                    { name: "maxExposure", type: "uint256" },
                     { name: "nonce", type: "uint256" },
                     { name: "deadline", type: "uint256" }
                 ],
             },
             {
                 signer: owner.address,
-                value: evValue,
-                nonce: 0,
+                expectedValue: evValue,
+                maxExposure: meValue,
+                nonce: 1,
                 deadline: _deadline
             }
         );
-        await usdcHousePool.setEVFromSignedData(
+        await usdcHousePool.setVOI(
             _signature,
             {
-                value: evValue,
+                expectedValue: evValue,
+                maxExposure: meValue,
                 deadline: _deadline,
                 signer: owner.address
             });
@@ -178,8 +221,45 @@ describe("USDC HousePool", () => {
         const currentClaimTokens = await usdcClaimToken.totalSupply()
         const currentBalanceOfUser = await usdcClaimToken.balanceOf(user1.address)
        
+        await usdcHousePool.connect(owner).grantRole(usdcHousePool.DATA_PROVIDER_ORACLE(), owner.address);
+        const _evValue = 0;
+        const _meValue = 0;
+        const _chain = await ethers.provider.getNetwork();
+        const _deadline = (await ethers.provider.getBlockNumber()) + 4;
+        const _signature = await owner._signTypedData(
+            {
+                name: "",
+                version: "",
+                chainId: _chain.chainId,
+                verifyingContract: usdcHousePool.address,
+            },
+            {
+                VoI: [
+                    { name: "signer", type: "address" },
+                    { name: "expectedValue", type: "int256" },
+                    { name: "maxExposure", type: "uint256" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "deadline", type: "uint256" }
+                ],
+            },
+            {
+                signer: owner.address,
+                expectedValue: _evValue,
+                maxExposure: _meValue,
+                nonce: 2,
+                deadline: _deadline
+            }
+        );
         
-        await usdcHousePool.connect(user1).deposit(amount)
+        await usdcHousePool.connect(user1).deposit(
+            amount,
+            _signature,
+            {
+                expectedValue: _evValue,
+                maxExposure: _meValue,
+                deadline: _deadline,
+                signer: owner.address
+            });
 
         const tvlOfPool = await usdcHousePool.getTVLofPool()
         const liquidity = await usdcHousePool.getLiquidityStatus()
@@ -219,14 +299,13 @@ describe("USDC HousePool", () => {
 
         const [owner] = await ethers.getSigners()
         const evValue = 490 * 10**6;
+        const meValue = 0;
         const DataProviderValue = await usdcHousePool.DATA_PROVIDER_ORACLE()
         await usdcHousePool.grantRole(DataProviderValue,owner.address)
         await usdcHousePool.grantRole(usdcHousePool.HOUSE_POOL_DATA_PROVIDER(),owner.address)
-        
 
         const _chain = await ethers.provider.getNetwork();
         const _deadline = (await ethers.provider.getBlockNumber()) + 4;
-
         const _signature = await owner._signTypedData(
             {
                 name: "",
@@ -237,22 +316,25 @@ describe("USDC HousePool", () => {
             {
                 VoI: [
                     { name: "signer", type: "address" },
-                    { name: "value", type: "int256" },
+                    { name: "expectedValue", type: "int256" },
+                    { name: "maxExposure", type: "uint256" },
                     { name: "nonce", type: "uint256" },
                     { name: "deadline", type: "uint256" }
                 ],
             },
             {
                 signer: owner.address,
-                value: evValue,
-                nonce: 1,
+                expectedValue: evValue,
+                maxExposure: meValue,
+                nonce: 3,
                 deadline: _deadline
             }
         );
-        await usdcHousePool.setEVFromSignedData(
+        await usdcHousePool.setVOI(
             _signature,
             {
-                value: evValue,
+                expectedValue: evValue,
+                maxExposure: meValue,
                 deadline: _deadline,
                 signer: owner.address
             });
@@ -344,7 +426,44 @@ describe("USDC HousePool", () => {
         const beforeLPWPrice = await usdcHousePool.getTokenWithdrawlPrice()
         const beforeTVLPrice = await usdcHousePool.getTVLofPool()
 
-        await usdcHousePool.connect(user1).withdraw(withdrawAmount);
+        const evValue = 0;
+        const meValue = 0;
+        const _chain = await ethers.provider.getNetwork();
+        const _deadline = (await ethers.provider.getBlockNumber()) + 4;
+        const _signature = await owner._signTypedData(
+            {
+                name: "",
+                version: "",
+                chainId: _chain.chainId,
+                verifyingContract: usdcHousePool.address,
+            },
+            {
+                VoI: [
+                    { name: "signer", type: "address" },
+                    { name: "expectedValue", type: "int256" },
+                    { name: "maxExposure", type: "uint256" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "deadline", type: "uint256" }
+                ],
+            },
+            {
+                signer: owner.address,
+                expectedValue: evValue,
+                maxExposure: meValue,
+                nonce: 4,
+                deadline: _deadline
+            }
+        );
+        
+        await usdcHousePool.connect(user1).withdraw(
+            withdrawAmount,
+            _signature,
+            {
+                expectedValue: evValue,
+                maxExposure: meValue,
+                deadline: _deadline,
+                signer: owner.address
+            });
 
         
         const TokenPriceafterWithdrawPrice = await usdcHousePool.getTokenPrice()
