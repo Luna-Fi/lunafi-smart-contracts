@@ -31,10 +31,10 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     claimTokenInterface claimToken;
     ValuesOfInterest voi;
 
-    uint256 constant POOL_PRECISION = 18;
+    uint256 constant MAX_PRECISION = 18;
     uint256 constant PRECISION_DIFFERENCE = 12;
-    uint256 lpTokenPrice = 100*10**POOL_PRECISION;
-    uint256 lpTokenWithdrawlPrice = 100*10**POOL_PRECISION;
+    uint256 lpTokenPrice = 100*10**MAX_PRECISION;
+    uint256 lpTokenWithdrawlPrice = 100*10**MAX_PRECISION;
 
 
     bytes32 public constant DATA_PROVIDER_ORACLE =
@@ -148,13 +148,13 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
 
     function setTokenPrice() internal {
         if(claimToken.totalSupply() != 0) {
-            lpTokenPrice = (uint(tvl) * 10**POOL_PRECISION) / claimToken.totalSupply();
+            lpTokenPrice = (uint(tvl) * 10**MAX_PRECISION) / claimToken.totalSupply();
         }
     }
 
     function setTokenWithdrawlPrice() internal {
         if(claimToken.totalSupply() != 0) {
-            lpTokenWithdrawlPrice = (liquidity * 10**POOL_PRECISION) / claimToken.totalSupply();
+            lpTokenWithdrawlPrice = (liquidity * 10**MAX_PRECISION) / claimToken.totalSupply();
         }
     }
 
@@ -178,11 +178,11 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
             amount > 0 && amount <= token.balanceOf(msg.sender),
             "USDCHousePool: Check the Balance"
         );
-        liquidity += amount;
+        liquidity += amount *10**PRECISION_DIFFERENCE;
         tvl += int(amount) * int(10**PRECISION_DIFFERENCE);
         deposits[msg.sender] += amount *10**PRECISION_DIFFERENCE;
         token.transferFrom(msg.sender, address(this), amount);
-        uint256 LPTokensToMint = (amount  * 10**PRECISION_DIFFERENCE * 10**POOL_PRECISION) / (lpTokenPrice);
+        uint256 LPTokensToMint = (amount  * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenPrice);
         claimToken.mint(msg.sender, LPTokensToMint);
         setTokenPrice();
         setTokenWithdrawlPrice();
@@ -191,12 +191,12 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     function _withdraw(uint256 amount) internal nonReentrant {
         require(amount > 0, "USDCHousePool: Zero Amount");
         require(
-            amount <=  (claimToken.balanceOf(msg.sender) / 10**POOL_PRECISION) * lpTokenWithdrawlPrice  &&
-                amount <  liquidity - voi.maxExposure,
+            amount * 10**PRECISION_DIFFERENCE <=  (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
+                amount * 10**PRECISION_DIFFERENCE <  liquidity - voi.maxExposure,
                 "USDCHousePool : can't withdraw"
         );
-        uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE  * 10**POOL_PRECISION) / (lpTokenWithdrawlPrice);
-        liquidity -= amount;
+        uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE  * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
+        liquidity -= amount * 10**PRECISION_DIFFERENCE ;
         tvl -= int(amount) * int(10**PRECISION_DIFFERENCE);
         deposits[msg.sender] -= amount *10**PRECISION_DIFFERENCE;
         token.transfer(msg.sender, amount);
