@@ -31,7 +31,8 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     claimTokenInterface claimToken;
     ValuesOfInterest voi;
 
-    uint256 constant POOL_PRECISION = 6;
+    uint256 constant POOL_PRECISION = 18;
+    uint256 constant PRECISION_DIFFERENCE = 12;
     uint256 lpTokenPrice = 100*10**POOL_PRECISION;
     uint256 lpTokenWithdrawlPrice = 100*10**POOL_PRECISION;
 
@@ -97,7 +98,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     function setVOI(bytes memory signature, ValuesOfInterest memory data)
         external onlyValid(data, signature) onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
-        if(data.expectedValue != 0) {_setEV(data.expectedValue);}
+        if(data.expectedValue != 0) {updateTVL(data.expectedValue);}
         if(data.maxExposure != 0) {_setME(data.maxExposure);}
     }
 
@@ -157,7 +158,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         }
     }
 
-    function _setEV(int256 expectedValue) internal {
+    function updateTVL(int256 expectedValue) internal {
         if(voi.expectedValue == 0){
            tvl += uint(expectedValue);
         } else {
@@ -178,10 +179,10 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
             "USDCHousePool: Check the Balance"
         );
         liquidity += amount;
-        tvl += amount;
-        deposits[msg.sender] += amount;
+        tvl += amount *10**PRECISION_DIFFERENCE;
+        deposits[msg.sender] += amount *10**PRECISION_DIFFERENCE;
         token.transferFrom(msg.sender, address(this), amount);
-        uint256 LPTokensToMint = (amount * 10**POOL_PRECISION) / (lpTokenPrice);
+        uint256 LPTokensToMint = (amount  * 10**PRECISION_DIFFERENCE * 10**POOL_PRECISION) / (lpTokenPrice);
         claimToken.mint(msg.sender, LPTokensToMint);
         setTokenPrice();
         setTokenWithdrawlPrice();
@@ -194,10 +195,10 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
                 amount <  liquidity - voi.maxExposure,
                 "USDCHousePool : can't withdraw"
         );
-        uint256 LPTokensToBurn = (amount * 10**POOL_PRECISION) / (lpTokenWithdrawlPrice);
+        uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE  * 10**POOL_PRECISION) / (lpTokenWithdrawlPrice);
         liquidity -= amount;
-        tvl -= amount;
-        deposits[msg.sender] -= amount;
+        tvl -= amount *10**PRECISION_DIFFERENCE;
+        deposits[msg.sender] -= amount *10**PRECISION_DIFFERENCE;
         token.transfer(msg.sender, amount);
         claimToken.burn(msg.sender, LPTokensToBurn);
         setTokenWithdrawlPrice();
