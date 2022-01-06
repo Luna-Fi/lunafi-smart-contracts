@@ -26,7 +26,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     uint256 bettingStakes;
     uint256 liquidity;
     uint256 treasuryAmount;
-    uint256 tvl;
+    int256 tvl;
     IERC20 token;
     claimTokenInterface claimToken;
     ValuesOfInterest voi;
@@ -126,7 +126,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         return lpTokenWithdrawlPrice;
     }
 
-    function getTVLofPool() external view returns (uint256) {
+    function getTVLofPool() external view returns (int256) {
         return tvl;
     }
 
@@ -148,7 +148,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
 
     function setTokenPrice() internal {
         if(claimToken.totalSupply() != 0) {
-            lpTokenPrice = (tvl * 10**POOL_PRECISION) / claimToken.totalSupply();
+            lpTokenPrice = (uint(tvl) * 10**POOL_PRECISION) / claimToken.totalSupply();
         }
     }
 
@@ -160,10 +160,10 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
 
     function updateTVL(int256 expectedValue) internal {
         if(voi.expectedValue == 0){
-           tvl += uint(expectedValue);
+           tvl += expectedValue;
         } else {
-            tvl -= uint(voi.expectedValue);
-            tvl += uint(expectedValue);
+            tvl -= voi.expectedValue;
+            tvl += expectedValue;
         }
         voi.expectedValue = expectedValue;
         setTokenPrice();
@@ -179,7 +179,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
             "USDCHousePool: Check the Balance"
         );
         liquidity += amount;
-        tvl += amount *10**PRECISION_DIFFERENCE;
+        tvl += int(amount) * int(10**PRECISION_DIFFERENCE);
         deposits[msg.sender] += amount *10**PRECISION_DIFFERENCE;
         token.transferFrom(msg.sender, address(this), amount);
         uint256 LPTokensToMint = (amount  * 10**PRECISION_DIFFERENCE * 10**POOL_PRECISION) / (lpTokenPrice);
@@ -197,7 +197,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         );
         uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE  * 10**POOL_PRECISION) / (lpTokenWithdrawlPrice);
         liquidity -= amount;
-        tvl -= amount *10**PRECISION_DIFFERENCE;
+        tvl -= int(amount) * int(10**PRECISION_DIFFERENCE);
         deposits[msg.sender] -= amount *10**PRECISION_DIFFERENCE;
         token.transfer(msg.sender, amount);
         claimToken.burn(msg.sender, LPTokensToBurn);
@@ -222,7 +222,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         }
         voi.expectedValue = 0;
         voi.maxExposure = 0;
-        tvl += treasuryAmount;
+        tvl += int(treasuryAmount);
         setTokenPrice();
         setTokenWithdrawlPrice();
     }
