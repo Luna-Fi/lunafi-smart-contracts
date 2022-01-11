@@ -18,7 +18,7 @@ interface claimTokenInterface {
 contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     struct ValuesOfInterest {
         int256 expectedValue;
-        uint256 maxExposure;
+        int256 maxExposure;
         uint256 deadline;
         address signer;
     }
@@ -29,21 +29,20 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     int256 tvl;
     IERC20 token;
     claimTokenInterface claimToken;
-    ValuesOfInterest voi;
+    ValuesOfInterest public voi;
 
     uint256 constant MAX_PRECISION = 18;
     uint256 constant PRECISION_DIFFERENCE = 12;
     uint256 lpTokenPrice = 100*10**MAX_PRECISION;
     uint256 lpTokenWithdrawlPrice = 100*10**MAX_PRECISION;
 
-
     bytes32 public constant DATA_PROVIDER_ORACLE =
         keccak256("DATA_PROVIDER_ORACLE");
     bytes32 public constant HOUSE_POOL_DATA_PROVIDER =
         keccak256("HOUSEPOOL_DATA_PROVIDER");
 
-    mapping(address => uint256) nonces;
-    mapping(address => uint256) deposits;
+    mapping(address => uint256) private nonces;
+    mapping(address => uint256) private deposits;
 
     modifier onlyValid(ValuesOfInterest memory data, bytes memory signature) {
         bytes32 digest = _hashTypedDataV4(
@@ -98,7 +97,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     function setVOI(bytes memory signature, ValuesOfInterest memory data)
         external onlyValid(data, signature) onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
-        if(data.expectedValue != 0) {updateTVL(data.expectedValue);}
+        if(data.expectedValue != 0) {_setEV(data.expectedValue);}
         if(data.maxExposure != 0) {_setME(data.maxExposure);}
     }
 
@@ -134,7 +133,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         return voi.expectedValue;
     }
 
-    function getMaxExposure() external view returns (uint256) {
+    function getMaxExposure() external view returns (int256) {
         return voi.maxExposure;
     }
 
@@ -165,12 +164,16 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
             tvl -= voi.expectedValue;
             tvl += expectedValue;
         }
-        voi.expectedValue = expectedValue;
-        setTokenPrice();
     }
 
-    function _setME(uint256 exposure) internal {
+    function _setME(int256 exposure) internal {
         voi.maxExposure = exposure;
+    }
+
+    function _setEV(int newEV) internal {
+        updateTVL(newEV);
+        voi.expectedValue = newEV;
+        setTokenPrice();
     }
 
     function _deposit(uint256 amount) internal nonReentrant {
@@ -178,11 +181,11 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
             amount > 0 && amount <= token.balanceOf(msg.sender),
             "USDCHousePool: Check the Balance"
         );
-        liquidity += amount *10**PRECISION_DIFFERENCE;
+        liquidity += amount * 10**PRECISION_DIFFERENCE;
         tvl += int(amount) * int(10**PRECISION_DIFFERENCE);
-        deposits[msg.sender] += amount *10**PRECISION_DIFFERENCE;
+        deposits[msg.sender] += amount * 10**PRECISION_DIFFERENCE;
         token.transferFrom(msg.sender, address(this), amount);
-        uint256 LPTokensToMint = (amount  * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenPrice);
+        uint256 LPTokensToMint = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / lpTokenPrice;
         claimToken.mint(msg.sender, LPTokensToMint);
         setTokenPrice();
         setTokenWithdrawlPrice();
@@ -191,14 +194,14 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     function _withdraw(uint256 amount) internal nonReentrant {
         require(amount > 0, "USDCHousePool: Zero Amount");
         require(
-            amount * 10**PRECISION_DIFFERENCE <=  (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
-                amount * 10**PRECISION_DIFFERENCE <  liquidity - voi.maxExposure,
+            amount * 10**PRECISION_DIFFERENCE <= (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
+                int(amount) * int(10**PRECISION_DIFFERENCE) < int(liquidity) - voi.maxExposure,
                 "USDCHousePool : can't withdraw"
         );
-        uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE  * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
-        liquidity -= amount * 10**PRECISION_DIFFERENCE ;
+        uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
+        liquidity -= amount * 10**PRECISION_DIFFERENCE;
         tvl -= int(amount) * int(10**PRECISION_DIFFERENCE);
-        deposits[msg.sender] -= amount *10**PRECISION_DIFFERENCE;
+        deposits[msg.sender] -= amount * 10**PRECISION_DIFFERENCE;
         token.transfer(msg.sender, amount);
         claimToken.burn(msg.sender, LPTokensToBurn);
         setTokenWithdrawlPrice();
