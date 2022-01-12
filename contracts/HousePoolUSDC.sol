@@ -94,23 +94,32 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
     }
 
-    function setVOI(bytes memory signature, ValuesOfInterest memory data)
-        external onlyValid(data, signature) onlyRole(HOUSE_POOL_DATA_PROVIDER)
+    function setVOI(bytes memory sig_, ValuesOfInterest memory voi_)
+        external onlyValid(voi_, sig_) onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
-        if(data.expectedValue != 0) {_setEV(data.expectedValue);}
-        if(data.maxExposure != 0) {_setME(data.maxExposure);}
+        _setVoi(voi_);
     }
 
-    function deposit(uint256 amountUSDC, bytes memory approval, ValuesOfInterest memory approvedParams)
-        external onlyValid(approvedParams, approval)
-        {
-            _deposit(amountUSDC);
-        }
-
-    function withdraw(uint256 amountUSDC, bytes memory approval, ValuesOfInterest memory approvedParams)
-        external onlyValid(approvedParams, approval)
+    function deposit(uint256 amountUSDC, bytes memory approval, ValuesOfInterest memory approvedValues)
+        external onlyValid(approvedValues, approval)
     {
+        _setVoi(approvedValues);
+        _deposit(amountUSDC);
+    }
+
+    function withdraw(uint256 amountUSDC, bytes memory approval, ValuesOfInterest memory approvedValues)
+        external onlyValid(approvedValues, approval)
+    {
+        _setVoi(approvedValues);
         _withdraw(amountUSDC);
+    }
+
+    function deposit_(uint usdcMicro) external {
+        _deposit(usdcMicro);
+    }
+
+    function withdraw_(uint usdcMicro) external {
+        _withdraw(usdcMicro);
     }
 
     function getTokenPrice() external view returns (uint256) {
@@ -164,6 +173,11 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
             tvl -= voi.expectedValue;
             tvl += expectedValue;
         }
+    }
+
+    function _setVoi(ValuesOfInterest memory _voi) internal {
+        if(_voi.expectedValue != voi.expectedValue) {_setEV(_voi.expectedValue);}
+        if(_voi.maxExposure != voi.maxExposure) {_setME(_voi.maxExposure);}
     }
 
     function _setME(int256 exposure) internal {
