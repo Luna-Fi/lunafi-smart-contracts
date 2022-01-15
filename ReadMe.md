@@ -55,6 +55,20 @@ ABI for the contracts is available in below paths <br />
 
 
 
+
+# Deployment Scripts
+Deployment Scripts are available at ./deploy folder.
+
+ Scripts can be installed by using the command  `npx hardhat deploy --netwotk <network name>`
+ To deploy a particular script use  we need to specify a tag name `npx hardhat deploy --tags ""deplyAll --network <network name>`
+
+Scripts Information :
+    `001_Deploy_mockTokens.js      --- Deploys only mock tokens.  Tag name : "deployMockTokens"`
+    `002_Deploy_ClaimTokens.js     --- Deploys only claim tokens. Tag name : "deployClaimTokens"`
+    `003_Deploy_Claim_HousePool.js --- Deploys claim tokens and HousePools. Tag name : "deployClaimTokensAndPools"`
+    `004_Deploy_HousePools.js      --- Deploys House Pools. Tag name is "deployHousePools"`
+    `005_Deploy_All.js             --- Deploys mock tokens, claim tokens and House Pools.. Tag name : deployAll`
+
 # lunafi-core
 Smart Contracts for [LunaFi](#) & [LunaBets](https://lunabets.io/), a betting dapp, available on various EVM-compatible blockchains.
 

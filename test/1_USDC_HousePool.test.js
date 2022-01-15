@@ -109,15 +109,10 @@ describe("USDC HousePool", () => {
         const hTokenPrice = (cTokenPrice).toString(16)
         const tokenPriceBigNumber = returnBigNumber(hTokenPrice)
 
-        const hTokenWithdrawPrice = (cTokenPrice).toString(16)
+        const hTokenWithdrawPrice = (cTokenWithdrawPrice).toString(16)
         const tokenWPriceBigNumber = returnBigNumber(hTokenWithdrawPrice)
         
-        expect(liquidity).to.equal(ethers.utils.formatUnits(amountinBigNumber,0))
-        expect(tvlOfPool).to.equal(ethers.utils.formatUnits(amountinBigNumber,0))
-        expect(claimTokenPrice).to.equal(ethers.utils.formatUnits(tokenPriceBigNumber,0))
-        expect(claimTokenWithdrawlPrice).to.equal(ethers.utils.formatUnits(tokenWPriceBigNumber,0)) 
-        expect(claimTokensIssued/10**18).to.equal((ethers.utils.formatUnits(amountinBigNumber,0) / claimTokenPrice))
-        
+       
         console.log("***********************************************************************************************")
         console.log("******************************* Initial Test case Values **************************************")
         console.log("***********************************************************************************************")
@@ -134,6 +129,13 @@ describe("USDC HousePool", () => {
 
         console.log("***********************************************************************************************")
         console.log("***********************************************************************************************")
+
+
+        expect(liquidity).to.equal(ethers.utils.formatUnits(amountinBigNumber,0))
+        expect(tvlOfPool).to.equal(ethers.utils.formatUnits(amountinBigNumber,0))
+        expect(claimTokenPrice).to.equal(ethers.utils.formatUnits(tokenPriceBigNumber,0))
+        expect(claimTokenWithdrawlPrice).to.equal(ethers.utils.formatUnits(tokenWPriceBigNumber,0)) 
+        expect(claimTokensIssued/10**18).to.equal((ethers.utils.formatUnits(amountinBigNumber,0) / claimTokenPrice))
       
     })
 
@@ -198,9 +200,6 @@ describe("USDC HousePool", () => {
         const TV = tvlOfPool/10**18
         const CT = claimTokensIssued/10**18
 
-        expect(tvlOfPool/10**18).to.equal(liquidity/10**18 + evValue/10**18)
-        expect(claimTokenPrice/10**18).to.equal(TV/CT)
-    
         console.log("***********************************************************************************************")
         console.log("***********************Test case For EV Value *************************************************")
         console.log("***********************************************************************************************")
@@ -217,7 +216,9 @@ describe("USDC HousePool", () => {
 
         console.log("***********************************************************************************************")
         console.log("***********************************************************************************************")
- 
+
+        expect(tvlOfPool/10**18).to.equal(liquidity/10**18 + evValue/10**18)
+        expect(claimTokenPrice/10**18).to.equal(TV/CT)
         
     })
 
@@ -226,14 +227,11 @@ describe("USDC HousePool", () => {
         
         const [owner,user1] = await ethers.getSigners();
         const amount = 10000 * 10**6
-        
-        const currentLPTokenPrice = await usdcHousePool.getTokenPrice()
-        const currentLPTokenWithdrawlPrice = await usdcHousePool.getTokenWithdrawlPrice()
-        const currentTVLOfValue = await usdcHousePool.getTVLofPool()
+
         const currentLiquidity = await usdcHousePool.getLiquidityStatus()
-        const currentClaimTokens = await usdcClaimToken.totalSupply()
-        const currentBalanceOfUser = await usdcClaimToken.balanceOf(user1.address)
-       
+        const currenttvlOfPool = ethers.utils.formatUnits(await usdcHousePool.getTVLofPool(),0)
+
+        
         await usdcHousePool.connect(owner).grantRole(usdcHousePool.DATA_PROVIDER_ORACLE(), owner.address);
         const _evValue = 0;
         const _meValue = 0;
@@ -282,11 +280,9 @@ describe("USDC HousePool", () => {
         const evValue = ethers.utils.formatUnits(await usdcHousePool.getEV(),0)
         const bettingStakes = ethers.utils.formatUnits(await usdcHousePool.getBettingStakes(),0)
         const treasuryAmount = ethers.utils.formatUnits(await usdcHousePool.getTreasuryAmount(),0)
-
-        expect(tvlOfPool/10**18).to.equal(amount/10**6 + currentTVLOfValue/10**18)
-        expect(liquidity/10**18).to.equal(currentLiquidity/10**18 + amount/10**6)
-        expect(claimTokenPrice/10**18).to.equal((tvlOfPool/10**18) / (claimTokensIssued/10**18))
-        expect(claimTokenWithdrawlPrice/10**18).to.equal((liquidity/10**18)/(claimTokensIssued/10**18))
+        
+     
+        
 
         console.log("***********************************************************************************************")
         console.log("***********************Test case first user Deposit *******************************************")
@@ -304,6 +300,12 @@ describe("USDC HousePool", () => {
 
         console.log("***********************************************************************************************")
         console.log("***********************************************************************************************")
+
+
+        expect(tvlOfPool/10**18).to.equal(liquidity/10**18)
+        expect(liquidity/10**18).to.equal(currentLiquidity/10**18 + amount/10**6)
+        expect(claimTokenPrice/10**18).to.equal((tvlOfPool/10**18) / (claimTokensIssued/10**18))
+        expect(claimTokenWithdrawlPrice/10**18).to.equal((liquidity/10**18)/(claimTokensIssued/10**18))
  
  
     })

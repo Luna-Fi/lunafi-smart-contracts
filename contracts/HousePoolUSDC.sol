@@ -196,7 +196,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
             "USDCHousePool: Check the Balance"
         );
         liquidity += amount * 10**PRECISION_DIFFERENCE;
-        tvl += int(amount) * int(10**PRECISION_DIFFERENCE);
+        tvl += int(amount * 10**PRECISION_DIFFERENCE);
         deposits[msg.sender] += amount * 10**PRECISION_DIFFERENCE;
         token.transferFrom(msg.sender, address(this), amount);
         uint256 LPTokensToMint = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / lpTokenPrice;
