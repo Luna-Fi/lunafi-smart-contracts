@@ -9,7 +9,7 @@ pragma solidity 0.8.10;
 // Symbol      : USDCCT
 // Name        : USDCClaimToken
 // Total supply: 0
-// Decimals    : 6
+// Decimals    : 18
 //--------------------------------------
 
 

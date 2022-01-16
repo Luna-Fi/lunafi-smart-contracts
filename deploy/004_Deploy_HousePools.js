@@ -16,12 +16,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
     
     const HousePoolUSDC = await deploy('HousePoolUSDC', { from: deployer, log: true, args: [deployer,mockUSDCTokenAddress,USDCClaimTokenAddress,name,version] });
-    //const HousePoolWBTC = await deploy('HousePoolWBTC', { from: deployer, log: true, args: [deployer,mockWBTCTokenAddress,WBTCclaimToken.address,name,version] });
-    //const HousePoolWETH = await deploy('HousePoolWETH', { from: deployer, log: true, args: [deployer,mockWETHTokenAddress,WETHclaimToken.address,name,version] });
+    const HousePoolWBTC = await deploy('HousePoolWBTC', { from: deployer, log: true, args: [deployer,mockWBTCTokenAddress,WBTCclaimToken.address,name,version] });
+    const HousePoolWETH = await deploy('HousePoolWETH', { from: deployer, log: true, args: [deployer,mockWETHTokenAddress,WETHclaimToken.address,name,version] });
 
     console.log("HousePoolUSDC Address : ", HousePoolUSDC.address)
-    //console.log("HousePoolWBTC Address : ", HousePoolWBTC.address)
-    //console.log("HousePoolWETH Address : ", HousePoolWETH.address)
+    console.log("HousePoolWBTC Address : ", HousePoolWBTC.address)
+    console.log("HousePoolWETH Address : ", HousePoolWETH.address)
    
   };
 

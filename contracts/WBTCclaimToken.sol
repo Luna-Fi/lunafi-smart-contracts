@@ -10,7 +10,7 @@ pragma solidity 0.8.10;
 // Symbol      : WBTCCT
 // Name        : WBTCClaimToken
 // Total supply: 0
-// Decimals    : 8
+// Decimals    : 18
 //--------------------------------------
 
 /// @title An ERC20 Interface
@@ -75,7 +75,7 @@ contract WBTCclaimToken is ERC20Interface, SafeMath {
     constructor()  {
         name = "WBTCClaimToken";
         symbol = "WBTCCT";
-        decimals = 8;
+        decimals = 18;
         _totalSupply = 0;
 	    initialSupply = _totalSupply;
 	    balances[msg.sender] = _totalSupply;
