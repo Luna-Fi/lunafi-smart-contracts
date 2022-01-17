@@ -28,7 +28,24 @@ const config = {
       tags: ["production"],
       saveDeployments: true,
       accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
+    },
+    BSCTestNet: {
+      url: `${process.env.NODE_URI_BSCTESTNET}`,
+      chainId: 97,
+      live: true,
+      tags: ["BSCTest"],
+      saveDeployments: true,
+      accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
+    },
+    BSCMainNet: {
+      url: `${process.env.NODE_URI_BSCMAINNET}`,
+      chainId: 56,
+      live: true,
+      tags: ["BSCMainNet"],
+      saveDeployments: true,
+      accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
     }
+
   },
   namedAccounts: {
     deployer: {
