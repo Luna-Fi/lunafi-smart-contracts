@@ -6,6 +6,7 @@ require("@nomiclabs/hardhat-waffle");
 require("hardhat-deploy");
 require('dotenv').config();
 require("@nomiclabs/hardhat-ethers");
+require("@nomiclabs/hardhat-etherscan");
 
 const config = {
   solidity: "0.8.10",
@@ -53,6 +54,9 @@ const config = {
         localhost: `${process.env.DEPLOYER_ACCOUNT_ADDRESS}`,
         ropsten: `${process.env.DEPLOYER_ACCOUNT_ADDRESS}`
     }     
+  },
+  etherscan: {
+    apiKey: "6J8G9VC791WVYDIQK5FA2XUJXVGNP2YH4I"
   }
 };
 

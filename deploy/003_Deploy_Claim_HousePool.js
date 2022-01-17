@@ -22,8 +22,8 @@ module.exports  = async ({getNamedAccounts, deployments}) => {
     console.log("WETHclaimToken Address : ", WETHclaimToken.address)
 
     console.log("HousePoolUSDC Address : ", HousePoolUSDC.address)
-    //console.log("HousePoolWBTC Address : ", HousePoolWBTC.address)
-    //console.log("HousePoolWETH Address : ", HousePoolWETH.address)
+    console.log("HousePoolWBTC Address : ", HousePoolWBTC.address)
+    console.log("HousePoolWETH Address : ", HousePoolWETH.address)
    
   };
 
