@@ -13,7 +13,7 @@ pragma solidity 0.8.10;
 // Decimals    : 18
 //--------------------------------------
 
-/// @title An ERC20 Interface
+/// @title An ERC20 Contract for 
 /// @author Chay
 
 abstract contract ERC20Interface {
@@ -34,12 +34,20 @@ abstract contract ERC20Interface {
 /// @notice This is used for safe add and safe subtract. This overcomes the overflow errors.
 
 contract SafeMath {
+    /// @notice Perform a safe additon with out an overflow/underflow
+    /// @param a an unsigned integer
+    /// @param b an unsigned integer
+    /// @return c an unsigned integer which is a sum of two given params.
     function safeAdd(uint a, uint b) public pure returns (uint c) {
         c = a + b;
         require(c >= a, "SafeMath: addition overflow");
         return c;
     }
 
+    /// @notice Perform a safe additon with out an overflow/underflow
+    /// @param a an unsigned integer
+    /// @param b an unsigned integer
+    /// @return c an unsigned integer which is a difference of two given params.
     function safeSub(uint a, uint b) public pure returns (uint c) {
         require(b <= a, "SafeMath: subtraction overflow"); 
         c = a - b; 
@@ -48,7 +56,9 @@ contract SafeMath {
 
 }
 
-
+/// @title An ERC20 Interface
+/// @author Chay
+ 
 contract WBTCclaimToken is ERC20Interface, SafeMath {
     
     uint8 public decimals;
@@ -73,8 +83,8 @@ contract WBTCclaimToken is ERC20Interface, SafeMath {
     }
 
     constructor()  {
-        name = "WBTCClaimToken";
-        symbol = "WBTCCT";
+        name = "LFWBTCLP";
+        symbol = "LFWBTCLP";
         decimals = 18;
         _totalSupply = 0;
 	    initialSupply = _totalSupply;
