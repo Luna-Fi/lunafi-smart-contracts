@@ -1,4 +1,10 @@
 const { expect } = require("chai");
+const { BigNumber} = require("ethers");
+
+const returnBigNumber = (number) => {
+    number = number.toString(16)
+    return BigNumber.from("0x" + number);
+}
 
 
 describe("USDC HousePool", () => {
@@ -44,42 +50,92 @@ describe("USDC HousePool", () => {
 
         const [owner] = await ethers.getSigners()
         const amount = 5000 * 10**6
-        let cTokenPrice = 100 * 10**6
-        let cTokenWithdrawPrice = 100 * 10**6
-        
-        await usdcHousePool.deposit(amount)
+        let cTokenPrice = 100 * 10**18
+        let cTokenWithdrawPrice = 100 * 10**18
 
-        const liquidity = await usdcHousePool.getLiquidityStatus()
-        const tvlOfPool = await usdcHousePool.getTVLofPool()
-        const claimTokensIssued = await usdcClaimToken.totalSupply()
-        const claimTokenPrice = await usdcHousePool.getTokenPrice()
-        const claimTokenWithdrawlPrice = await usdcHousePool.getTokenWithdrawlPrice()
-        const evValue = await usdcHousePool.getEV()
-        const bettingStakes = await usdcHousePool.getBettingStakes()
-        const treasuryAmount = await usdcHousePool.getTreasuryAmount()
-
-        expect(liquidity.toNumber()).to.equal(amount)
-        expect(tvlOfPool.toNumber()).to.equal(amount)
-        expect(claimTokenPrice.toNumber()).to.equal(claimTokenPrice)
-        expect(claimTokenWithdrawlPrice.toNumber()).to.equal(claimTokenWithdrawlPrice)   
-        expect(claimTokensIssued.toNumber()).to.equal(amount * 10**6/ (claimTokenPrice))
+        await usdcHousePool.connect(owner).grantRole(usdcHousePool.DATA_PROVIDER_ORACLE(), owner.address);
+        await usdcHousePool.connect(owner).grantRole(usdcHousePool.HOUSE_POOL_DATA_PROVIDER(), owner.address);
+        const _evValue = 0;
+        const _meValue = 0;
+        const _chain = await ethers.provider.getNetwork();
+        const _deadline = (await ethers.provider.getBlockNumber()) + 4;
+        const _signature = await owner._signTypedData(
+            {
+                name: "",
+                version: "",
+                chainId: _chain.chainId,
+                verifyingContract: usdcHousePool.address,
+            },
+            {
+                VoI: [
+                    { name: "signer", type: "address" },
+                    { name: "expectedValue", type: "int256" },
+                    { name: "maxExposure", type: "uint256" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "deadline", type: "uint256" }
+                ],
+            },
+            {
+                signer: owner.address,
+                expectedValue: _evValue,
+                maxExposure: _meValue,
+                nonce: 0,
+                deadline: _deadline
+            }
+        );
         
+        await usdcHousePool.deposit(
+            amount,
+            _signature,
+            {
+                expectedValue: _evValue,
+                maxExposure: _meValue,
+                deadline: _deadline,
+                signer: owner.address
+            })
+
+        const liquidity = ethers.utils.formatUnits(await usdcHousePool.getLiquidityStatus(),0)
+        const tvlOfPool = ethers.utils.formatUnits(await usdcHousePool.getTVLofPool(),0)
+        const claimTokensIssued = ethers.utils.formatUnits(await usdcClaimToken.totalSupply(),0)
+        const claimTokenPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenPrice(),0)
+        const claimTokenWithdrawlPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenWithdrawlPrice(),0)
+        const evValue = ethers.utils.formatUnits(await usdcHousePool.getEV(),0)
+        const bettingStakes = ethers.utils.formatUnits(await usdcHousePool.getBettingStakes(),0)
+        const treasuryAmount = ethers.utils.formatUnits(await usdcHousePool.getTreasuryAmount(),0)
+
+        const amountInhexString = (amount*10**12).toString(16)
+        const amountinBigNumber = returnBigNumber(amountInhexString)
+
+        const hTokenPrice = (cTokenPrice).toString(16)
+        const tokenPriceBigNumber = returnBigNumber(hTokenPrice)
+
+        const hTokenWithdrawPrice = (cTokenWithdrawPrice).toString(16)
+        const tokenWPriceBigNumber = returnBigNumber(hTokenWithdrawPrice)
+        
+       
         console.log("***********************************************************************************************")
         console.log("******************************* Initial Test case Values **************************************")
         console.log("***********************************************************************************************")
 
         console.log("Amount Deposited         : ", amount/10**6)
-        console.log("Liquidity                : ", liquidity.toNumber()/10**6)
-        console.log("TVL of Pool              : ", tvlOfPool.toNumber()/10**6)
-        console.log("EV value                 : ", evValue.toNumber()/10**6)
-        console.log("Betting Stakes           : ", bettingStakes.toNumber()/10**6)
-        console.log("ClaimTokens Issued       : ", claimTokensIssued.toNumber()/10**6)
-        console.log("LP Tokens Issued at rate : ", claimTokenPrice.toNumber()/10**6)
-        console.log("LP Token withdraw rate   : ", claimTokenWithdrawlPrice.toNumber()/10**6)
-        console.log("Treasury Amount          : ", treasuryAmount.toNumber()/10**6)
+        console.log("Liquidity                : ", liquidity/10**18)
+        console.log("TVL of Pool              : ", tvlOfPool/10**18)
+        console.log("EV value                 : ", evValue/10**18)
+        console.log("Betting Stakes           : ", bettingStakes/10**18)
+        console.log("ClaimTokens Issued       : ", claimTokensIssued/10**18)
+        console.log("LP Tokens Issued at rate : ", claimTokenPrice/10**18)
+        console.log("LP Token withdraw rate   : ", claimTokenWithdrawlPrice/10**18)
+        console.log("Treasury Amount          : ", treasuryAmount/10**18)
 
         console.log("***********************************************************************************************")
         console.log("***********************************************************************************************")
+
+
+        expect(liquidity).to.equal(ethers.utils.formatUnits(amountinBigNumber,0))
+        expect(tvlOfPool).to.equal(ethers.utils.formatUnits(amountinBigNumber,0))
+        expect(claimTokenPrice).to.equal(ethers.utils.formatUnits(tokenPriceBigNumber,0))
+        expect(claimTokenWithdrawlPrice).to.equal(ethers.utils.formatUnits(tokenWPriceBigNumber,0)) 
+        expect(claimTokensIssued/10**18).to.equal((ethers.utils.formatUnits(amountinBigNumber,0) / claimTokenPrice))
       
     })
 
@@ -87,13 +143,14 @@ describe("USDC HousePool", () => {
         It should also change the token price`, async () => {
 
         const [owner] = await ethers.getSigners()
-        const evValue = 15 * 10**6;
-        const bet = 500 * 10**6
+        const eVValue = returnBigNumber(15 * 10**18)
+        const meValue = 0;
+        const bet = returnBigNumber(500 * 10**18)
         const DataProviderValue = await usdcHousePool.DATA_PROVIDER_ORACLE()
-        
+
         await usdcHousePool.grantRole(DataProviderValue,owner.address)
         await usdcHousePool.grantRole(usdcHousePool.HOUSE_POOL_DATA_PROVIDER(),owner.address)
-        await usdcHousePool.setBettingStakes(bet)
+        await usdcHousePool.setBettingStakes(ethers.utils.formatUnits(bet,0)) 
 
         const _chain = await ethers.provider.getNetwork();
         const _deadline = (await ethers.provider.getBlockNumber()) + 4;
@@ -108,60 +165,60 @@ describe("USDC HousePool", () => {
             {
                 VoI: [
                     { name: "signer", type: "address" },
-                    { name: "value", type: "int256" },
+                    { name: "expectedValue", type: "int256" },
+                    { name: "maxExposure", type: "uint256" },
                     { name: "nonce", type: "uint256" },
                     { name: "deadline", type: "uint256" }
                 ],
             },
             {
                 signer: owner.address,
-                value: evValue,
-                nonce: 0,
+                expectedValue: ethers.utils.formatUnits(eVValue,0),
+                maxExposure: meValue,
+                nonce: 1,
                 deadline: _deadline
             }
         );
-        await usdcHousePool.setEVFromSignedData(
+        await usdcHousePool.setVOI(
             _signature,
             {
-                value: evValue,
+                expectedValue: ethers.utils.formatUnits(eVValue,0),
+                maxExposure: meValue,
                 deadline: _deadline,
                 signer: owner.address
             });
 
-        const tvlOfPool = await usdcHousePool.getTVLofPool()
-        const liquidity = await usdcHousePool.getLiquidityStatus()
-        const claimTokenPrice = await usdcHousePool.getTokenPrice()
-        const claimTokensIssued = await usdcClaimToken.totalSupply()
-        const eVValue = await usdcHousePool.getEV()
-        const claimTokenWithdrawlPrice = await usdcHousePool.getTokenWithdrawlPrice()
-        const bettingStakes = await usdcHousePool.getBettingStakes()
-        const treasuryAmount = await usdcHousePool.getTreasuryAmount()
+        const liquidity = ethers.utils.formatUnits(await usdcHousePool.getLiquidityStatus(),0)
+        const tvlOfPool = ethers.utils.formatUnits(await usdcHousePool.getTVLofPool(),0)
+        const claimTokensIssued = ethers.utils.formatUnits(await usdcClaimToken.totalSupply(),0)
+        const claimTokenPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenPrice(),0)
+        const claimTokenWithdrawlPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenWithdrawlPrice(),0)
+        const evValue = ethers.utils.formatUnits(await usdcHousePool.getEV(),0)
+        const bettingStakes = ethers.utils.formatUnits(await usdcHousePool.getBettingStakes(),0)
+        const treasuryAmount = ethers.utils.formatUnits(await usdcHousePool.getTreasuryAmount(),0)
         
-        const TVPNumber = tvlOfPool.toNumber()
-        const LPTotalNumber = claimTokensIssued.toNumber()
-        
-        const res = TVPNumber/LPTotalNumber;
-        
-        expect(tvlOfPool.toNumber()).to.equal(liquidity.toNumber() + evValue)
-        expect(claimTokenPrice.toNumber()).to.equal(res*10**6)
+        const TV = tvlOfPool/10**18
+        const CT = claimTokensIssued/10**18
 
         console.log("***********************************************************************************************")
         console.log("***********************Test case For EV Value *************************************************")
         console.log("***********************************************************************************************")
 
         console.log("Amount Deposited          : ", 0)
-        console.log("Liquidity                 : ", liquidity.toNumber()/10**6)
-        console.log("TVL of Pool               : ", tvlOfPool.toNumber()/10**6)
-        console.log("EV value                  : ", eVValue.toNumber()/10**6) 
-        console.log("Betting Stakes            : ", bettingStakes.toNumber()/10**6)
-        console.log("claimTokens Issued :      : ", claimTokensIssued.toNumber()/10**6) 
-        console.log("LP Token Issued at rate   : ", claimTokenPrice.toNumber()/10**6)
-        console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice.toNumber()/10**6)
-        console.log("Treasury Amount           : ", treasuryAmount.toNumber()/10**6)
+        console.log("Liquidity                 : ", liquidity/10**18)
+        console.log("TVL of Pool               : ", tvlOfPool/10**18)
+        console.log("EV value                  : ", evValue/10**18) 
+        console.log("Betting Stakes            : ", bettingStakes/10**18)
+        console.log("claimTokens Issued :      : ", claimTokensIssued/10**18) 
+        console.log("LP Token Issued at rate   : ", claimTokenPrice/10**18)
+        console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice/10**18)
+        console.log("Treasury Amount           : ", treasuryAmount/10**18)
 
         console.log("***********************************************************************************************")
         console.log("***********************************************************************************************")
- 
+
+        expect(tvlOfPool/10**18).to.equal(liquidity/10**18 + evValue/10**18)
+        expect(claimTokenPrice/10**18).to.equal(TV/CT)
         
     })
 
@@ -170,63 +227,16 @@ describe("USDC HousePool", () => {
         
         const [owner,user1] = await ethers.getSigners();
         const amount = 10000 * 10**6
-        
-        const currentLPTokenPrice = await usdcHousePool.getTokenPrice()
-        const currentLPTokenWithdrawlPrice = await usdcHousePool.getTokenWithdrawlPrice()
-        const currentTVLOfValue = await usdcHousePool.getTVLofPool()
+
         const currentLiquidity = await usdcHousePool.getLiquidityStatus()
-        const currentClaimTokens = await usdcClaimToken.totalSupply()
-        const currentBalanceOfUser = await usdcClaimToken.balanceOf(user1.address)
-       
+        const currenttvlOfPool = ethers.utils.formatUnits(await usdcHousePool.getTVLofPool(),0)
+
         
-        await usdcHousePool.connect(user1).deposit(amount)
-
-        const tvlOfPool = await usdcHousePool.getTVLofPool()
-        const liquidity = await usdcHousePool.getLiquidityStatus()
-        const claimTokensIssued = await usdcClaimToken.totalSupply()
-        const claimTokenPrice = await usdcHousePool.getTokenPrice()
-        const claimTokenWithdrawlPrice = await usdcHousePool.getTokenWithdrawlPrice()
-        const evValue = await usdcHousePool.getEV()
-        const bettingStakes = await usdcHousePool.getBettingStakes()
-        const treasuryAmount = await usdcHousePool.getTreasuryAmount()
-
-        expect(tvlOfPool.toNumber()).to.equal(amount + currentTVLOfValue.toNumber())
-        expect(liquidity.toNumber()).to.equal(currentLiquidity.toNumber() + amount);
-        expect(claimTokenPrice.toNumber()).to.equal(Math.floor(tvlOfPool.toNumber()/claimTokensIssued.toNumber()*10**6))
-        expect(claimTokenWithdrawlPrice.toNumber()).to.equal(Math.floor(liquidity.toNumber()/claimTokensIssued.toNumber()*10**6))
-
-        console.log("***********************************************************************************************")
-        console.log("***********************Test case first user Deposit *******************************************")
-        console.log("***********************************************************************************************")
-
-        console.log("Amount Deposited          : ", amount/10**6)
-        console.log("Liquidity                 : ", liquidity.toNumber()/10**6)
-        console.log("TVL of Pool               : ", tvlOfPool.toNumber()/10**6)
-        console.log("EV value                  : ", evValue.toNumber()/10**6) 
-        console.log("Betting Stakes            : ", bettingStakes.toNumber()/10**6)
-        console.log("claimTokens Issued :      : ", claimTokensIssued.toNumber()/10**6) 
-        console.log("LP Token Issued at rate   : ", claimTokenPrice.toNumber()/10**6)
-        console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice.toNumber()/10**6)
-        console.log("Treasury Amount           : ", treasuryAmount.toNumber()/10**6)
-
-        console.log("***********************************************************************************************")
-        console.log("***********************************************************************************************")
- 
- 
-    })
-
-    it(`Should update the ev value`, async () => {
-
-        const [owner] = await ethers.getSigners()
-        const evValue = 490 * 10**6;
-        const DataProviderValue = await usdcHousePool.DATA_PROVIDER_ORACLE()
-        await usdcHousePool.grantRole(DataProviderValue,owner.address)
-        await usdcHousePool.grantRole(usdcHousePool.HOUSE_POOL_DATA_PROVIDER(),owner.address)
-        
-
+        await usdcHousePool.connect(owner).grantRole(usdcHousePool.DATA_PROVIDER_ORACLE(), owner.address);
+        const _evValue = 0;
+        const _meValue = 0;
         const _chain = await ethers.provider.getNetwork();
         const _deadline = (await ethers.provider.getBlockNumber()) + 4;
-
         const _signature = await owner._signTypedData(
             {
                 name: "",
@@ -237,37 +247,124 @@ describe("USDC HousePool", () => {
             {
                 VoI: [
                     { name: "signer", type: "address" },
-                    { name: "value", type: "int256" },
+                    { name: "expectedValue", type: "int256" },
+                    { name: "maxExposure", type: "uint256" },
                     { name: "nonce", type: "uint256" },
                     { name: "deadline", type: "uint256" }
                 ],
             },
             {
                 signer: owner.address,
-                value: evValue,
-                nonce: 1,
+                expectedValue: _evValue,
+                maxExposure: _meValue,
+                nonce: 2,
                 deadline: _deadline
             }
         );
-        await usdcHousePool.setEVFromSignedData(
+        
+        await usdcHousePool.connect(user1).deposit(
+            amount,
             _signature,
             {
-                value: evValue,
+                expectedValue: _evValue,
+                maxExposure: _meValue,
                 deadline: _deadline,
                 signer: owner.address
             });
 
-        const tvlOfPool = await usdcHousePool.getTVLofPool()
-        const liquidity = await usdcHousePool.getLiquidityStatus()
-        const claimTokenPrice = await usdcHousePool.getTokenPrice()
-        const claimTokensIssued = await usdcClaimToken.totalSupply()
-        const eVValue = await usdcHousePool.getEV()
-        const claimTokenWithdrawlPrice = await usdcHousePool.getTokenWithdrawlPrice()
-        const bettingStakes = await usdcHousePool.getBettingStakes()
-        const treasuryAmount = await usdcHousePool.getTreasuryAmount()
+        const liquidity = ethers.utils.formatUnits(await usdcHousePool.getLiquidityStatus(),0)
+        const tvlOfPool = ethers.utils.formatUnits(await usdcHousePool.getTVLofPool(),0)
+        const claimTokensIssued = ethers.utils.formatUnits(await usdcClaimToken.totalSupply(),0)
+        const claimTokenPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenPrice(),0)
+        const claimTokenWithdrawlPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenWithdrawlPrice(),0)
+        const evValue = ethers.utils.formatUnits(await usdcHousePool.getEV(),0)
+        const bettingStakes = ethers.utils.formatUnits(await usdcHousePool.getBettingStakes(),0)
+        const treasuryAmount = ethers.utils.formatUnits(await usdcHousePool.getTreasuryAmount(),0)
+        
+     
+        
 
-        expect(tvlOfPool.toNumber()).to.equal(liquidity.toNumber() + evValue)
-        expect(claimTokenPrice.toNumber()).to.equal(Math.floor(tvlOfPool.toNumber()/claimTokensIssued.toNumber()*10**6))
+        console.log("***********************************************************************************************")
+        console.log("***********************Test case first user Deposit *******************************************")
+        console.log("***********************************************************************************************")
+
+        console.log("Amount Deposited          : ", amount/10**6)
+        console.log("Liquidity                 : ", liquidity/10**18)
+        console.log("TVL of Pool               : ", tvlOfPool/10**18)
+        console.log("EV value                  : ", evValue/10**18) 
+        console.log("Betting Stakes            : ", bettingStakes/10**18)
+        console.log("claimTokens Issued :      : ", claimTokensIssued/10**18) 
+        console.log("LP Token Issued at rate   : ", claimTokenPrice/10**18)
+        console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice/10**18)
+        console.log("Treasury Amount           : ", treasuryAmount/10**18)
+
+        console.log("***********************************************************************************************")
+        console.log("***********************************************************************************************")
+
+
+        expect(tvlOfPool/10**18).to.equal(liquidity/10**18)
+        expect(liquidity/10**18).to.equal(currentLiquidity/10**18 + amount/10**6)
+        expect(claimTokenPrice/10**18).to.equal((tvlOfPool/10**18) / (claimTokensIssued/10**18))
+        expect(claimTokenWithdrawlPrice/10**18).to.equal((liquidity/10**18)/(claimTokensIssued/10**18))
+ 
+ 
+    })
+
+    it(`Should update the ev value`, async () => {
+
+        const [owner] = await ethers.getSigners()
+        const eVValue = returnBigNumber(490 * 10**18)
+        const meValue = 0;
+        const DataProviderValue = await usdcHousePool.DATA_PROVIDER_ORACLE()
+        await usdcHousePool.grantRole(DataProviderValue,owner.address)
+        await usdcHousePool.grantRole(usdcHousePool.HOUSE_POOL_DATA_PROVIDER(),owner.address)
+
+        const _chain = await ethers.provider.getNetwork();
+        const _deadline = (await ethers.provider.getBlockNumber()) + 4;
+        const _signature = await owner._signTypedData(
+            {
+                name: "",
+                version: "",
+                chainId: _chain.chainId,
+                verifyingContract: usdcHousePool.address,
+            },
+            {
+                VoI: [
+                    { name: "signer", type: "address" },
+                    { name: "expectedValue", type: "int256" },
+                    { name: "maxExposure", type: "uint256" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "deadline", type: "uint256" }
+                ],
+            },
+            {
+                signer: owner.address,
+                expectedValue:  ethers.utils.formatUnits(eVValue,0),
+                maxExposure: meValue,
+                nonce: 3,
+                deadline: _deadline
+            }
+        );
+        await usdcHousePool.setVOI(
+            _signature,
+            {
+                expectedValue:  ethers.utils.formatUnits(eVValue,0),
+                maxExposure: meValue,
+                deadline: _deadline,
+                signer: owner.address
+            });
+
+        const liquidity = ethers.utils.formatUnits(await usdcHousePool.getLiquidityStatus(),0)
+        const tvlOfPool = ethers.utils.formatUnits(await usdcHousePool.getTVLofPool(),0)
+        const claimTokensIssued = ethers.utils.formatUnits(await usdcClaimToken.totalSupply(),0)
+        const claimTokenPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenPrice(),0)
+        const claimTokenWithdrawlPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenWithdrawlPrice(),0)
+        const evValue = ethers.utils.formatUnits(await usdcHousePool.getEV(),0)
+        const bettingStakes = ethers.utils.formatUnits(await usdcHousePool.getBettingStakes(),0)
+        const treasuryAmount = ethers.utils.formatUnits(await usdcHousePool.getTreasuryAmount(),0)
+
+        expect(tvlOfPool/10**18).to.equal(liquidity/10**18 + evValue/10**18)
+        expect(claimTokenPrice/10**18).to.equal((tvlOfPool/10**18)/(claimTokensIssued/10**18))
 
 
         console.log("***********************************************************************************************")
@@ -275,14 +372,14 @@ describe("USDC HousePool", () => {
         console.log("***********************************************************************************************")
 
         console.log("Amount Deposited          : ", 0)
-        console.log("Liquidity                 : ", liquidity.toNumber()/10**6)
-        console.log("TVL of Pool               : ", tvlOfPool.toNumber()/10**6)
-        console.log("EV value                  : ", eVValue.toNumber()/10**6) 
-        console.log("Betting Stakes            : ", bettingStakes.toNumber()/10**6)
-        console.log("claimTokens Issued :      : ", claimTokensIssued.toNumber()/10**6) 
-        console.log("LP Token Issued at rate   : ", claimTokenPrice.toNumber()/10**6)
-        console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice.toNumber()/10**6)
-        console.log("Treasury Amount           : ", treasuryAmount.toNumber()/10**6)
+        console.log("Liquidity                 : ", liquidity/10**18)
+        console.log("TVL of Pool               : ", tvlOfPool/10**18)
+        console.log("EV value                  : ", eVValue/10**18) 
+        console.log("Betting Stakes            : ", bettingStakes/10**18)
+        console.log("claimTokens Issued :      : ", claimTokensIssued/10**18) 
+        console.log("LP Token Issued at rate   : ", claimTokenPrice/10**18)
+        console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice/10**18)
+        console.log("Treasury Amount           : ", treasuryAmount/10**18)
 
         console.log("***********************************************************************************************")
         console.log("***********************************************************************************************")
@@ -291,42 +388,49 @@ describe("USDC HousePool", () => {
 
     it(`Should  update treasury based on the betting outcome`, async () => {
         
-        const bettingAmount = 1000 * 10**6;
-        const outcome = false;
-        const betAmount = 500 * 10**6
-
-        const pastLiquidity = await usdcHousePool.getLiquidityStatus()
-
-        await usdcHousePool.setBettingStakes(bettingAmount)
         
-        await usdcHousePool.simulateOutcome(outcome,betAmount)
+        const bettingAmount = returnBigNumber(1000 * 10**18)
+        const outcome = false;
+        const betAmount = returnBigNumber(500 * 10**18)
 
-        const treasuryAmount = await usdcHousePool.getTreasuryAmount()
-        const liquidity = await usdcHousePool.getLiquidityStatus()
-        const tvlOfPool = await usdcHousePool.getTVLofPool()
-        const eVValue = await usdcHousePool.getEV()
-        const claimTokenPrice = await usdcHousePool.getTokenPrice()
-        const claimTokensIssued = await usdcClaimToken.totalSupply()
-        const claimTokenWithdrawlPrice = await usdcHousePool.getTokenWithdrawlPrice()
-        const bettingStakes = await usdcHousePool.getBettingStakes()
+        const pastLiquidity = ethers.utils.formatUnits(await usdcHousePool.getLiquidityStatus(),0)
 
+        await usdcHousePool.setBettingStakes(ethers.utils.formatUnits(bettingAmount,0))
+        
+        await usdcHousePool.simulateOutcome(outcome,ethers.utils.formatUnits(betAmount,0))
 
-        expect(treasuryAmount.toNumber()).to.equal((betAmount/100))
-        expect(liquidity.toNumber()).to.equal((pastLiquidity.toNumber()) + ((betAmount/100) * 99))
+        const liquidity = ethers.utils.formatUnits(await usdcHousePool.getLiquidityStatus(),0)
+        const tvlOfPool = ethers.utils.formatUnits(await usdcHousePool.getTVLofPool(),0)
+        const claimTokensIssued = ethers.utils.formatUnits(await usdcClaimToken.totalSupply(),0)
+        const claimTokenPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenPrice(),0)
+        const claimTokenWithdrawlPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenWithdrawlPrice(),0)
+        const evValue = ethers.utils.formatUnits(await usdcHousePool.getEV(),0)
+        const bettingStakes = ethers.utils.formatUnits(await usdcHousePool.getBettingStakes(),0)
+        const treasuryAmount = ethers.utils.formatUnits(await usdcHousePool.getTreasuryAmount(),0)
+
+    
+        const ta = treasuryAmount/10**18
+        const ba = (ethers.utils.formatUnits(betAmount,0)/100)/10**18
+        const lq = liquidity/10**18
+        const plq = pastLiquidity/10**18
+        const res = ( (ethers.utils.formatUnits(betAmount,0) / 100 *99 )) /10**18
+    
+        expect(ta).to.equal(ba)
+        expect(lq).to.equal(plq + res) 
 
         console.log("***********************************************************************************************")
         console.log("***********************Test case for betting outcome ******************************************")
         console.log("***********************************************************************************************")
 
         console.log("Amount Deposited          : ", 0)
-        console.log("Liquidity                 : ", liquidity.toNumber()/10**6)
-        console.log("TVL of Pool               : ", tvlOfPool.toNumber()/10**6)
-        console.log("EV value                  : ", eVValue.toNumber()/10**6) 
-        console.log("Betting Stakes            : ", bettingStakes.toNumber()/10**6)
-        console.log("claimTokens Issued :      : ", claimTokensIssued.toNumber()/10**6) 
-        console.log("LP Token Issued at rate   : ", claimTokenPrice.toNumber()/10**6)
-        console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice.toNumber()/10**6)
-        console.log("Treasury Amount           : ", treasuryAmount.toNumber()/10**6)
+        console.log("Liquidity                 : ", liquidity/10**18)
+        console.log("TVL of Pool               : ", tvlOfPool/10**18)
+        console.log("EV value                  : ", evValue/10**18) 
+        console.log("Betting Stakes            : ", bettingStakes/10**18)
+        console.log("claimTokens Issued :      : ", claimTokensIssued/10**18) 
+        console.log("LP Token Issued at rate   : ", claimTokenPrice/10**18)
+        console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice/10**18)
+        console.log("Treasury Amount           : ", treasuryAmount/10**18)
 
         console.log("***********************************************************************************************")
         console.log("***********************************************************************************************")
@@ -339,45 +443,72 @@ describe("USDC HousePool", () => {
         const [owner,user1] = await ethers.getSigners();
         const withdrawAmount = 5000 * 10**6
 
-        const beforeLiquidity = await usdcHousePool.getLiquidityStatus()
-        const WithdrawPrice = await usdcHousePool.getTokenPrice()
-        const beforeLPWPrice = await usdcHousePool.getTokenWithdrawlPrice()
-        const beforeTVLPrice = await usdcHousePool.getTVLofPool()
-
-        await usdcHousePool.connect(user1).withdraw(withdrawAmount);
-
+        const beforeLiquidity = ethers.utils.formatUnits(await usdcHousePool.getLiquidityStatus(),0)
         
-        const TokenPriceafterWithdrawPrice = await usdcHousePool.getTokenPrice()
-        const afterLPWPrice = await usdcHousePool.getTokenWithdrawlPrice()
-        const afterTVLPrice = await usdcHousePool.getTVLofPool()
-        const claimTokens = await usdcClaimToken.totalSupply()
+        const eVValue = 0;
+        const meValue = 0;
+        const _chain = await ethers.provider.getNetwork();
+        const _deadline = (await ethers.provider.getBlockNumber()) + 4;
+        const _signature = await owner._signTypedData(
+            {
+                name: "",
+                version: "",
+                chainId: _chain.chainId,
+                verifyingContract: usdcHousePool.address,
+            },
+            {
+                VoI: [
+                    { name: "signer", type: "address" },
+                    { name: "expectedValue", type: "int256" },
+                    { name: "maxExposure", type: "uint256" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "deadline", type: "uint256" }
+                ],
+            },
+            {
+                signer: owner.address,
+                expectedValue: eVValue,
+                maxExposure: meValue,
+                nonce: 4,
+                deadline: _deadline
+            }
+        );
+        
+        await usdcHousePool.connect(user1).withdraw(
+            withdrawAmount,
+            _signature,
+            {
+                expectedValue: eVValue,
+                maxExposure: meValue,
+                deadline: _deadline,
+                signer: owner.address
+            });
 
-        const treasuryAmount = await usdcHousePool.getTreasuryAmount()
-        const liquidity = await usdcHousePool.getLiquidityStatus()
-        const tvlOfPool = await usdcHousePool.getTVLofPool()
-        const eVValue = await usdcHousePool.getEV()
-        const claimTokenPrice = await usdcHousePool.getTokenPrice()
-        const claimTokensIssued = await usdcClaimToken.totalSupply()
-        const claimTokenWithdrawlPrice = await usdcHousePool.getTokenWithdrawlPrice()
-        const bettingStakes = await usdcHousePool.getBettingStakes()
+    
+        const liquidity = ethers.utils.formatUnits(await usdcHousePool.getLiquidityStatus(),0)
+        const tvlOfPool = ethers.utils.formatUnits(await usdcHousePool.getTVLofPool(),0)
+        const claimTokensIssued = ethers.utils.formatUnits(await usdcClaimToken.totalSupply(),0)
+        const claimTokenPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenPrice(),0)
+        const claimTokenWithdrawlPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenWithdrawlPrice(),0)
+        const evValue = ethers.utils.formatUnits(await usdcHousePool.getEV(),0)
+        const bettingStakes = ethers.utils.formatUnits(await usdcHousePool.getBettingStakes(),0)
+        const treasuryAmount = ethers.utils.formatUnits(await usdcHousePool.getTreasuryAmount(),0)
 
-        expect(liquidity.toNumber()).to.equal(beforeLiquidity.toNumber() - withdrawAmount);
-        expect(claimTokenPrice.toNumber()).to.equal(Math.floor(tvlOfPool.toNumber()/claimTokensIssued.toNumber()*10**6))
-        expect(claimTokenWithdrawlPrice.toNumber()).to.equal(Math.floor(liquidity.toNumber()/claimTokensIssued.toNumber()*10**6))
+        expect(liquidity/10**18).to.equal((beforeLiquidity/10**18) - (withdrawAmount/10**6));
 
         console.log("***********************************************************************************************")
         console.log("***********************Test case for withdraw *************************************************")
         console.log("***********************************************************************************************")
 
         console.log("Amount withdrawn          : ", withdrawAmount/10**6)
-        console.log("Liquidity                 : ", liquidity.toNumber()/10**6)
-        console.log("TVL of Pool               : ", tvlOfPool.toNumber()/10**6)
-        console.log("EV value                  : ", eVValue.toNumber()/10**6) 
-        console.log("Betting Stakes            : ", bettingStakes.toNumber()/10**6)
-        console.log("claimTokens Issued :      : ", claimTokensIssued.toNumber()/10**6) 
-        console.log("LP Token Issued at rate   : ", claimTokenPrice.toNumber()/10**6)
-        console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice.toNumber()/10**6)
-        console.log("Treasury Amount           : ", treasuryAmount.toNumber()/10**6)
+        console.log("Liquidity                 : ", liquidity/10**18)
+        console.log("TVL of Pool               : ", tvlOfPool/10**18)
+        console.log("EV value                  : ", evValue/10**18) 
+        console.log("Betting Stakes            : ", bettingStakes/10**18)
+        console.log("claimTokens Issued :      : ", claimTokensIssued/10**18) 
+        console.log("LP Token Issued at rate   : ", claimTokenPrice/10**18)
+        console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice/10**18)
+        console.log("Treasury Amount           : ", treasuryAmount/10**18)
 
         console.log("***********************************************************************************************")
         console.log("***********************************************************************************************")

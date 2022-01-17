@@ -30,6 +30,9 @@ describe("Signature Tests", async function () {
         // Random value to set as EV -- random value between -500 to 500 ether
         const _evValue = ethers.utils.parseUnits(((Math.random() * 1000) - 500).toString(), 18);
         console.log(`Attempting update EV value to: ${ethers.utils.formatEther(_evValue, { pad: true })}`);
+        // Random value to set as ME -- random value between 0 to 100 ether
+        const _meValue = ethers.utils.parseUnits((Math.random() * 100).toString(), 18);
+        console.log(`Attempting update ME value to: ${ethers.utils.formatEther(_meValue, { pad: true })}`);
 
         // Prepare deadline
         const _expiration = 4; // number of blocks
@@ -49,26 +52,28 @@ describe("Signature Tests", async function () {
         const _eip712Types = {
             VoI: [
                 { name: "signer", type: "address" },
-                { name: "value", type: "int256" },
+                { name: "expectedValue", type: "int256" },
+                { name: "maxExposure", type: "uint256" },
                 { name: "nonce", type: "uint256" },
                 { name: "deadline", type: "uint256" }
             ],
         };
         const _eip712Value = {
             signer: dataProvider.address,
-            value: _evValue,
+            expectedValue: _evValue,
+            maxExposure: _meValue,
             nonce: 0,
             deadline: _deadline
         };
         const _data = [_eip712Domain, _eip712Types, _eip712Value];
 
         const _signature = await dataProvider._signTypedData(..._data);
-        // const _attackerSignature = await _getSignature(attacker, ..._data);
 
-        await contract.connect(operator).setEVFromSignedData(
+        await contract.connect(operator).setVOI(
             _signature,
             {
-                value: _evValue,
+                expectedValue: _evValue,
+                maxExposure: _meValue,
                 deadline: _deadline,
                 signer: dataProvider.address
             });
