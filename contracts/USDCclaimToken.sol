@@ -34,12 +34,20 @@ abstract contract ERC20Interface {
 /// @notice This is used for safe add and safe subtract. This overcomes the overflow errors.
 
 contract SafeMath {
+    /// @notice Perform a safe additon with out an overflow/underflow
+    /// @param a an unsigned integer
+    /// @param b an unsigned integer
+    /// @return c an unsigned integer which is a sum of two given params.
     function safeAdd(uint a, uint b) public pure returns (uint c) {
         c = a + b;
         require(c >= a, "SafeMath: addition overflow");
         return c;
     }
 
+    /// @notice Perform a safe additon with out an overflow/underflow
+    /// @param a an unsigned integer
+    /// @param b an unsigned integer
+    /// @return c an unsigned integer which is a difference of two given params.
     function safeSub(uint a, uint b) public pure returns (uint c) {
         require(b <= a, "SafeMath: subtraction overflow"); 
         c = a - b; 
@@ -71,8 +79,8 @@ contract USDCclaimToken is ERC20Interface, SafeMath {
     }
 
     constructor()  {
-        name = "USDCClaimToken";
-        symbol = "USDCCT";
+        name = "LFUSDCLP";
+        symbol = "LFUSDCLP";
         decimals = 18;
         _totalSupply = 0;
 	    initialSupply = _totalSupply;

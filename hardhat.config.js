@@ -45,6 +45,22 @@ const config = {
       tags: ["BSCMainNet"],
       saveDeployments: true,
       accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
+    },
+    mumbai: {
+      url: `${process.env.NODE_URI_PLOYGONMUMBAI}`,
+      chainId: 80001,
+      live: true,
+      tags: ["mumbai"],
+      saveDeployments: true,
+      accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
+    },
+    PolygonMainNet: {
+      url: `${process.env.NODE_URI_PLOYGONMAINNET}`,
+      chainId: 137,
+      live: true,
+      tags: ["PolygonMainNet"],
+      saveDeployments: true,
+      accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
     }
 
   },
