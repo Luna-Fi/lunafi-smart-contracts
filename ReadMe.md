@@ -3,16 +3,16 @@
 Contracts are deployed on to Ropsten testnet 
 
 `USDC Test Token Contract Address ---- 0xb1DB29B83d4e1329d8C28BA8DF69e75c25e57235` <br />
-`USDClaim Token Contract Address  ---- 0xad1776B833bdD5311a9a5F0EFB5c3b39460Dbe55` <br />
-`USDCHousePool Contract Address   ---- 0x11510fFbAc772fba31b1671A55e042f4BBc0Ba00` <br />
+`USDClaim Token Contract Address  ---- 0x8D5dFbd9b885BDdaeD9812AA8b3AA47f75e06210` <br />
+`USDCHousePool Contract Address   ---- 0xFb8EbF867395F99d6aE17de85c0480080ed103b5` <br />
 
 `WBTC Test Token Contract Address ---- 0x9F5b3Eeffb978cF50b897Cb1f44d1a2Ca66acCF9` <br />
-`WBTCClaim Token Contract Address ---- 0x5965F009b7faB7c98D7F449a9c13a76c629e1f93` <br />
-`WBTCHousePool Contract Address   ---- 0x7f43581Ef0b95F2Ceed6B1cA1a42132CAa8A200B` <br />
+`WBTCClaim Token Contract Address ---- 0xca131f7baB00E794F492E477CfA3dd06a145b23a` <br />
+`WBTCHousePool Contract Address   ---- 0xd96AEbeb24cE3562940aF852c5d495f50d8c8825` <br />
 
 `WETH Test Token Contract Address ---- 0xcaF1a42750C277bf06862012Ce5458EDBeA6e9E4` <br />
-`WETHClaim Token Contract Address ---- 0xa8f4B4c231De91299875e405e63dC24227d89256` <br />
-`WETHHousePool Contract Address   ---- 0xcd7514abd4cD1E22D9f96f68AC0Ab39AA20B19E8` <br />
+`WETHClaim Token Contract Address ---- 0x91D6dF9d3314EcC10662d3fdb7e55b38B53e4610` <br />
+`WETHHousePool Contract Address   ---- 0x98866da58Fecc0773410D4B7b926c04d48840c7f` <br />
 
 
 ` As of now this account "0xdd8eBa4604D2a9C6c77e4bC557B1884119174726" serves as the owner of the contract.`
