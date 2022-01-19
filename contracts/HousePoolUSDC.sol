@@ -2,6 +2,7 @@
 pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
@@ -15,13 +16,37 @@ interface claimTokenInterface {
     function totalSupply() external view returns (uint256);
 }
 
+interface IFundDistributor {
+    function distributeTo(address _receiver, uint256 _amount) external;
+}
+
+interface IRewardToken is IERC20 {
+    function mint(address _recipient, uint256 _amount) external;
+}
+
 contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
+    using SafeERC20 for IERC20;
+
     struct ValuesOfInterest {
         int256 expectedValue;
         int256 maxExposure;
         uint256 deadline;
         address signer;
     }
+
+    struct FarmInfo {
+        uint accRewardPerShare;
+        uint lastRewardTime;
+        uint allocPoint;
+    }
+    struct UserInfo {
+        uint amount;
+        int rewardDebt;
+    }
+
+    FarmInfo[] public farmInfo;
+    IERC20[] public lpTokens;
+    IRewardToken public reward;
 
     uint256 bettingStakes;
     uint256 liquidity;
@@ -43,6 +68,20 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
 
     mapping(address => uint256) private nonces;
     mapping(address => uint256) private deposits;
+
+    /// @notice Info of each user that stakes LP tokens.
+    mapping (uint256 => mapping (address => UserInfo)) public userInfo;
+    /// @dev Total allocation points. Must be the sum of all allocation points in all pools.
+    uint256 public totalAllocPoint = 0;
+
+    uint256 public rewardPerSecond;
+    uint256 private constant ACC_REWARD_PRECISION = 1e12;
+    event RewardPerSecondUpdated(uint newRewardPerSecond);
+    event FarmCreated(uint256 indexed fid, uint256 allocatedPoints, IERC20 indexed lpToken);
+    event FarmDeposit(address indexed depositor, uint256 indexed fid, uint256 amount, address indexed benefitor);
+    event FarmWithdraw(address indexed requestor, uint256 indexed fid, uint256 amount, address indexed receiver);
+    event FarmHarvest(address indexed requestor, uint256 indexed fid, uint256 amount, address indexed receiver);
+    event FarmUpdated(uint256 indexed fid, uint256 lastRewardTime, uint256 lpSupply, uint256 accRewardPerShare);
 
     modifier onlyValid(ValuesOfInterest memory data, bytes memory signature) {
         bytes32 digest = _hashTypedDataV4(
@@ -82,18 +121,22 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         _;
     }
 
+    // -- Init --
     constructor(
         address _owner,
         address _usdc,
         address _claimToken,
+        address _rewardToken,
         string memory _name,
         string memory _version
     ) EIP712(_name, _version) {
         token = IERC20(_usdc);
         claimToken = claimTokenInterface(_claimToken);
+        reward = IRewardToken(_rewardToken);
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
     }
 
+    // -- Authorised Functions --
     function setVOI(bytes memory sig_, ValuesOfInterest memory voi_)
         external onlyValid(voi_, sig_) onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
@@ -114,6 +157,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         _withdraw(amountUSDC);
     }
 
+    // -- External Functions
     function deposit_(uint usdcMicro) external {
         _deposit(usdcMicro);
     }
@@ -122,6 +166,89 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         _withdraw(usdcMicro);
     }
 
+    function createFarm(uint allocPoint, IERC20 lpToken) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        checkFarmDoesntExist(lpToken);
+
+        totalAllocPoint += allocPoint;
+        farmInfo.push(FarmInfo({
+            accRewardPerShare: 0,
+            lastRewardTime: block.timestamp,
+            allocPoint: allocPoint
+        }));
+        lpTokens.push(lpToken);
+
+        emit FarmCreated(lpTokens.length - 1, allocPoint, lpToken);
+    }
+
+    function setRewardPerSecond(uint256 _rewardPerSecond) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        rewardPerSecond = _rewardPerSecond;
+        emit RewardPerSecondUpdated(_rewardPerSecond);
+    }
+
+    function refreshFarm(uint fid) public returns(FarmInfo memory farm) {
+        farm = farmInfo[fid];
+        if(farm.lastRewardTime < block.timestamp) {
+            uint lpSupply = lpTokens[fid].balanceOf(address(this));
+            if(lpSupply > 0) {
+                uint time = block.timestamp - farm.lastRewardTime;
+                uint rewardAmount = time * rewardPerSecond * farm.allocPoint / totalAllocPoint;
+                farm.accRewardPerShare += rewardAmount * ACC_REWARD_PRECISION / lpSupply;
+            }
+            farm.lastRewardTime = block.timestamp;
+            farmInfo[fid] = farm;
+            emit FarmUpdated(fid, farm.lastRewardTime, lpSupply, farm.accRewardPerShare);
+        }
+    }
+    /// @notice Deposit LP tokens to farms for LFI token rewards
+    /// @dev See FarmInfo struct `farmCount()` & `listFarms()` for farm details
+    /// @param fid farm ID; see FarmInfo struct for more details
+    /// @param lpAmount Amount of LP tokens to deposit; User must have LP tokens corresponding to the farm
+    /// @param benefitor Receiver of farm rewards
+    function depositLP(uint fid, uint lpAmount, address benefitor) external {
+        FarmInfo memory farm = refreshFarm(fid);
+        UserInfo storage user = userInfo[fid][benefitor];
+
+        user.amount += lpAmount;
+        user.rewardDebt += int(lpAmount * farm.accRewardPerShare / ACC_REWARD_PRECISION);
+
+        lpTokens[fid].safeTransferFrom(msg.sender, address(this), lpAmount);
+        emit FarmDeposit(msg.sender, fid, lpAmount, benefitor);
+
+    }
+
+    function withdrawLP(uint fid, uint lpAmount, address receiver) public {
+        FarmInfo memory farm = refreshFarm(fid);
+        UserInfo storage user = userInfo[fid][msg.sender];
+
+        // Effects
+        user.rewardDebt -= int(lpAmount * farm.accRewardPerShare / ACC_REWARD_PRECISION);
+        user.amount -= lpAmount;
+
+        lpTokens[fid].safeTransfer(receiver, lpAmount);
+        emit FarmWithdraw(msg.sender, fid, lpAmount, receiver);
+    }
+
+   function harvestAll(address receiver) external {
+        for (uint256 index = 0; index < farmInfo.length; index++) {
+            if (userInfo[index][msg.sender].amount > 0) {
+                harvest(index, receiver);
+            }
+        }
+    }
+
+    function harvest(uint fid, address receiver) public {
+        FarmInfo memory farm = refreshFarm(fid);
+        UserInfo storage user = userInfo[fid][msg.sender];
+        int accumulatedReward = int(user.amount * farm.accRewardPerShare / ACC_REWARD_PRECISION);
+        uint _pendingReward = uint(accumulatedReward - user.rewardDebt);
+        user.rewardDebt = accumulatedReward;
+
+        _distributeReward(receiver, _pendingReward);
+
+        emit FarmHarvest(msg.sender, fid, _pendingReward, receiver);
+    }
+
+    // -- View Functions --
     function getTokenPrice() external view returns (uint256) {
         return lpTokenPrice;
     }
@@ -154,19 +281,30 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         return deposits[_user];
     }
 
-    function setTokenPrice() internal {
+    function checkFarmDoesntExist(IERC20 _token) public view {
+        for (uint256 index = 0; index < farmInfo.length; index++) {
+            require(lpTokens[index] != _token, "Farm exists already");
+        }
+    }
+
+    function getFarmCount() external view returns(uint farmCount) {
+        return farmInfo.length;
+    }
+
+    // -- Internal Functions --
+    function _setTokenPrice() internal {
         if(claimToken.totalSupply() != 0) {
             lpTokenPrice = (uint(tvl) * 10**MAX_PRECISION) / claimToken.totalSupply();
         }
     }
 
-    function setTokenWithdrawlPrice() internal {
+    function _setTokenWithdrawlPrice() internal {
         if(claimToken.totalSupply() != 0) {
             lpTokenWithdrawlPrice = (liquidity * 10**MAX_PRECISION) / claimToken.totalSupply();
         }
     }
 
-    function updateTVL(int256 expectedValue) internal {
+    function _updateTVL(int256 expectedValue) internal {
         if(voi.expectedValue == 0){
            tvl += expectedValue;
         } else {
@@ -185,9 +323,9 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     function _setEV(int newEV) internal {
-        updateTVL(newEV);
+        _updateTVL(newEV);
         voi.expectedValue = newEV;
-        setTokenPrice();
+        _setTokenPrice();
     }
 
     function _deposit(uint256 amount) internal nonReentrant {
@@ -201,8 +339,8 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         token.transferFrom(msg.sender, address(this), amount);
         uint256 LPTokensToMint = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / lpTokenPrice;
         claimToken.mint(msg.sender, LPTokensToMint);
-        setTokenPrice();
-        setTokenWithdrawlPrice();
+        _setTokenPrice();
+        _setTokenWithdrawlPrice();
     }
 
     function _withdraw(uint256 amount) internal nonReentrant {
@@ -218,8 +356,15 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         deposits[msg.sender] -= amount * 10**PRECISION_DIFFERENCE;
         token.transfer(msg.sender, amount);
         claimToken.burn(msg.sender, LPTokensToBurn);
-        setTokenWithdrawlPrice();
-        setTokenPrice();
+        _setTokenWithdrawlPrice();
+        _setTokenPrice();
+    }
+
+    function _distributeReward(address _receiver, uint _rewardAmount) internal {
+        require(_receiver != address(0), "Invalid address");
+        if (_rewardAmount > 0 ) {
+            reward.mint(_receiver, _rewardAmount);
+        }
     }
 
 // ********************************************  Functions to simulate the functionality **********************************
@@ -240,8 +385,8 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         voi.expectedValue = 0;
         voi.maxExposure = 0;
         tvl += int(treasuryAmount);
-        setTokenPrice();
-        setTokenWithdrawlPrice();
+        _setTokenPrice();
+        _setTokenWithdrawlPrice();
     }
 
     function setBettingStakes(uint256 bettingAmount) external {
