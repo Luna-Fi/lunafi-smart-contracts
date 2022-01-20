@@ -2,7 +2,6 @@
 pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
@@ -16,37 +15,13 @@ interface claimTokenInterface {
     function totalSupply() external view returns (uint256);
 }
 
-interface IFundDistributor {
-    function distributeTo(address _receiver, uint256 _amount) external;
-}
-
-interface IRewardToken is IERC20 {
-    function mint(address _recipient, uint256 _amount) external;
-}
-
 contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
-    using SafeERC20 for IERC20;
-
     struct ValuesOfInterest {
         int256 expectedValue;
         int256 maxExposure;
         uint256 deadline;
         address signer;
     }
-
-    struct FarmInfo {
-        uint accRewardPerShare;
-        uint lastRewardTime;
-        uint allocPoint;
-    }
-    struct UserInfo {
-        uint amount;
-        int rewardDebt;
-    }
-
-    FarmInfo[] public farmInfo;
-    IERC20[] public lpTokens;
-    IRewardToken public reward;
 
     uint256 bettingStakes;
     uint256 liquidity;
@@ -68,20 +43,6 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
 
     mapping(address => uint256) private nonces;
     mapping(address => uint256) private deposits;
-
-    /// @notice Info of each user that stakes LP tokens.
-    mapping (uint256 => mapping (address => UserInfo)) public userInfo;
-    /// @dev Total allocation points. Must be the sum of all allocation points in all pools.
-    uint256 public totalAllocPoint = 0;
-
-    uint256 public rewardPerSecond;
-    uint256 private constant ACC_REWARD_PRECISION = 1e12;
-    event RewardPerSecondUpdated(uint newRewardPerSecond);
-    event FarmCreated(uint256 indexed fid, uint256 allocatedPoints, IERC20 indexed lpToken);
-    event FarmDeposit(address indexed depositor, uint256 indexed fid, uint256 amount, address indexed benefitor);
-    event FarmWithdraw(address indexed requestor, uint256 indexed fid, uint256 amount, address indexed receiver);
-    event FarmHarvest(address indexed requestor, uint256 indexed fid, uint256 amount, address indexed receiver);
-    event FarmUpdated(uint256 indexed fid, uint256 lastRewardTime, uint256 lpSupply, uint256 accRewardPerShare);
 
     modifier onlyValid(ValuesOfInterest memory data, bytes memory signature) {
         bytes32 digest = _hashTypedDataV4(
@@ -126,13 +87,11 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         address _owner,
         address _usdc,
         address _claimToken,
-        address _rewardToken,
         string memory _name,
         string memory _version
     ) EIP712(_name, _version) {
         token = IERC20(_usdc);
         claimToken = claimTokenInterface(_claimToken);
-        reward = IRewardToken(_rewardToken);
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
     }
 
@@ -166,88 +125,6 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         _withdraw(usdcMicro);
     }
 
-    function createFarm(uint allocPoint, IERC20 lpToken) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        checkFarmDoesntExist(lpToken);
-
-        totalAllocPoint += allocPoint;
-        farmInfo.push(FarmInfo({
-            accRewardPerShare: 0,
-            lastRewardTime: block.timestamp,
-            allocPoint: allocPoint
-        }));
-        lpTokens.push(lpToken);
-
-        emit FarmCreated(lpTokens.length - 1, allocPoint, lpToken);
-    }
-
-    function setRewardPerSecond(uint256 _rewardPerSecond) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        rewardPerSecond = _rewardPerSecond;
-        emit RewardPerSecondUpdated(_rewardPerSecond);
-    }
-
-    function refreshFarm(uint fid) public returns(FarmInfo memory farm) {
-        farm = farmInfo[fid];
-        if(farm.lastRewardTime < block.timestamp) {
-            uint lpSupply = lpTokens[fid].balanceOf(address(this));
-            if(lpSupply > 0) {
-                uint time = block.timestamp - farm.lastRewardTime;
-                uint rewardAmount = time * rewardPerSecond * farm.allocPoint / totalAllocPoint;
-                farm.accRewardPerShare += rewardAmount * ACC_REWARD_PRECISION / lpSupply;
-            }
-            farm.lastRewardTime = block.timestamp;
-            farmInfo[fid] = farm;
-            emit FarmUpdated(fid, farm.lastRewardTime, lpSupply, farm.accRewardPerShare);
-        }
-    }
-    /// @notice Deposit LP tokens to farms for LFI token rewards
-    /// @dev See FarmInfo struct `farmCount()` & `listFarms()` for farm details
-    /// @param fid farm ID; see FarmInfo struct for more details
-    /// @param lpAmount Amount of LP tokens to deposit; User must have LP tokens corresponding to the farm
-    /// @param benefitor Receiver of farm rewards
-    function depositLP(uint fid, uint lpAmount, address benefitor) external {
-        FarmInfo memory farm = refreshFarm(fid);
-        UserInfo storage user = userInfo[fid][benefitor];
-
-        user.amount += lpAmount;
-        user.rewardDebt += int(lpAmount * farm.accRewardPerShare / ACC_REWARD_PRECISION);
-
-        lpTokens[fid].safeTransferFrom(msg.sender, address(this), lpAmount);
-        emit FarmDeposit(msg.sender, fid, lpAmount, benefitor);
-
-    }
-
-    function withdrawLP(uint fid, uint lpAmount, address receiver) public {
-        FarmInfo memory farm = refreshFarm(fid);
-        UserInfo storage user = userInfo[fid][msg.sender];
-
-        // Effects
-        user.rewardDebt -= int(lpAmount * farm.accRewardPerShare / ACC_REWARD_PRECISION);
-        user.amount -= lpAmount;
-
-        lpTokens[fid].safeTransfer(receiver, lpAmount);
-        emit FarmWithdraw(msg.sender, fid, lpAmount, receiver);
-    }
-
-   function harvestAll(address receiver) external {
-        for (uint256 index = 0; index < farmInfo.length; index++) {
-            if (userInfo[index][msg.sender].amount > 0) {
-                harvest(index, receiver);
-            }
-        }
-    }
-
-    function harvest(uint fid, address receiver) public {
-        FarmInfo memory farm = refreshFarm(fid);
-        UserInfo storage user = userInfo[fid][msg.sender];
-        int accumulatedReward = int(user.amount * farm.accRewardPerShare / ACC_REWARD_PRECISION);
-        uint _pendingReward = uint(accumulatedReward - user.rewardDebt);
-        user.rewardDebt = accumulatedReward;
-
-        _distributeReward(receiver, _pendingReward);
-
-        emit FarmHarvest(msg.sender, fid, _pendingReward, receiver);
-    }
-
     // -- View Functions --
     function getTokenPrice() external view returns (uint256) {
         return lpTokenPrice;
@@ -279,16 +156,6 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
 
     function getMyBalance(address _user) external view returns (uint256) {
         return deposits[_user];
-    }
-
-    function checkFarmDoesntExist(IERC20 _token) public view {
-        for (uint256 index = 0; index < farmInfo.length; index++) {
-            require(lpTokens[index] != _token, "Farm exists already");
-        }
-    }
-
-    function getFarmCount() external view returns(uint farmCount) {
-        return farmInfo.length;
     }
 
     // -- Internal Functions --
@@ -358,13 +225,6 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         claimToken.burn(msg.sender, LPTokensToBurn);
         _setTokenWithdrawlPrice();
         _setTokenPrice();
-    }
-
-    function _distributeReward(address _receiver, uint _rewardAmount) internal {
-        require(_receiver != address(0), "Invalid address");
-        if (_rewardAmount > 0 ) {
-            reward.mint(_receiver, _rewardAmount);
-        }
     }
 
 // ********************************************  Functions to simulate the functionality **********************************
