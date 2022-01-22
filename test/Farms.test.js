@@ -1,82 +1,118 @@
 const { expect } = require("chai");
-const { BigNumber } = require("ethers");
-const { ethers } = require("hardhat");
+const { BigNumber} = require("ethers");
 
-async function mineBlocks(blockNumber) {
-    while (blockNumber > 0) {
-        blockNumber--;
-        await hre.network.provider.request({
-            method: "evm_mine",
-            params: [],
-        });
-    }
+const returnBigNumber = (number) => {
+    number = number.toString(16)
+    return BigNumber.from("0x" + number);
 }
 
-describe("Farming Tests", async function () {
-    let owner, investor;
-    let ct, mt, lfi, farm, contract;
-    const _name = "";
-    const _version = "";
-    const _rewardPerSecond = ethers.utils.parseUnits((Math.random() * 1000).toString(), 18);
+describe("LFI Farms", () => {
+   
+    let MOCKUSDC
+    let USDCCLAIMTOKEN
+    let USDCHOUSEPOOL 
+    let LFITOKEN
+    let FARM
+    let FUND
+    let REWARDER
+    let mockUSDC
+    let usdcClaimToken
+    let usdcHousePool
+    let lfiToken
+    let fund
+    let farm
+    let rewarder
 
-    let _newFarmID;
-    const _newFarmAllocPoints = 1;
-    const _usdcInvestment = 100 * 10 ** 6;
+    before( async () => {
 
-    before(async function () {
-        const USDCHP = await ethers.getContractFactory('HousePoolUSDC');
-        const CT = await ethers.getContractFactory('USDCclaimToken');
-        const MT = await ethers.getContractFactory('mockUSDCToken');
-        const LFI = await ethers.getContractFactory('LFIToken');
-        const FARM = await ethers.getContractFactory('LFiFarms');
-        const accounts = await ethers.getSigners();
-        owner = accounts[0];
-        investor = accounts[1];
-        ct = await CT.deploy();
-        await ct.deployed();
-        mt = await MT.deploy()
-        await mt.deployed();
-        lfi = await LFI.deploy();
-        await lfi.deployed();
-        farm = await FARM.deploy(owner.address, lfi.address);
-        await farm.deployed();
+        const [owner,user1] = await ethers.getSigners()
+        const rewardPerSecond = 5
+        const approvalAmount = ethers.utils.formatUnits(returnBigNumber(10000000 * 10**18),0)
 
-        contract = await USDCHP.deploy(owner.address, mt.address, ct.address, _name, _version);
-        await contract.deployed();
+        MOCKUSDC = await ethers.getContractFactory("mockUSDCToken")
+        mockUSDC = await MOCKUSDC.deploy()
+        await mockUSDC.deployed()
+        console.log(" Mock USDC Token Address  : ", mockUSDC.address)
+        
+        USDCCLAIMTOKEN = await ethers.getContractFactory("USDCclaimToken")
+        usdcClaimToken = await USDCCLAIMTOKEN.deploy()
+        await usdcClaimToken.deployed()
+        console.log(" USDC Claim Token Address : ", usdcClaimToken.address)
 
-        await ct.connect(owner).addAdmin(contract.address);
-        await mt.connect(owner).transfer(investor.address, _usdcInvestment);
+        USDCHOUSEPOOL = await ethers.getContractFactory("HousePoolUSDC")
+        usdcHousePool = await USDCHOUSEPOOL.deploy(owner.address,mockUSDC.address,usdcClaimToken.address, "USDCHP","1.0")
+        await usdcHousePool.deployed()
+        console.log(" USDC House Pool  Address  : ", usdcHousePool.address)
 
-        await farm.connect(owner).setRewardPerSecond(_rewardPerSecond);
-        console.log({ RewardPerSecond: `${ethers.utils.formatUnits(_rewardPerSecond, 18)}` });
-        await farm.connect(owner).createFarm(_newFarmAllocPoints, ct.address);
-        _newFarmID = BigNumber.from(await farm.getFarmCount()) - 1;
-    });
+        LFITOKEN = await ethers.getContractFactory("LFIToken")
+        lfiToken = await LFITOKEN.deploy()
+        await lfiToken.deployed()
+        console.log(" LFI Token Address : ", lfiToken.address)
 
-    it('should allow investor to harvest LFI tokens', async function () {
-        await expect(farm.checkFarmDoesntExist(ct.address))
-            .to.be.revertedWith('Farm exists already');
+        FUND = await ethers.getContractFactory("FundDistributor")
+        fund = await FUND.deploy(lfiToken.address)
+        await fund.deployed()
+        console.log(" FUND Contract Address : ", fund.address)
 
-        await mt.connect(investor).approve(contract.address, _usdcInvestment);
-        await contract.connect(investor).deposit_(_usdcInvestment);
-        const investorLPBalance = await ct.balanceOf(investor.address);
+        FARM = await ethers.getContractFactory("LFiFarms")
+        farm = await FARM.deploy(owner.address,lfiToken.address,fund.address)
+        await farm.deployed()
+        console.log(" FARM Contract Address : ", farm.address)
 
-        await ct.connect(investor).approve(farm.address, investorLPBalance);
-        await expect(farm.connect(investor).deposit(_newFarmID, investorLPBalance, investor.address))
-            .to.emit(farm, 'FarmDeposit')
-        // .withArgs();
+        REWARDER = await ethers.getContractFactory("Rewarder")
+        rewarder = await REWARDER.deploy(lfiToken.address,rewardPerSecond,farm.address)
+        await rewarder.deployed()
+        console.log(" REWARDER Contract address : ", rewarder.address)
 
-        console.log({ AtBlock: await ethers.provider.getBlockNumber() });
-        await mineBlocks(4);
-        console.log({ AtBlock: await ethers.provider.getBlockNumber() });
+        mockUSDC.approve(usdcHousePool.address,approvalAmount)
+        mockUSDC.approve(fund.address,approvalAmount)
+        mockUSDC.approve(farm.address,approvalAmount)
+        mockUSDC.approve(rewarder.address,approvalAmount)
 
-        await expect(farm.connect(investor).withdraw(_newFarmID, investorLPBalance, investor.address))
-            .to.emit(farm, 'FarmWithdraw')
-        // .withArgs();
+        lfiToken.approve(usdcHousePool.address,approvalAmount)
+        lfiToken.approve(fund.address,approvalAmount)
+        lfiToken.approve(farm.address,approvalAmount)
+        lfiToken.approve(rewarder.address,approvalAmount)
 
-        await expect(farm.connect(investor).harvestAll(investor.address))
-            .to.emit(farm, 'FarmHarvest')
+        usdcClaimToken.approve(usdcHousePool.address,approvalAmount)
+        usdcClaimToken.approve(fund.address,approvalAmount)
+        usdcClaimToken.approve(farm.address,approvalAmount)
+        usdcClaimToken.approve(rewarder.address,approvalAmount)
 
-        await console.log(lfi.connect(investor).balanceOf(investor.address));
+        usdcClaimToken.addAdmin(usdcHousePool.address)
+        usdcClaimToken.addAdmin(fund.address)
+        usdcClaimToken.addAdmin(farm.address)
+        usdcClaimToken.addAdmin(rewarder.address)
     })
-});
+
+    it(`Should be able to allow the user to create a farm`, async () => {
+        
+        const [owner,user1] = await ethers.getSigners()
+        const allocPoint = 5
+
+        await farm.createFarm(allocPoint,lfiToken.address,rewarder.address)
+    })
+
+   it(`Should allow the user to deposit to the created farm`, async() => {
+       const [owner,user1] = await ethers.getSigners()
+       const fid = 0
+       const lpAmount = ethers.utils.formatUnits(returnBigNumber(1 * 10**18),0)
+       const HPDeposit = 10000000000
+       console.log("LP Amount deposited:",lpAmount)
+
+       await usdcHousePool.deposit_(HPDeposit)
+       //totalSupply of claimToken.
+       //Balance OF the user
+       const totalLPTokenSupply = await usdcClaimToken.totalSupply()
+       const userLPTokenBalance = await usdcClaimToken.balanceOf(owner.address);
+       const lpTokenContractbalance = await usdcClaimToken.balanceOf(farm.address)
+       console.log("LP Token Supply",ethers.BigNumber.from(totalLPTokenSupply).toString())
+       console.log("USer Balance",ethers.BigNumber.from(userLPTokenBalance).toString())
+       console.log("Contract Balance",ethers.BigNumber.from(lpTokenContractbalance).toString())
+       
+      
+       await farm.deposit(fid,lpAmount,owner.address)
+      
+   })
+
+})

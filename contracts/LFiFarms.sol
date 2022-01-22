@@ -18,21 +18,23 @@ interface IFundDistributor {
 contract LFiFarms is AccessControl {
     using SafeERC20 for IERC20;
 
+    // Farm Info Struct
     struct FarmInfo {
         uint accRewardPerShare;
         uint lastRewardTime;
         uint allocPoint;
     }
+    // User Info Struct
     struct UserInfo {
         uint amount;
         int rewardDebt;
     }
 
-    IERC20 public reward;
-    IFundDistributor public fund;
-    FarmInfo[] public farmInfo;
-    IERC20[] public lpTokens;
-    IRewarder[] public rewarder;
+    IERC20 public reward; // Reward Token --LFI
+    IFundDistributor public fund; // Fund Distributor contract address
+    FarmInfo[] public farmInfo; // Each Farm Info
+    IERC20[] public lpToken; // List of LP Tokens
+    IRewarder[] public rewarder; 
 
     /// @notice Info of each user that stakes LP tokens.
     mapping (uint256 => mapping (address => UserInfo)) public userInfo;
@@ -54,6 +56,7 @@ contract LFiFarms is AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, _admin);
     }
 
+    // Create Farm function create a farm.
     function createFarm(uint _allocPoint, IERC20 _lpToken, IRewarder _rewarder) external onlyRole(DEFAULT_ADMIN_ROLE) {
         checkFarmDoesntExist(_lpToken);
 
@@ -63,10 +66,10 @@ contract LFiFarms is AccessControl {
             lastRewardTime: block.timestamp,
             allocPoint: _allocPoint
         }));
-        lpTokens.push(_lpToken);
+        lpToken.push(_lpToken);
         rewarder.push(_rewarder);
 
-        emit FarmCreated(lpTokens.length - 1, _allocPoint, _lpToken);
+        emit FarmCreated(lpToken.length - 1, _allocPoint, _lpToken);
     }
 
     function setRewardPerSecond(uint256 _rewardPerSecond) public onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -77,7 +80,7 @@ contract LFiFarms is AccessControl {
     function refreshFarm(uint fid) public returns(FarmInfo memory farm) {
         farm = farmInfo[fid];
         if(farm.lastRewardTime < block.timestamp) {
-            uint lpSupply = lpTokens[fid].balanceOf(address(this));
+            uint lpSupply = lpToken[fid].balanceOf(address(this));
             if(lpSupply > 0) {
                 uint time = block.timestamp - farm.lastRewardTime;
                 uint rewardAmount = time * rewardPerSecond * farm.allocPoint / totalAllocPoint;
@@ -96,16 +99,13 @@ contract LFiFarms is AccessControl {
     function deposit(uint fid, uint lpAmount, address benefitor) external {
         FarmInfo memory farm = refreshFarm(fid);
         UserInfo storage user = userInfo[fid][benefitor];
-
         user.amount += lpAmount;
         user.rewardDebt += int(lpAmount * farm.accRewardPerShare / ACC_REWARD_PRECISION);
-
         IRewarder _rewarder = rewarder[fid];
         if (address(_rewarder) != address(0)) {
             _rewarder.onReward(fid, benefitor, benefitor, 0, user.amount);
         }
-
-        lpTokens[fid].safeTransferFrom(msg.sender, address(this), lpAmount);
+        lpToken[fid].safeTransferFrom(msg.sender, address(this), lpAmount);
         emit FarmDeposit(msg.sender, fid, lpAmount, benefitor);
 
     }
@@ -123,7 +123,7 @@ contract LFiFarms is AccessControl {
             _rewarder.onReward(fid, msg.sender, receiver, 0, user.amount);
         }
 
-        lpTokens[fid].safeTransfer(receiver, lpAmount);
+        lpToken[fid].safeTransfer(receiver, lpAmount);
         emit FarmWithdraw(msg.sender, fid, lpAmount, receiver);
     }
 
@@ -157,7 +157,7 @@ contract LFiFarms is AccessControl {
 
     function checkFarmDoesntExist(IERC20 _token) public view {
         for (uint256 index = 0; index < farmInfo.length; index++) {
-            require(lpTokens[index] != _token, "Farm exists already");
+            require(lpToken[index] != _token, "Farm exists already");
         }
     }
 

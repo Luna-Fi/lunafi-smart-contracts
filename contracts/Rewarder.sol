@@ -30,22 +30,25 @@ interface IFarm {
 contract Rewarder is Ownable, IRewarder {
     using SafeERC20 for IERC20;
 
+    // Reward Token --- LFI.
     IERC20 private rewardToken;
 
+    // User Info Struct
     struct UserInfo {
-        uint256 amount;
-        uint256 rewardDebt;
+        uint256 amount; // How many LP Tokens the user has provided
+        uint256 rewardDebt; // Amount of LFI entitled to users but is pending to be distributed
     }
-
+    // Pool Info struct
     struct PoolInfo {
-        uint256 accRewardPerShare;
-        uint256 lastRewardTime;
-        uint256 allocPoint;
+        uint256 accRewardPerShare; // Accumulated LFI per share.
+        uint256 lastRewardTime; // Last timeStamp that LFI Distribution occured.
+        uint256 allocPoint; //Allocation points assigned to this pool.
     }
 
+    //Info of every pool
     mapping(uint256 => PoolInfo) public poolInfo;
 
-    uint256[] public poolIds;
+    uint256[] public poolIds; // List of Pool IDs
 
     /// @notice Info of each user that stakes LP tokens.
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
@@ -55,7 +58,7 @@ contract Rewarder is Ownable, IRewarder {
     uint256 public rewardPerSecond;
     uint256 private constant ACC_TOKEN_PRECISION = 1e12;
 
-    address private LFI_FARM;
+    address private LFI_FARM; 
 
     event LogOnReward(
         address indexed user,
@@ -76,7 +79,7 @@ contract Rewarder is Ownable, IRewarder {
 
     constructor(
         IERC20 _rewardToken,
-        uint256 _rewardPerSecond,
+        uint256 _rewardPerSecond, //5
         address _LFI_FARM
     ) {
         rewardToken = _rewardToken;
@@ -219,7 +222,6 @@ contract Rewarder is Ownable, IRewarder {
             uint256 lpSupply = IFarm(LFI_FARM).lpToken(pid).balanceOf(
                 LFI_FARM
             );
-
             if (lpSupply > 0) {
                 uint256 time = block.timestamp - pool.lastRewardTime;
                 uint256 rewardAmount = (time *
