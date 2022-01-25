@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { BigNumber} = require("ethers");
+const { network } = require("hardhat");
 
 const returnBigNumber = (number) => {
     number = number.toString(16)
@@ -124,7 +125,10 @@ describe("LFI Farms", () => {
         const fid = 0
         const lpAmount = ethers.utils.formatUnits(returnBigNumber(1 * 10**18),0)
         console.log("LP Amount to Withdraw :", lpAmount)
-        await farm.withdraw(fid,lpAmount,owner.address)
+        await network.provider.send("evm_increaseTime", [36000])
+        await network.provider.send("evm_mine")
+        await fund.addRequester(owner.address)
+        await farm.harvest(fid,owner.address)
         const userLPTokenBalance = await usdcClaimToken.balanceOf(owner.address);
         console.log("USer Balance",ethers.BigNumber.from(userLPTokenBalance).toString())
         console.log(ethers)
