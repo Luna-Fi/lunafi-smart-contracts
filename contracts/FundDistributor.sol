@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 interface IRewardToken is IERC20 {
-    function mint(address _recipient, uint256 _amount) external;
+    function transfer(address _recipient, uint256 _amount) external returns (bool);
 }
 
 contract FundDistributor is Ownable {
@@ -36,7 +36,7 @@ contract FundDistributor is Ownable {
     {
         require(_receiver != address(0), "Invalid address");
         if (_amount > 0) {
-            reward.mint(_receiver, _amount.div(10**missingDecimals));
+            reward.transfer(_receiver, _amount.div(10**missingDecimals));
         }
     }
 

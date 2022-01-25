@@ -106,13 +106,30 @@ describe("LFI Farms", () => {
        const totalLPTokenSupply = await usdcClaimToken.totalSupply()
        const userLPTokenBalance = await usdcClaimToken.balanceOf(owner.address);
        const lpTokenContractbalance = await usdcClaimToken.balanceOf(farm.address)
+       
        console.log("LP Token Supply",ethers.BigNumber.from(totalLPTokenSupply).toString())
        console.log("USer Balance",ethers.BigNumber.from(userLPTokenBalance).toString())
        console.log("Contract Balance",ethers.BigNumber.from(lpTokenContractbalance).toString())
        
-      
        await farm.deposit(fid,lpAmount,owner.address)
+
+       const userLPTokenBalanceAfter = await usdcClaimToken.balanceOf(owner.address);
+       console.log("USer Balance After",ethers.BigNumber.from(userLPTokenBalance).toString())
       
+   })
+
+   it( `Should allow me to withdraw the deposits`, async () => {
+       
+        const [owner,user1] = await ethers.getSigners()
+        const fid = 0
+        const lpAmount = ethers.utils.formatUnits(returnBigNumber(1 * 10**18),0)
+        console.log("LP Amount to Withdraw :", lpAmount)
+        await farm.withdraw(fid,lpAmount,owner.address)
+        const userLPTokenBalance = await usdcClaimToken.balanceOf(owner.address);
+        console.log("USer Balance",ethers.BigNumber.from(userLPTokenBalance).toString())
+        console.log(ethers)
+
+
    })
 
 })

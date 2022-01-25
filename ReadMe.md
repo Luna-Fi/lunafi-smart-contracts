@@ -14,10 +14,15 @@ Contracts are deployed on to Ropsten testnet
 `WETHClaim Token Contract Address ---- 0x91D6dF9d3314EcC10662d3fdb7e55b38B53e4610` <br />
 `WETHHousePool Contract Address   ---- 0x98866da58Fecc0773410D4B7b926c04d48840c7f` <br />
 
+`LFI Token Contract Address       ---- 0x827A7F75e94e153E875a7403B6aA0A5123dfA2d5` <br />
+`Fund Distributor Address         ---- 0xBEA89272280a7037b90964012d4E67eB9727DA0C` <br />
+`Farms Contract Address           ---- 0x18729d13D286877e8940b461fB60FDa625BCF9F0` <br />
+`Rewarder Contract Address        ---- 0x9E02278E942Eb8D4EA9dF4468dbE7E702CC328d9` <br />
 
-` As of now this account "0xdd8eBa4604D2a9C6c77e4bC557B1884119174726" serves as the owner of the contract.`
+
+`As of now this account "0xdd8eBa4604D2a9C6c77e4bC557B1884119174726" serves as the owner of the contract.`
 `Private key for the account is available in .env.example file.`
-` The above account is a test account created for LunaFI testing purpose. Don't send any main net Ether to that account.`
+`The above account is a test account created for LunaFI testing purpose. Don't send any main net Ether to that account.`
 
 
 ABI  Information : <br />
@@ -42,6 +47,15 @@ ABI for the contracts is available in below paths <br />
 
 `WETH Claim Token Contract ABI -- artifacts/contracts/libraries/WETHclaimToken.sol/WETHclaimToken.json` <br />
 
+`LFI TOKEN Contract ABI        -- artifacts/contracts/LFIToken.sol/LFIToken.json` <br />
+
+`FUND Contract ABI             -- artifacts/contracts/FundDistributor.sol/FundDistributor.json` <br />
+
+`FARMS Contract ABI            -- artifacts/contracts/LFiFarms.sol/LFiFarms.json` <br />
+
+`REWARDER Contract ABI         -- artifacts/contracts/Rewarder.sol/Rewarder.json` <br />
+
+
 
 
 
@@ -49,7 +63,7 @@ ABI for the contracts is available in below paths <br />
 Deployment Scripts are available at ./deploy folder.
 
  Scripts can be installed by using the command  `npx hardhat deploy --netwotk <network name>`
- To deploy a particular script use  we need to specify a tag name `npx hardhat deploy --tags ""deplyAll --network <network name>`
+ To deploy a particular script use  we need to specify a tag name `npx hardhat deploy --tags ""deployAll --network <network name>`
 
 Scripts Information :
     `001_Deploy_mockTokens.js      --- Deploys only mock tokens.  Tag name : "deployMockTokens"`
