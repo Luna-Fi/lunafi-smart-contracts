@@ -66,11 +66,13 @@ Deployment Scripts are available at ./deploy folder.
  To deploy a particular script use  we need to specify a tag name `npx hardhat deploy --tags ""deployAll --network <network name>`
 
 Scripts Information :
-    `001_Deploy_mockTokens.js      --- Deploys only mock tokens.  Tag name : "deployMockTokens"`
-    `002_Deploy_ClaimTokens.js     --- Deploys only claim tokens. Tag name : "deployClaimTokens"`
-    `003_Deploy_Claim_HousePool.js --- Deploys claim tokens and HousePools. Tag name : "deployClaimTokensAndPools"`
-    `004_Deploy_HousePools.js      --- Deploys House Pools. Tag name is "deployHousePools"`
-    `005_Deploy_All.js             --- Deploys mock tokens, claim tokens and House Pools.. Tag name : deployAll`
+    `001_Deploy_mockTokens.js      --- Deploys only mock tokens. -- Tag name : "deployMockTokens"`
+    `002_Deploy_ClaimTokens.js     --- Deploys only claim tokens. -- Tag name : "deployClaimTokens"`
+    `003_Deploy_Claim_HousePool.js --- Deploys claim tokens and HousePools. -- Tag name : "deployClaimTokensAndPools"`
+    `004_Deploy_HousePools.js      --- Deploys House Pools. -- Tag name is "deployHousePools"`
+    `005_Deploy_All.js             --- Deploys mock tokens, claim tokens and House Pools. -- Tag name : deployAll`
+    `006_Deploy_Farms.js           --- Deploys all contracts related to LFI Farms.  -- Tag Name : deployFarms`
+    `007_Deploy_LFIToken.js        --- Deploys all contracts related to LFI Farms.  -- Tag Name : deployLFI`
 
 # lunafi-core
 Smart Contracts for [LunaFi](#) & [LunaBets](https://lunabets.io/), a betting dapp, available on various EVM-compatible blockchains.

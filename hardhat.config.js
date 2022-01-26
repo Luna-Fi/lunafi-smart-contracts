@@ -22,9 +22,17 @@ const config = {
       saveDeployments: true,
       accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
     },
+    goerli: {
+      url: `${process.env.NODE_URI_GOERLI}`,
+      chainId: 5,
+      live: true,
+      tags: ["goerli"],
+      saveDeployments: true,
+      accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
+    },
     mainnet: {
       url: `${process.env.NODE_URI_MAINNET}`,
-      chainId: 3,
+      chainId: 1,
       live: true,
       tags: ["production"],
       saveDeployments: true,
