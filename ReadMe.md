@@ -57,8 +57,6 @@ ABI for the contracts is available in below paths <br />
 
 
 
-
-
 # Deployment Scripts
 Deployment Scripts are available at ./deploy folder.
 
