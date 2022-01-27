@@ -64,7 +64,7 @@ contract LFIToken is
 
     uint256 public maxSupply;
 
-    uint8 internal constant DECIMAL_PLACES = 10;
+    uint8 internal constant DECIMAL_PLACES = 18;
 
     mapping(string => bytes32) internal roles;
 

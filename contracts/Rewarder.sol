@@ -97,12 +97,19 @@ contract Rewarder is Ownable, IRewarder {
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][_user];
         uint256 pending;
+        console.log("user Amount", user.amount);
         if (user.amount > 0) {
+            console.log("Pending Before calc", pending);
+            console.log("To Balance before",rewardToken.balanceOf(to));
             pending =
                 (user.amount * pool.accRewardPerShare) /
                 ACC_TOKEN_PRECISION -
                 user.rewardDebt;
+                pending = 100;
             rewardToken.safeTransfer(to, pending);
+            console.log("to", to);
+            console.log("pending",pending);
+            console.log("To Balance",rewardToken.balanceOf(to));
         }
         user.amount = lpToken;
         user.rewardDebt =

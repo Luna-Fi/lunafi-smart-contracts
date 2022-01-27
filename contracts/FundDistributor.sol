@@ -6,16 +6,18 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import 'hardhat/console.sol';
 
 interface IRewardToken is IERC20 {
-    function transfer(address _recipient, uint256 _amount) external returns (bool);
+    function mint(address _recipient, uint256 _amount) external;
 }
 
 contract FundDistributor is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IRewardToken;
 
-    IRewardToken public reward;
+    IRewardToken public rewardToken;
     uint256 public missingDecimals;
 
     // CONTRACTS
@@ -27,31 +29,29 @@ contract FundDistributor is Ownable {
     }
 
     constructor(address _reward) {
-        reward = IRewardToken(_reward);
+        rewardToken = IRewardToken(_reward);
         missingDecimals = 18 - ERC20(_reward).decimals();
     }
 
     function distributeReward(address _receiver, uint256 _amount)
         public onlyRequester
     {
+        console.log("Fund distributor = ", msg.sender);
         require(_receiver != address(0), "Invalid address");
         if (_amount > 0) {
-            reward.transfer(_receiver, _amount.div(10**missingDecimals));
+            rewardToken.mint(_receiver, _amount.div(10**missingDecimals));
         }
     }
-
     function addRequester(address _requester) external onlyOwner {
         require(!requesters[_requester], "requester existed");
         requesters[_requester] = true;
         emit RequesterAdded(_requester);
     }
-
     function removeRequester(address _requester) external onlyOwner {
         require(requesters[_requester], "requester not found");
         delete requesters[_requester];
         emit RequesterRemoved(_requester);
     }
-
     event RequesterAdded(address indexed requester);
     event RequesterRemoved(address indexed requester);
     event FundRequested(uint256 indexed amount);
