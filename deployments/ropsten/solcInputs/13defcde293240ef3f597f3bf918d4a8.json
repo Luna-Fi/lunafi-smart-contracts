@@ -1,0 +1,35 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/WETHclaimToken.sol": {
+      "content": "// SPDX-License-Identifier: MIT\n\npragma solidity 0.8.10;\n\n//--------------------------------------\n//   WETH claim Token Contract \n//\n// Symbol      : wETHCT\n// Name        : wETHClaimToken\n// Total supply: 0\n// Decimals    : 18\n//--------------------------------------\n\n/// @title An ERC20 Interface\n/// @author Chay\n\nabstract contract ERC20Interface {\n    function totalSupply() virtual external view returns (uint256);\n    function balanceOf(address tokenOwner) virtual external view returns (uint);\n    function allowance(address tokenOwner, address spender) virtual external view returns (uint);\n    function transfer(address to, uint tokens) virtual external returns (bool);\n    function approve(address spender, uint tokens) virtual external returns (bool);\n    function transferFrom(address from, address to, uint tokens) virtual external returns (bool);\n    \n    event Transfer(address indexed from, address indexed to, uint tokens);\n    event Approval(address indexed tokenOwner, address indexed spender, uint tokens); \n\n}\n\n\n/// @title Safe Math Contract\n/// @notice This is used for safe add and safe subtract. This overcomes the overflow errors.\n\ncontract SafeMath {\n    function safeAdd(uint a, uint b) public pure returns (uint c) {\n        c = a + b;\n        require(c >= a, \"SafeMath: addition overflow\");\n        return c;\n    }\n\n    function safeSub(uint a, uint b) public pure returns (uint c) {\n        require(b <= a, \"SafeMath: subtraction overflow\"); \n        c = a - b; \n        return c;\n    }\n\n}\n\ncontract WETHclaimToken is ERC20Interface, SafeMath {\n\n    uint8 public decimals;\n    address public owner;\n    uint256 public _totalSupply;\n    uint256 public initialSupply;\n    string public name;\n    string public symbol;\n\n    mapping(address => uint256) internal balances;\n    mapping(address => mapping(address => uint256)) internal allowed;\n    mapping(address => bool) internal admins;\n\n    modifier onlyAdmin() {\n        require(admins[msg.sender]);\n        _;\n    }\n\n    modifier onlyOwner() {\n        require(msg.sender == owner);\n        _;\n    }\n\n    constructor()  {\n        name = \"WETHClaimToken\";\n        symbol = \"WETHCT\";\n        decimals = 18;\n        _totalSupply = 0;\n\t    initialSupply = _totalSupply;\n        owner = msg.sender;\n\t    balances[msg.sender] = _totalSupply;\n        emit Transfer(address(0), msg.sender, _totalSupply);\n    }\n\n\n    function addAdmin(address account) public onlyOwner {\n        admins[account] = true;\n    }\n\n    function removeAdmin(address account) public onlyOwner {\n        admins[account] = false;\n    }\n\n    function isAdmin(address account) public view onlyOwner returns (bool) {\n        return admins[account];\n    }\n\n\n    function totalSupply() external view override returns (uint256) {\n        return safeSub(_totalSupply, balances[address(0)]);\n    }\n\n    function balanceOf(address tokenOwner) external view override returns (uint getBalance) {\n        return balances[tokenOwner];\n    }\n\n    function allowance(address tokenOwner, address spender) external view override returns (uint remaining) {\n        return allowed[tokenOwner][spender];\n    }\n \n    function approve(address spender, uint tokens) external override returns (bool success) {\n        allowed[msg.sender][spender] = tokens;\n        emit Approval(msg.sender, spender, tokens);\n        return true;\n    }\n    \n    function transfer(address to, uint tokens) external override returns (bool success) {\n        require(to != address(0),\"WETHclaimToken: Address should not be a zero\");\n        balances[msg.sender] = safeSub(balances[msg.sender], tokens);\n        balances[to] = safeAdd(balances[to], tokens);\n        emit Transfer(msg.sender, to, tokens);\n        return true;\n    }\n    \n   function transferFrom(address from, address to, uint tokens) external override returns (bool success) {\n        require(to != address(0),\"WETHclaimToken: Address should not be a zero\");\n        balances[from] = safeSub(balances[from], tokens);\n        allowed[from][msg.sender] = safeSub(allowed[from][msg.sender], tokens);\n        balances[to] = safeAdd(balances[to], tokens);\n        emit Transfer(from, to, tokens);\n        return true;\n    }\n    \n    function burn(address account,uint tokens) external onlyAdmin {\n        require(account != address(0),\"WETHclaimToken: Burn from a zero address\");\n        uint256 accountBalance = balances[account];\n        require(accountBalance >= tokens , \"WETHclaimToken: Burn amount exceeds Balance\");\n        balances[account] = safeSub(accountBalance,tokens);\n        _totalSupply = safeSub(_totalSupply,tokens);\n        emit Transfer(account,address(0), tokens);\n    }\n    \n    function mint(address account,uint tokens) external onlyAdmin {\n        require(account != address(0),\"WETHclaimToken: Mint from a zero address\");\n        balances[account] = safeAdd(balances[account],tokens);\n        _totalSupply = safeAdd(_totalSupply,tokens);\n        emit Transfer(address(0),account,tokens);  \n    }\n\n\n}"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}

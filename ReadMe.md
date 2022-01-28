@@ -1,24 +1,24 @@
 # Stand alone HousePool contracts.
- 
- The contracts here are just to serve the purpose of initial integration <br />
 
- All the contracts are deployed on Ropsten Test Net. <br />
+Contracts are deployed on to Ropsten testnet 
 
- Contract Address Details : <br />
+`USDC Test Token Contract Address ---- 0xb1DB29B83d4e1329d8C28BA8DF69e75c25e57235` <br />
+`USDClaim Token Contract Address  ---- 0x8D5dFbd9b885BDdaeD9812AA8b3AA47f75e06210` <br />
+`USDCHousePool Contract Address   ---- 0xFb8EbF867395F99d6aE17de85c0480080ed103b5` <br />
 
- `USDC Test Token Contract Address ---- 0xA7686F874E17931C7278DF8308215b007A766a40` <br />
- `USDClaim Token Contract Address  ---- 0x00407222f8754b6390bD6489117cd56072361D8C` <br />
- `USDCHousePool Contract Address   ---- 0x01048B2518201b06B4f3bF285d56F6aC924f661d` <br />
- 
- `WBTC Test Token Contract Address ---- 0xF6fd1De60E85B05BBfa781aDB22FaBfA2541f18d` <br />
- `WBTCClaim Token Contract Address ---- 0x81C48A887760Bdc280f24025c24Dfe239Ab23643` <br />
- `WBTCHousePool Contract Address   ---- 0x43667Fdd57C43F9797b8b9267a5daeA9075100f9` <br />
+`WBTC Test Token Contract Address ---- 0x9F5b3Eeffb978cF50b897Cb1f44d1a2Ca66acCF9` <br />
+`WBTCClaim Token Contract Address ---- 0xca131f7baB00E794F492E477CfA3dd06a145b23a` <br />
+`WBTCHousePool Contract Address   ---- 0xd96AEbeb24cE3562940aF852c5d495f50d8c8825` <br />
 
- `WETH Test Token Contract Address ---- 0xb2b37182B4AF1D78C75F91090D7fc99D124920aB` <br />
- `WETHClaim Token Contract Address ---- 0xe0c7e70A762e5eF174ebD4843Ec2E6A992BF9a72` <br />
- `WETHHousePool Contract Address   ---- 0xA4f7961e35Db62544A6455131fCE1a44dcf57353` <br />
+`WETH Test Token Contract Address ---- 0xcaF1a42750C277bf06862012Ce5458EDBeA6e9E4` <br />
+`WETHClaim Token Contract Address ---- 0x91D6dF9d3314EcC10662d3fdb7e55b38B53e4610` <br />
+`WETHHousePool Contract Address   ---- 0x98866da58Fecc0773410D4B7b926c04d48840c7f` <br />
 
- 
+
+` As of now this account "0xdd8eBa4604D2a9C6c77e4bC557B1884119174726" serves as the owner of the contract.`
+`Private key for the account is available in .env.example file.`
+` The above account is a test account created for LunaFI testing purpose. Don't send any main net Ether to that account.`
+
 
 ABI  Information : <br />
 
@@ -43,6 +43,20 @@ ABI for the contracts is available in below paths <br />
 `WETH Claim Token Contract ABI -- artifacts/contracts/libraries/WETHclaimToken.sol/WETHclaimToken.json` <br />
 
 
+
+
+# Deployment Scripts
+Deployment Scripts are available at ./deploy folder.
+
+ Scripts can be installed by using the command  `npx hardhat deploy --netwotk <network name>`
+ To deploy a particular script use  we need to specify a tag name `npx hardhat deploy --tags ""deplyAll --network <network name>`
+
+Scripts Information :
+    `001_Deploy_mockTokens.js      --- Deploys only mock tokens.  Tag name : "deployMockTokens"`
+    `002_Deploy_ClaimTokens.js     --- Deploys only claim tokens. Tag name : "deployClaimTokens"`
+    `003_Deploy_Claim_HousePool.js --- Deploys claim tokens and HousePools. Tag name : "deployClaimTokensAndPools"`
+    `004_Deploy_HousePools.js      --- Deploys House Pools. Tag name is "deployHousePools"`
+    `005_Deploy_All.js             --- Deploys mock tokens, claim tokens and House Pools.. Tag name : deployAll`
 
 # lunafi-core
 Smart Contracts for [LunaFi](#) & [LunaBets](https://lunabets.io/), a betting dapp, available on various EVM-compatible blockchains.
