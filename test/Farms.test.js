@@ -191,6 +191,7 @@ describe("LFI Farms", () => {
         const rewardTokensPerSecond = ethers.utils.formatUnits(returnBigNumber(11.5740740741 * 10 **18),0)
         // Creat Farm
         await farm.createFarm(allocPoint1,usdcClaimToken.address,rewarder.address)
+        console.log("Rewards per second", rewardTokensPerSecond.toString())
         // Set rewardsPerSecond
         await farm.setRewardPerSecond(rewardTokensPerSecond)
 
@@ -212,6 +213,9 @@ describe("LFI Farms", () => {
        
        // Get User details in LFi Farms before the deposit
        const userDetailsBeforeDeposit = await farm.userInfo(fid,user1.address)
+
+       // Get Farms info in LFi Farms before deposit
+       const farmInfoBeforeDeposit = await farm.farmInfo(fid)
        
        // LPToken balances and TotalSupply before depositing in LFiFarms.
        const totalLPTokenSupply = await usdcClaimToken.totalSupply()
@@ -223,6 +227,9 @@ describe("LFI Farms", () => {
         
        // Get User details in LFi Farms after the deposit
        const userDetailsAfterDeposit = await farm.userInfo(fid,user1.address)
+       
+       // Get Farms info in LFi Farms before deposit
+       const farmInfoAfterDeposit = await farm.farmInfo(fid)
        
        // LPToken balances after the deposit in LFi Farms
        const userLPTokenBalanceAfter = await usdcClaimToken.balanceOf(user1.address);
@@ -236,45 +243,141 @@ describe("LFI Farms", () => {
        console.log("Farm Balance = ",ethers.BigNumber.from(lpTokenbalanceOfFarms).toString())
        console.log("User amount in LFi farms before Deposit = ",userDetailsBeforeDeposit.amount.toString())
        console.log("User Rewards in LFi farms before Deposit = " ,userDetailsBeforeDeposit.rewardDebt.toString())
+       console.log("Farms AccRewardPerShare before Deposit = ", farmInfoBeforeDeposit.accRewardPerShare.toString())
+       console.log("Farms lastRewardTime before Deposit = ", farmInfoBeforeDeposit.lastRewardTime.toString())
+       console.log("Farms allocPoint before Deposit = ", farmInfoBeforeDeposit.allocPoint.toString())
        console.log("User amount in LFi farms after Deposit = ",userDetailsAfterDeposit.amount.toString())
        console.log("User Rewards in LFi farms after Deposit = " ,userDetailsAfterDeposit.rewardDebt.toString())
+       console.log("Farms AccRewardPerShare after Deposit = ", farmInfoAfterDeposit.accRewardPerShare.toString())
+       console.log("Farms lastRewardTime after Deposit = ", farmInfoAfterDeposit.lastRewardTime.toString())
+       console.log("Farms allocPoint after Deposit = ", farmInfoAfterDeposit.allocPoint.toString())
        console.log("User Balance After Deposit in Farms = ",ethers.BigNumber.from(userLPTokenBalanceAfter).toString())
        console.log("LPToken Balance of Farm = ",ethers.BigNumber.from(farmBalance).toString())
   
    })
-   
-   it( `Should allow the user to withdraw the deposits`, async () => {
-        // Get Signers   
-        const [owner,user1] = await ethers.getSigners()
-        
-        // User LPToken Balance before withdrawl
-        const userLPTokenBalanceBeforeWithdrawal = await usdcClaimToken.balanceOf(user1.address);
-        
-        // Details to withdraw from LFi Farms
-        const fid = 0
-        const lpAmountToWithdraw = ethers.utils.formatUnits(returnBigNumber(10 * 10**18),0)
 
-        // User Details in LFI Farms before withdrawl
-        const userDetailsBeforeWithdrawl = await farm.userInfo(fid,user1.address)
-        
-        // call withdraw function in LFi Farms
-        await farm.connect(user1).withdraw(fid,lpAmountToWithdraw,user1.address)
-        
-        // User Details in LFI Farms after withdrawl
-        const userDetailsAfterWithdrawl = await farm.userInfo(fid,user1.address)
-        
-        //User LPToken Balance after withdrawl
-        const userLPTokenBalanceAfterWithdrawl = await usdcClaimToken.balanceOf(user1.address);
-        
-        // Log all the details
-        console.log("========================================================================")
-        console.log("LPToken Amount to Withdraw = ", lpAmountToWithdraw)
-        console.log("User amount in LFi Farms before withdrawl = ", userDetailsBeforeWithdrawl.amount.toString())
-        console.log("User rewards in LFi Farms before withdrawl = ",userDetailsBeforeWithdrawl.rewardDebt.toString())
-        console.log("User amount in LFi Farms after withdrawl = ",userDetailsAfterWithdrawl.amount.toString())
-        console.log("User rewards in LFi Farms after withdrawl = ",userDetailsAfterWithdrawl.rewardDebt.toString())
-        console.log("User LPToken balance before withdrawl = ",ethers.BigNumber.from(userLPTokenBalanceBeforeWithdrawal).toString())
-        console.log("User LPToken balance after withdrawl = ",ethers.BigNumber.from(userLPTokenBalanceAfterWithdrawl).toString())
-   })
+   it("Should allow the user to harvest the rewards", async () => {
+    //Get Signers
+    const [owner,user1] = await ethers.getSigners()
+  
+    // Info for harvesting 
+     const fid = 0
+  
+    // LFIToken totalSupply before harvesting
+    const LFITokenTotalSupply = await lfiToken.totalSupply()
+  
+    //infomation of User before harvest.
+    const userDetailsBeforeHarvest = await farm.userInfo(fid,user1.address)
+  
+    //Pending Rewards before Harvesting.
+    const pendingRewardsBeforeHarvesting = await farm.pendingReward(fid,user1.address)
+  
+    //user LFIBalance before harvesting
+    const userLFIBalancebeforeHarvesting = await lfiToken.balanceOf(user1.address)
+
+    // TimeDelay 
+    await network.provider.send("evm_increaseTime", [36000])
+    await network.provider.send("evm_mine")
+
+    // Transfer Tokens to FundDistributor 
+    await lfiToken.transfer(fund.address,LFITokenTotalSupply.toString())
+    //LFI Token balance of Fund Contract
+    const balaceOfFundContract = await lfiToken.balanceOf(fund.address)
+  
+    // Harvest
+    await fund.addRequester(farm.address)
+    await farm.harvest(fid,user1.address)
+  
+    //Information of user after harvest.
+    const userDetailsAfterHarvest = await farm.userInfo(fid,user1.address)
+  
+    //Pending Rewards after Harvesting 
+    const pendingRewardsAfterHarvest = await farm.pendingReward(fid,user1.address)
+  
+    //LFIToken totalSupply after harvest
+    const LFITokenTotalSupplyAfterHarvest = await lfiToken.totalSupply()
+  
+    //User LFI Balance after harveting 
+    const userLFIBalanceAfterHarvesting = await lfiToken.balanceOf(user1.address)
+  
+    // Log all the details
+    console.log("========================================================================")
+    console.log("User amount before harvesting = ", userDetailsBeforeHarvest.amount.toString())
+    console.log("User rewards before harvesting = ", userDetailsBeforeHarvest.rewardDebt.toString())
+    console.log("Pending rewards before harvesting = ", pendingRewardsBeforeHarvesting.toString())
+    console.log("LFIToken total Supply before harvesting = ", LFITokenTotalSupply.toString())
+    console.log("LFI Token balance of Fund contract = " ,balaceOfFundContract.toString())
+    console.log("User LFI Balance before harvesting = ", userLFIBalancebeforeHarvesting.toString())
+    console.log("User amount after harvesting = ", userDetailsAfterHarvest.amount.toString())
+    console.log("User reward after harvesting = ", userDetailsAfterHarvest.rewardDebt.toString())
+    console.log("Pending Rewards after harvesting = ", pendingRewardsAfterHarvest.toString())
+    console.log("LFIToken total supply after harvest = ",LFITokenTotalSupplyAfterHarvest.toString())
+    console.log("User LFI Token balance after harvesting = ", userLFIBalanceAfterHarvesting.toString())
+
+  })
+   
+   
+//    it( `Should allow the user to withdraw the deposits`, async () => {
+//     // Get Signers   
+//     const [owner,user1] = await ethers.getSigners()
+    
+//     // User LPToken Balance before withdrawl
+//     const userLPTokenBalanceBeforeWithdrawal = await usdcClaimToken.balanceOf(user1.address);
+    
+//     // Details to withdraw from LFi Farms
+//     const fid = 0
+//     const lpAmountToWithdraw = ethers.utils.formatUnits(returnBigNumber(10 * 10**18),0)
+
+//     // User Details in LFI Farms before withdrawl
+//     const userDetailsBeforeWithdrawl = await farm.userInfo(fid,user1.address)
+
+//     // Farm Details in LFI Farms before withdrawl
+//     const farmDetailsBeforeWithdrawl = await farm.farmInfo(fid)
+
+//     // Pending rewards before Withdrawl
+//     const pendingRewardsBeforeWithdrawl = await farm.pendingReward(fid,user1.address);
+
+//     // TimeDelay 
+//     await network.provider.send("evm_increaseTime", [100])
+//     await network.provider.send("evm_mine")
+
+//     // call withdraw function in LFi Farms
+//     await farm.connect(user1).withdraw(fid,lpAmountToWithdraw,user1.address)
+    
+//     // User Details in LFI Farms after withdrawl
+//     const userDetailsAfterWithdrawl = await farm.userInfo(fid,user1.address)
+    
+//     // Farm Details in LFI Farms after withdrawl
+//     const farmDetailsAfterWithdrawl = await farm.farmInfo(fid)
+
+//     //User LPToken Balance after withdrawl
+//     const userLPTokenBalanceAfterWithdrawl = await usdcClaimToken.balanceOf(user1.address);
+
+//     // Pending rewards after Withdrawl
+//     const pendingRewardsAfterWithdrawl = await farm.pendingReward(fid,user1.address);
+    
+    
+//     // Log all the details
+//     console.log("========================================================================")
+//     console.log("LPToken Amount to Withdraw = ", lpAmountToWithdraw)
+//     console.log("User amount in LFi Farms before withdrawl = ", userDetailsBeforeWithdrawl.amount.toString())
+//     console.log("User rewards in LFi Farms before withdrawl = ",userDetailsBeforeWithdrawl.rewardDebt.toString())
+//     console.log("Farms AccRewardPerShare before withdrawl = ", farmDetailsBeforeWithdrawl.accRewardPerShare.toString())
+//     console.log("Farms lastRewardTime before withdrawl = ", farmDetailsBeforeWithdrawl.lastRewardTime.toString())
+//     console.log("Farms allocPoint before withdrawl = ", farmDetailsBeforeWithdrawl.allocPoint.toString())
+//     console.log("User amount in LFi Farms after withdrawl = ",userDetailsAfterWithdrawl.amount.toString())
+//     console.log("User rewards in LFi Farms after withdrawl = ",userDetailsAfterWithdrawl.rewardDebt.toString())
+//     console.log("Farms AccRewardPerShare after withdrawl = ", farmDetailsAfterWithdrawl.accRewardPerShare.toString())
+//     console.log("Farms lastRewardTime after withdrawl = ", farmDetailsAfterWithdrawl.lastRewardTime.toString())
+//     console.log("Farms allocPoint after withdrawl = ", farmDetailsAfterWithdrawl.allocPoint.toString())
+//     console.log("User LPToken balance before withdrawl = ",ethers.BigNumber.from(userLPTokenBalanceBeforeWithdrawal).toString())
+//     console.log("User LPToken balance after withdrawl = ",ethers.BigNumber.from(userLPTokenBalanceAfterWithdrawl).toString())
+//     console.log("Pending Rewards before withdrawl = ", pendingRewardsBeforeWithdrawl.toString())
+//     console.log("Pending Rewards after withdrawl = ", pendingRewardsAfterWithdrawl.toString())
+    
+//     console.log(1157407407410*(farmDetailsAfterWithdrawl.lastRewardTime.toNumber() - farmDetailsBeforeWithdrawl.lastRewardTime.toNumber())) 
+//     console.log(1157407407410*101)   
+// })
+
 
 })

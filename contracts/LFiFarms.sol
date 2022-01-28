@@ -123,10 +123,14 @@ contract LFiFarms is AccessControl {
         farm = farmInfo[fid];
         if(farm.lastRewardTime < block.timestamp) {
             uint lpSupply = lpToken[fid].balanceOf(address(this));
+            console.log("LPSupply",lpSupply);
             if(lpSupply > 0) {
                 uint time = block.timestamp - farm.lastRewardTime;
+                console.log("Time:", time);
                 uint rewardAmount = time * rewardPerSecond * farm.allocPoint / totalAllocPoint;
+                console.log("rewardAmount",rewardAmount);
                 farm.accRewardPerShare += rewardAmount * ACC_REWARD_PRECISION / lpSupply;
+                console.log("Farm Acc",farm.accRewardPerShare);
             }
             farm.lastRewardTime = block.timestamp;
             farmInfo[fid] = farm;
@@ -196,10 +200,15 @@ contract LFiFarms is AccessControl {
         FarmInfo memory farm = updateFarm(fid);
         UserInfo storage user = userInfo[fid][msg.sender];
         int accumulatedReward = int(user.amount * farm.accRewardPerShare / ACC_REWARD_PRECISION);
+        console.logInt(accumulatedReward);
         uint _pendingReward = uint(accumulatedReward - user.rewardDebt);
+        console.log(_pendingReward);
         user.rewardDebt = accumulatedReward;
-        console.log("sender is = ", msg.sender);
         fund.distributeReward(receiver, _pendingReward);
+        // IRewarder _rewarder = rewarder[fid];
+        // if (address(_rewarder) != address(0)) {
+        //     _rewarder.onReward( fid, msg.sender, to, _pendingReward, user.amount);
+        // }
         emit FarmHarvest(msg.sender, fid, _pendingReward, receiver);
     }
 

@@ -6,11 +6,10 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import 'hardhat/console.sol';
 
 interface IRewardToken is IERC20 {
-    function mint(address _recipient, uint256 _amount) external;
+    function transfer(address _recipient, uint256 _amount) external returns(bool);
 }
 
 contract FundDistributor is Ownable {
@@ -24,7 +23,7 @@ contract FundDistributor is Ownable {
     mapping(address => bool) public requesters;
 
     modifier onlyRequester() {
-        require(requesters[_msgSender()], "Only pool can request transfer");
+        require(requesters[msg.sender], "Only pool can request transfer");
         _;
     }
 
@@ -36,10 +35,11 @@ contract FundDistributor is Ownable {
     function distributeReward(address _receiver, uint256 _amount)
         public onlyRequester
     {
-        console.log("Fund distributor = ", msg.sender);
         require(_receiver != address(0), "Invalid address");
+        console.log("Amount:", _amount);
         if (_amount > 0) {
-            rewardToken.mint(_receiver, _amount.div(10**missingDecimals));
+            //rewardToken.mint(_receiver, _amount.div(10**missingDecimals));
+            rewardToken.transfer(_receiver, _amount);
         }
     }
     function addRequester(address _requester) external onlyOwner {
