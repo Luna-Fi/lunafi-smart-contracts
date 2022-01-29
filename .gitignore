@@ -6,6 +6,7 @@ typechain
 .vscode
 
 #Hardhat files
+hardhat
 cache
 flatten
 artifacts/build-info
