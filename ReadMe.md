@@ -14,11 +14,9 @@ Contracts are deployed on to Ropsten testnet
 `WETHClaim Token Contract Address ---- 0x91D6dF9d3314EcC10662d3fdb7e55b38B53e4610` <br />
 `WETHHousePool Contract Address   ---- 0x98866da58Fecc0773410D4B7b926c04d48840c7f` <br />
 
-`LFI Token Contract Address       ---- 0x827A7F75e94e153E875a7403B6aA0A5123dfA2d5` <br />
-`Fund Distributor Address         ---- 0xBEA89272280a7037b90964012d4E67eB9727DA0C` <br />
-`Farms Contract Address           ---- 0x18729d13D286877e8940b461fB60FDa625BCF9F0` <br />
-`Rewarder Contract Address        ---- 0x9E02278E942Eb8D4EA9dF4468dbE7E702CC328d9` <br />
-
+`LFI Token Contract Address       ---- 0xD52D68d889462B7a5d3Cb9b333a2c0F8b56336B2` <br />
+`Fund Distributor Address         ---- 0x8AB1b15fC33d498749dE96450f1599056c1bC7a3` <br />
+`Farms Contract Address           ---- 0x2E006Db04d250F80aEc5192ad85527963B0321C3` <br />
 
 `As of now this account "0xdd8eBa4604D2a9C6c77e4bC557B1884119174726" serves as the owner of the contract.`
 `Private key for the account is available in .env.example file.`
@@ -53,7 +51,6 @@ ABI for the contracts is available in below paths <br />
 
 `FARMS Contract ABI            -- artifacts/contracts/LFiFarms.sol/LFiFarms.json` <br />
 
-`REWARDER Contract ABI         -- artifacts/contracts/Rewarder.sol/Rewarder.json` <br />
 
 
 

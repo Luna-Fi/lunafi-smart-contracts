@@ -36,7 +36,6 @@ contract FundDistributor is Ownable {
         public onlyRequester
     {
         require(_receiver != address(0), "Invalid address");
-        console.log("Amount:", _amount);
         if (_amount > 0) {
             //rewardToken.mint(_receiver, _amount.div(10**missingDecimals));
             rewardToken.transfer(_receiver, _amount);

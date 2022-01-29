@@ -10,6 +10,9 @@ require("@nomiclabs/hardhat-etherscan");
 
 const config = {
   solidity: "0.8.10",
+  mocha: {
+    timeout: 4000000
+  },
   networks : {
     localhost: {
       url: "http://127.0.0.1:8545/"

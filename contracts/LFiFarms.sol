@@ -10,11 +10,6 @@ interface IFundDistributor {
     function distributeReward(address _receiver, uint256 _amount) external;
 }
 
-interface IRewarder {
-    function onReward(uint256 pid, address user, address recipient, uint256 rewardAmount, uint256 newLpAmount) external;
-    function pendingTokens(uint256 pid, address user, uint256 rewardAmount) external view returns (IERC20[] memory, uint256[] memory);
-}
-
 contract LFiFarms is AccessControl {
     using SafeERC20 for IERC20;
 
@@ -40,7 +35,7 @@ contract LFiFarms is AccessControl {
     IFundDistributor public fund; // Fund Distributor contract address
     FarmInfo[] public farmInfo; // List of Farms
     IERC20[] public lpToken; // List of LP Tokens 
-    IRewarder[] public rewarder; 
+    
 
     /// @notice Info of each user that stakes LP tokens.
     mapping (uint256 => mapping (address => UserInfo)) public userInfo;
@@ -57,7 +52,7 @@ contract LFiFarms is AccessControl {
     event FarmHarvest(address indexed requestor, uint256 indexed fid, uint256 amount, address indexed receiver);
     event FarmUpdated(uint256 indexed fid, uint256 lastRewardTime, uint256 lpSupply, uint256 accRewardPerShare);
     event EmergencyWithdraw(address indexed user, uint256 indexed fid, uint256 amount, address indexed receiver);
-    event LogSetPool(uint256 indexed fid, uint256 allocPoint, IRewarder indexed rewarder, bool overwrite);
+    event LogSetPool(uint256 indexed fid, uint256 allocPoint, bool overwrite);
     event FarmFundChanged(address indexed fund);
 
     constructor(address _admin, IERC20 _rewardToken, IFundDistributor _fund) {
@@ -90,7 +85,7 @@ contract LFiFarms is AccessControl {
 
    
     // Create Farm function create a farm.
-    function createFarm(uint _allocPoint, IERC20 _lpToken, IRewarder _rewarder) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function createFarm(uint _allocPoint, IERC20 _lpToken) external onlyRole(DEFAULT_ADMIN_ROLE) {
         checkFarmDoesntExist(_lpToken);
 
         totalAllocPoint += _allocPoint;
@@ -100,17 +95,14 @@ contract LFiFarms is AccessControl {
             allocPoint: _allocPoint
         }));
         lpToken.push(_lpToken);
-        rewarder.push(_rewarder);
-
         emit FarmCreated(lpToken.length - 1, _allocPoint, _lpToken);
     }
 
     //Set Farm
-    function setFarm(uint256 fid, uint256 allocPoint, IRewarder _rewarder,  bool overwrite) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setFarm(uint256 fid, uint256 allocPoint, bool overwrite) public onlyRole(DEFAULT_ADMIN_ROLE) {
         totalAllocPoint = totalAllocPoint - farmInfo[fid].allocPoint + allocPoint;
         farmInfo[fid].allocPoint = allocPoint;
-        if (overwrite) { rewarder[fid] = _rewarder; }
-        emit LogSetPool(fid, allocPoint, overwrite ? _rewarder : rewarder[fid], overwrite);
+        emit LogSetPool(fid, allocPoint, overwrite);
 
     }
 
@@ -123,14 +115,10 @@ contract LFiFarms is AccessControl {
         farm = farmInfo[fid];
         if(farm.lastRewardTime < block.timestamp) {
             uint lpSupply = lpToken[fid].balanceOf(address(this));
-            console.log("LPSupply",lpSupply);
             if(lpSupply > 0) {
                 uint time = block.timestamp - farm.lastRewardTime;
-                console.log("Time:", time);
                 uint rewardAmount = time * rewardPerSecond * farm.allocPoint / totalAllocPoint;
-                console.log("rewardAmount",rewardAmount);
                 farm.accRewardPerShare += rewardAmount * ACC_REWARD_PRECISION / lpSupply;
-                console.log("Farm Acc",farm.accRewardPerShare);
             }
             farm.lastRewardTime = block.timestamp;
             farmInfo[fid] = farm;
@@ -151,7 +139,6 @@ contract LFiFarms is AccessControl {
     /// @param lpAmount Amount of LP tokens to deposit; User must have LP tokens corresponding to the farm
     /// @param benefitor Receiver of farm rewards
     function deposit(uint fid, uint lpAmount, address benefitor) external {
-        
         FarmInfo memory farm = updateFarm(fid);
         UserInfo storage user = userInfo[fid][benefitor];
 
@@ -159,11 +146,6 @@ contract LFiFarms is AccessControl {
         user.amount += lpAmount;
         user.rewardDebt += int(lpAmount * farm.accRewardPerShare / ACC_REWARD_PRECISION);
 
-        //Interactions
-        // IRewarder _rewarder = rewarder[fid];
-        // if (address(_rewarder) != address(0)) {
-        //     _rewarder.onReward(fid, benefitor, benefitor, 0, user.amount);
-        // }
         lpToken[fid].safeTransferFrom(msg.sender, address(this), lpAmount);
         emit FarmDeposit(msg.sender, fid, lpAmount, benefitor);
     }
@@ -174,11 +156,7 @@ contract LFiFarms is AccessControl {
         // Effects
         user.rewardDebt -= int(LPTokenAmount * farm.accRewardPerShare / ACC_REWARD_PRECISION);
         user.amount -= LPTokenAmount;
-        //Interactions
-        // IRewarder _rewarder = rewarder[fid];
-        // if (address(_rewarder) != address(0)) {
-        //     _rewarder.onReward(fid, msg.sender, receiver, 0, user.amount);
-        // }
+
         lpToken[fid].safeTransfer(receiver, LPTokenAmount);
         emit FarmWithdraw(msg.sender, fid, LPTokenAmount, receiver);
     }
@@ -199,16 +177,11 @@ contract LFiFarms is AccessControl {
     function harvest(uint fid, address receiver) public {
         FarmInfo memory farm = updateFarm(fid);
         UserInfo storage user = userInfo[fid][msg.sender];
+        // Effects
         int accumulatedReward = int(user.amount * farm.accRewardPerShare / ACC_REWARD_PRECISION);
-        console.logInt(accumulatedReward);
         uint _pendingReward = uint(accumulatedReward - user.rewardDebt);
-        console.log(_pendingReward);
         user.rewardDebt = accumulatedReward;
         fund.distributeReward(receiver, _pendingReward);
-        // IRewarder _rewarder = rewarder[fid];
-        // if (address(_rewarder) != address(0)) {
-        //     _rewarder.onReward( fid, msg.sender, to, _pendingReward, user.amount);
-        // }
         emit FarmHarvest(msg.sender, fid, _pendingReward, receiver);
     }
 
@@ -229,11 +202,6 @@ contract LFiFarms is AccessControl {
         //Interactions
         fund.distributeReward(receiver,LPTokenamount);
 
-        // IRewarder _rewarder = rewarder[fid];
-        // if (address(_rewarder) != address(0)) {
-        //     _rewarder.onReward(fid, msg.sender, receiver, _pendingReward, user.amount);
-        // }
-
         lpToken[fid].safeTransfer(receiver, LPTokenamount);
 
         emit FarmWithdraw(msg.sender, fid, LPTokenamount, receiver);
@@ -249,11 +217,6 @@ contract LFiFarms is AccessControl {
         uint256 amount = user.amount;
         user.amount = 0;
         user.rewardDebt = 0;
-
-        // IRewarder _rewarder = rewarder[fid];
-        // if (address(_rewarder) != address(0)) {
-        //     _rewarder.onReward(fid, msg.sender, receiver, 0, 0);
-        // }
 
         // Note: transfer can fail or succeed if `amount` is zero.
         lpToken[fid].safeTransfer(receiver, amount);
