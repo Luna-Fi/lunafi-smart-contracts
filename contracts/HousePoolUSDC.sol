@@ -155,7 +155,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     function getMyLiquidity(address _user) external view returns (uint256) {
-        return claimToken.balanceOf(_user) * lpTokenWithdrawlPrice;
+        return claimToken.balanceOf(_user) * lpTokenPrice;
     }
 
     // -- Internal Functions --

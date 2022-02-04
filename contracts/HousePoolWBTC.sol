@@ -33,8 +33,8 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
 
     uint256 constant MAX_PRECISION = 18;
     uint256 constant PRECISION_DIFFERENCE = 10;
-    uint256 lpTokenPrice = 100*10**MAX_PRECISION;
-    uint256 lpTokenWithdrawlPrice = 100*10**MAX_PRECISION;
+    uint256 lpTokenPrice = 1*10**(MAX_PRECISION -1);
+    uint256 lpTokenWithdrawlPrice = 1*10**(MAX_PRECISION -1);
 
     bytes32 public constant DATA_PROVIDER_ORACLE =
         keccak256("DATA_PROVIDER_ORACLE");
@@ -151,7 +151,7 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     function getMyLiquidity(address _user) external view returns (uint256) {
-        return claimToken.balanceOf(_user) * lpTokenWithdrawlPrice;
+        return claimToken.balanceOf(_user) * lpTokenPrice;
     }
 
     function setTokenPrice() internal {
