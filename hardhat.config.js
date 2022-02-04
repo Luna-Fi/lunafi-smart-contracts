@@ -10,6 +10,9 @@ require("@nomiclabs/hardhat-etherscan");
 
 const config = {
   solidity: "0.8.10",
+  mocha: {
+    timeout: 4000000
+  },
   networks : {
     localhost: {
       url: "http://127.0.0.1:8545/"
@@ -22,9 +25,17 @@ const config = {
       saveDeployments: true,
       accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
     },
+    goerli: {
+      url: `${process.env.NODE_URI_GOERLI}`,
+      chainId: 5,
+      live: true,
+      tags: ["goerli"],
+      saveDeployments: true,
+      accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
+    },
     mainnet: {
       url: `${process.env.NODE_URI_MAINNET}`,
-      chainId: 3,
+      chainId: 1,
       live: true,
       tags: ["production"],
       saveDeployments: true,

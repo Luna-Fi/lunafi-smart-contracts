@@ -82,6 +82,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         _;
     }
 
+    // -- Init --
     constructor(
         address _owner,
         address _usdc,
@@ -94,6 +95,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
     }
 
+    // -- Authorised Functions --
     function setVOI(bytes memory sig_, ValuesOfInterest memory voi_)
         external onlyValid(voi_, sig_) onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
@@ -114,6 +116,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         _withdraw(amountUSDC);
     }
 
+    // -- External Functions
     function deposit_(uint usdcMicro) external {
         _deposit(usdcMicro);
     }
@@ -122,6 +125,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         _withdraw(usdcMicro);
     }
 
+    // -- View Functions --
     function getTokenPrice() external view returns (uint256) {
         return lpTokenPrice;
     }
@@ -150,23 +154,24 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         return liquidity;
     }
 
-    function getMyBalance(address _user) external view returns (uint256) {
-        return deposits[_user];
+    function getMyLiquidity(address _user) external view returns (uint256) {
+        return claimToken.balanceOf(_user) * lpTokenPrice;
     }
 
-    function setTokenPrice() internal {
+    // -- Internal Functions --
+    function _setTokenPrice() internal {
         if(claimToken.totalSupply() != 0) {
             lpTokenPrice = (uint(tvl) * 10**MAX_PRECISION) / claimToken.totalSupply();
         }
     }
 
-    function setTokenWithdrawlPrice() internal {
+    function _setTokenWithdrawlPrice() internal {
         if(claimToken.totalSupply() != 0) {
             lpTokenWithdrawlPrice = (liquidity * 10**MAX_PRECISION) / claimToken.totalSupply();
         }
     }
 
-    function updateTVL(int256 expectedValue) internal {
+    function _updateTVL(int256 expectedValue) internal {
         if(voi.expectedValue == 0){
            tvl += expectedValue;
         } else {
@@ -185,9 +190,9 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     function _setEV(int newEV) internal {
-        updateTVL(newEV);
+        _updateTVL(newEV);
         voi.expectedValue = newEV;
-        setTokenPrice();
+        _setTokenPrice();
     }
 
     function _deposit(uint256 amount) internal nonReentrant {
@@ -201,8 +206,8 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         token.transferFrom(msg.sender, address(this), amount);
         uint256 LPTokensToMint = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / lpTokenPrice;
         claimToken.mint(msg.sender, LPTokensToMint);
-        setTokenPrice();
-        setTokenWithdrawlPrice();
+        _setTokenPrice();
+        _setTokenWithdrawlPrice();
     }
 
     function _withdraw(uint256 amount) internal nonReentrant {
@@ -218,8 +223,8 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         deposits[msg.sender] -= amount * 10**PRECISION_DIFFERENCE;
         token.transfer(msg.sender, amount);
         claimToken.burn(msg.sender, LPTokensToBurn);
-        setTokenWithdrawlPrice();
-        setTokenPrice();
+        _setTokenWithdrawlPrice();
+        _setTokenPrice();
     }
 
 // ********************************************  Functions to simulate the functionality **********************************
@@ -240,8 +245,8 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         voi.expectedValue = 0;
         voi.maxExposure = 0;
         tvl += int(treasuryAmount);
-        setTokenPrice();
-        setTokenWithdrawlPrice();
+        _setTokenPrice();
+        _setTokenWithdrawlPrice();
     }
 
     function setBettingStakes(uint256 bettingAmount) external {
