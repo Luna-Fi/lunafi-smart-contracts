@@ -150,8 +150,8 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
         return liquidity;
     }
 
-    function getMyBalance(address _user) external view returns (uint256) {
-        return deposits[_user];
+    function getMyLiquidity(address _user) external view returns (uint256) {
+        return claimToken.balanceOf(_user) * lpTokenWithdrawlPrice;
     }
 
     function setTokenPrice() internal {

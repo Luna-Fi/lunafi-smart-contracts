@@ -106,7 +106,8 @@ contract LFiFarms is AccessControl {
 
     }
 
-    function setRewardPerSecond(uint256 _rewardPerSecond) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setRewardPerSecond(uint256 _rewardPerSecond, uint256[] calldata fids) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        massUpdateFarms(fids);
         rewardPerSecond = _rewardPerSecond;
         emit RewardPerSecondUpdated(_rewardPerSecond);
     }
@@ -126,7 +127,7 @@ contract LFiFarms is AccessControl {
         }
     }
 
-    function massUpdateFarms(uint256[] calldata fids) external {
+    function massUpdateFarms(uint256[] calldata fids) public {
         uint256 len = fids.length;
         for(uint256 i = 0; i < len; i++) {
             updateFarm(fids[i]);
@@ -200,8 +201,7 @@ contract LFiFarms is AccessControl {
         user.amount -= LPTokenamount;
 
         //Interactions
-        fund.distributeReward(receiver,LPTokenamount);
-
+        fund.distributeReward(receiver,_pendingReward);
         lpToken[fid].safeTransfer(receiver, LPTokenamount);
 
         emit FarmWithdraw(msg.sender, fid, LPTokenamount, receiver);

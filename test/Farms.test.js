@@ -1,6 +1,6 @@
 const { expect } = require("chai")
 const { network } = require("hardhat")
-const { BigNumber, ethers} = require("ethers")
+const { BigNumber} = require("ethers")
 
 const returnBigNumber = (number) => {
     number = number.toString(16)
@@ -168,13 +168,14 @@ describe("Testing LFI Farms", () => {
         const WETHFarmAllocPoints = 40
         //const rewardsPerSecond = ethers.utils.formatUnits(returnBigNumber(11.5740740741 * 10 **18),0)
         const rewardsPerSecond = ethers.utils.formatUnits(returnBigNumber(10 * 10 **18),0)
+        const fids = [0,1,2]
         // Create Farms
-        await farm.createFarm(USDCFarmAllocPoints,usdcClaimToken.address,rewarder.address)
-        await farm.createFarm(WBTCFarmAllocPoints,wbtcClaimToken.address,rewarder.address)
-        await farm.createFarm(WETHFarmAllocPoints,wethClaimToken.address,rewarder.address)
+        await farm.createFarm(USDCFarmAllocPoints,usdcClaimToken.address)
+        await farm.createFarm(WBTCFarmAllocPoints,wbtcClaimToken.address)
+        await farm.createFarm(WETHFarmAllocPoints,wethClaimToken.address)
 
         // set rewardsPer Second 
-        await farm.setRewardPerSecond(rewardsPerSecond)
+        await farm.setRewardPerSecond(rewardsPerSecond,fids)
         const farmsCount = await farm.farmLength()
         const rewards = await farm.rewardPerSecond()
 
@@ -187,9 +188,9 @@ describe("Testing LFI Farms", () => {
         const user1Farm = 0
         const user2Farm = 1
         const user3Farm = 2
-        const user1FarmDeposit = ethers.utils.formatUnits(returnBigNumber(10 * 10**18),0)
-        const user2FarmDeposit = ethers.utils.formatUnits(returnBigNumber(10 * 10**18),0)
-        const user3FarmDeposit = ethers.utils.formatUnits(returnBigNumber(10 * 10**18),0)
+        const user1FarmDeposit = ethers.utils.formatUnits(returnBigNumber(70 * 10**18),0)
+        const user2FarmDeposit = ethers.utils.formatUnits(returnBigNumber(70 * 10**18),0)
+        const user3FarmDeposit = ethers.utils.formatUnits(returnBigNumber(70 * 10**18),0)
         
         const user1HPDeposit = 10000000000
         const user2HPDeposit = 1000000000000
@@ -199,11 +200,8 @@ describe("Testing LFI Farms", () => {
         await usdcHousePool.connect(user1).deposit_(user1HPDeposit)
         await wbtcHousePool.connect(user2).deposit_(user2HPDeposit)
         await wethHousePool.connect(user3).deposit_(user3HPDeposit)
-        //time now
-        console.log("Time at Deposit",Math.floor(Date.now()/1000))
-
-
-        // Deposit LP Tokens in Farms
+      
+       // Deposit LP Tokens in Farms
         await farm.connect(user1).deposit(user1Farm,user1FarmDeposit,user1.address)
         await farm.connect(user2).deposit(user2Farm,user2FarmDeposit,user2.address)
         await farm.connect(user3).deposit(user3Farm,user3FarmDeposit,user3.address)
@@ -215,34 +213,6 @@ describe("Testing LFI Farms", () => {
         expect(ethers.utils.formatUnits(FarmUSDCLPTokenBalance,0)).to.equal(user1FarmDeposit)
         expect(ethers.utils.formatUnits(FarmWBTCLPTokenBalance,0)).to.equal(user2FarmDeposit)
         expect(ethers.utils.formatUnits(FarmWETHLPTokenBalance,0)).to.equal(user3FarmDeposit)
-    })
-
-    it(`Should allow the users to harvest the rewards from the Farms`, async () => {
-        const [owner,user1,user2,user3] = await ethers.getSigners()
-        const user1Farm = 0
-        const user2Farm = 1
-        const user3Farm = 2
-        
-        const totalSupply = await lfiToken.totalSupply()
-        await lfiToken.transfer(fund.address,totalSupply)
-
-        //Increase Time
-        await network.provider.send("evm_increaseTime", [95])
-        await network.provider.send("evm_mine")
-
-        await fund.addRequester(farm.address)
-        await farm.connect(user1).harvest(user1Farm,user1.address)
-        await farm.connect(user2).harvest(user2Farm,user2.address)
-        await farm.connect(user3).harvest(user3Farm,user3.address)
-
-        const LFITokenBalanceUser1 = await lfiToken.balanceOf(user1.address)
-        const LFITokenBalanceUser2 = await lfiToken.balanceOf(user2.address)
-        const LFITokenBalanceUser3 = await lfiToken.balanceOf(user3.address)
-
-        console.log("Rewards Transferred to user1 = ",ethers.utils.formatUnits(LFITokenBalanceUser1,0))
-        console.log("Rewards Transferred to user2 = ",ethers.utils.formatUnits(LFITokenBalanceUser2,0))
-        console.log("Rewards Transferred to user3 = ",ethers.utils.formatUnits(LFITokenBalanceUser3,0))
-
     })
 
     it(`Should allow the users to withdraw LP Tokens`, async () => {
@@ -264,16 +234,96 @@ describe("Testing LFI Farms", () => {
         const WBTCLPFarmBalance = await usdcClaimToken.balanceOf(farm.address)
         const WETHLPFarmBalance = await usdcClaimToken.balanceOf(farm.address)
 
-        expect(USDCLPFarmBalance.toNumber()).to.equal(0)
-        expect(WBTCLPFarmBalance.toNumber()).to.equal(0)
-        expect(WETHLPFarmBalance.toNumber()).to.equal(0)
-    })
-
-    it(`Should allow the user to both withdraw the LPTokens and Harvest the rewards `, async () => {
-        const [owner,user1,user2,user3] = await ethers.getSigners()
+        console.log(USDCLPFarmBalance.toString())
+        console.log(WBTCLPFarmBalance.toString())
+        console.log(WETHLPFarmBalance.toString())
 
         
     })
 
+    it(`Should allow the user to withdraw LPTokens and Harvest Rewards`, async () => {
+        const [owner,user1,user2,user3] = await ethers.getSigners()
+        const user1Farm = 0;
+        const user2Farm = 1
+        const user3Farm = 2
+
+        const user1FarmWithdraw = ethers.utils.formatUnits(returnBigNumber(40 * 10**18),0)
+        const user2FarmWithdraw = ethers.utils.formatUnits(returnBigNumber(40 * 10**18),0)
+        const user3FarmWithdraw = ethers.utils.formatUnits(returnBigNumber(40 * 10**18),0)
+
+        const LFITokenBeforeBalanceUser1 = await lfiToken.balanceOf(user1.address)
+        const LFITokenBeforeBalanceUser2 = await lfiToken.balanceOf(user2.address)
+        const LFITokenBeforeBalanceUser3 = await lfiToken.balanceOf(user3.address)
+
+        const LPBeforeBalanceUser1 = await usdcClaimToken.balanceOf(user1.address)
+        const LPBeforeBalanceUser2 = await wbtcClaimToken.balanceOf(user2.address)
+        const LPBeforeBalanceUser3 = await wethClaimToken.balanceOf(user3.address)
+
+        await fund.addRequester(farm.address)
+
+        const totalSupply = await lfiToken.totalSupply()
+        await lfiToken.transfer(fund.address,totalSupply)
+
+        await network.provider.send("evm_increaseTime", [95])
+        await network.provider.send("evm_mine")
+
+
+        await farm.connect(user1).withdrawAndHarvest(user1Farm,user1FarmWithdraw,user1.address)
+        await farm.connect(user2).withdrawAndHarvest(user2Farm,user2FarmWithdraw,user2.address)
+        await farm.connect(user3).withdrawAndHarvest(user3Farm,user3FarmWithdraw,user3.address)
+
+        const LFITokenAfterBalanceUser1 = await lfiToken.balanceOf(user1.address)
+        const LFITokenAfterBalanceUser2 = await lfiToken.balanceOf(user2.address)
+        const LFITokenAfterBalanceUser3 = await lfiToken.balanceOf(user3.address)
+        
+    
+        const LPAfterBalanceUser1 = await usdcClaimToken.balanceOf(user1.address)
+        const LPAfterBalanceUser2 = await wbtcClaimToken.balanceOf(user2.address)
+        const LPAfterBalanceUser3 = await wethClaimToken.balanceOf(user3.address)
+
+        console.log("LP User1 Balance before withdraw and harvest = ",ethers.utils.formatUnits(LPBeforeBalanceUser1,0))
+        console.log("LP User1 Balance before withdraw and harvest = ",ethers.utils.formatUnits(LPBeforeBalanceUser2,0))
+        console.log("LP User1 Balance before withdraw and harvest = ",ethers.utils.formatUnits(LPBeforeBalanceUser3,0))
+
+        console.log("LP User1 Balance after withdraw and harvest = ",ethers.utils.formatUnits(LPAfterBalanceUser1,0))
+        console.log("LP User1 Balance after withdraw and harvest = ",ethers.utils.formatUnits(LPAfterBalanceUser2,0))
+        console.log("LP User1 Balance after withdraw and harvest = ",ethers.utils.formatUnits(LPAfterBalanceUser3,0))
+
+
+        console.log("LFI User1 Balance before withdraw and harvest = ",ethers.utils.formatUnits(LFITokenBeforeBalanceUser1,0))
+        console.log("LFI User1 Balance before withdraw and harvest = ",ethers.utils.formatUnits(LFITokenBeforeBalanceUser2,0))
+        console.log("LFI User1 Balance before withdraw and harvest = ",ethers.utils.formatUnits(LFITokenBeforeBalanceUser3,0))
+
+        console.log("LFI User1 Balance after withdraw and harvest = ",ethers.utils.formatUnits(LFITokenAfterBalanceUser1,0))
+        console.log("LFI User1 Balance after withdraw and harvest = ",ethers.utils.formatUnits(LFITokenAfterBalanceUser2,0))
+        console.log("LFI User1 Balance after withdraw and harvest = ",ethers.utils.formatUnits(LFITokenAfterBalanceUser3,0))
+
+    })
+
+    it(`Should allow the users to harvest the rewards from the Farms`, async () => {
+        const [owner,user1,user2,user3] = await ethers.getSigners()
+        const user1Farm = 0
+        const user2Farm = 1
+        const user3Farm = 2
+        
+        //Increase Time
+        await network.provider.send("evm_increaseTime", [95])
+        await network.provider.send("evm_mine")
+
+        await farm.connect(user1).harvest(user1Farm,user1.address)
+        await farm.connect(user2).harvest(user2Farm,user2.address)
+        await farm.connect(user3).harvest(user3Farm,user3.address)
+
+        const LFITokenBalanceUser1 = await lfiToken.balanceOf(user1.address)
+        const LFITokenBalanceUser2 = await lfiToken.balanceOf(user2.address)
+        const LFITokenBalanceUser3 = await lfiToken.balanceOf(user3.address)
+
+        console.log("Rewards Transferred to user1 = ",ethers.utils.formatUnits(LFITokenBalanceUser1,0))
+        console.log("Rewards Transferred to user2 = ",ethers.utils.formatUnits(LFITokenBalanceUser2,0))
+        console.log("Rewards Transferred to user3 = ",ethers.utils.formatUnits(LFITokenBalanceUser3,0))
+
+    })
+
+    
 
 })
