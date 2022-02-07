@@ -151,7 +151,7 @@ contract HousePoolWETH is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     function getMyLiquidity(address _user) external view returns (uint256) {
-        return claimToken.balanceOf(_user) * lpTokenPrice;
+        return (claimToken.balanceOf(_user) * lpTokenPrice) / 10**MAX_PRECISION;
     }
 
     function setTokenPrice() internal {

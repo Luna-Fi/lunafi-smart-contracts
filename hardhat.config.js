@@ -25,6 +25,14 @@ const config = {
       saveDeployments: true,
       accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
     },
+    rinkeby: {
+      url: `${process.env.NODE_URI_RINKEBY}`,
+      chainId: 4,
+      live: true,
+      tags: ["staging"],
+      saveDeployments: true,
+      accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
+    },
     goerli: {
       url: `${process.env.NODE_URI_GOERLI}`,
       chainId: 5,
