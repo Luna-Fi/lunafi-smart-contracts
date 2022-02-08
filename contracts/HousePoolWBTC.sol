@@ -33,8 +33,8 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
 
     uint256 constant MAX_PRECISION = 18;
     uint256 constant PRECISION_DIFFERENCE = 10;
-    uint256 public lpTokenPrice = 100*10**(MAX_PRECISION + 1);
-    uint256 public lpTokenWithdrawlPrice = 100*10**(MAX_PRECISION + 1);
+    uint256 public lpTokenPrice = 1*10**(MAX_PRECISION - 2);
+    uint256 public lpTokenWithdrawlPrice = 1*10**(MAX_PRECISION - 2);
 
     bytes32 public constant DATA_PROVIDER_ORACLE =
         keccak256("DATA_PROVIDER_ORACLE");

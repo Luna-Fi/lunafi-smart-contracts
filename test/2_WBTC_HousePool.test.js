@@ -55,7 +55,7 @@ describe("WBTC HousePool", () => {
 
     it(`Should get the LPTOKEN price and LPTokenWithdrawalPrice on first Deposit`, async () => {
         const [owner,user1] = await ethers.getSigners()
-        await wbtcHousePool.deposit_(1000*10**8)
+        await wbtcHousePool.deposit_(1*10**8)
         const LPTokenPrice = await wbtcHousePool.getTokenPrice()
         const LPTokenWithdrawlPrice = await wbtcHousePool.getTokenWithdrawlPrice()
         const LPTokenBalance = await wbtcClaimToken.balanceOf(owner.address)
@@ -86,6 +86,8 @@ describe("WBTC HousePool", () => {
         console.log("Initial LPTokenWithdrawl Price = ",LPTokenWithdrawlPrice.toString())
         console.log("LP Token balance = ", LPTokenBalance.toString())
         
-    })
+    }) 
 
 })
+
+ 
