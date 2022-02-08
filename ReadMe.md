@@ -8,11 +8,11 @@ Contracts are deployed on to Ropsten testnet
 
 `WBTC Test Token Contract Address ---- 0x9F5b3Eeffb978cF50b897Cb1f44d1a2Ca66acCF9` <br />
 `WBTCClaim Token Contract Address ---- 0xca131f7baB00E794F492E477CfA3dd06a145b23a` <br />
-`WBTCHousePool Contract Address   ---- 0x3D6Fb3bD518bF340a41b89b814819Fc089A8Bdc1` <br />
+`WBTCHousePool Contract Address   ---- 0x3C25f03d54baB45BA9a4949fCDADD7088d0eeE27` <br />
 
 `WETH Test Token Contract Address ---- 0xcaF1a42750C277bf06862012Ce5458EDBeA6e9E4` <br />
 `WETHClaim Token Contract Address ---- 0x91D6dF9d3314EcC10662d3fdb7e55b38B53e4610` <br />
-`WETHHousePool Contract Address   ---- 0xb91EBe4E7Ee1cCf8B4669b5B574eDc75ABE326f0` <br />
+`WETHHousePool Contract Address   ---- 0xC5379b8D0413A7a5bd9529dEE618dC48f4685819` <br />
 
 `LFI Token Contract Address       ---- 0xD52D68d889462B7a5d3Cb9b333a2c0F8b56336B2` <br />
 `Fund Distributor Address         ---- 0x8AB1b15fC33d498749dE96450f1599056c1bC7a3` <br />
