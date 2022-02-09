@@ -1,3 +1,3 @@
 module.exports = [
-    "0xD52D68d889462B7a5d3Cb9b333a2c0F8b56336B2",
+    "0x0A827fEeEb2E247001A6a2684805cb5d9A1fb6A2",
 ];

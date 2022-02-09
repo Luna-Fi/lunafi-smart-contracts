@@ -14,9 +14,9 @@ Contracts are deployed on to Ropsten testnet
 `WETHClaim Token Contract Address ---- 0x3759d7B927CfE2cE356012d25985E09F944Ce3e5` <br />
 `WETHHousePool Contract Address   ---- 0xf276D51d4B9256a33Ec75683AC5DC2601A48DfA8` <br />
 
-`LFI Token Contract Address       ---- 0xD52D68d889462B7a5d3Cb9b333a2c0F8b56336B2` <br />
-`Fund Distributor Address         ---- 0x8AB1b15fC33d498749dE96450f1599056c1bC7a3` <br />
-`Farms Contract Address           ---- 0x2CE935a11FBFf2E2b9a963A7381c1DF5d3af011C` <br />
+`LFI Token Contract Address       ---- 0x0A827fEeEb2E247001A6a2684805cb5d9A1fb6A2` <br />
+`Fund Distributor Address         ---- 0xc59DeA44508026883C062e716D783547a2c1BbF0` <br />
+`Farms Contract Address           ---- 0xB09E97D67ac060E9c4306FBa1Dd3D6ddD175d487` <br />
 
 `As of now this account "0xdd8eBa4604D2a9C6c77e4bC557B1884119174726" serves as the owner of the contract.`
 `Private key for the account is available in .env.example file.`
