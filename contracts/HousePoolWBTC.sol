@@ -78,7 +78,7 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
             "HousePoolWBTC: signed transaction expired"
         );
 
-        nonces[data.signer]++;
+        //nonces[data.signer]++;
         _;
     }
 
@@ -209,7 +209,7 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
         require(amount > 0, "WBTCHousePool: Zero Amount");
         require(
             amount * 10**PRECISION_DIFFERENCE <= (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
-                int(amount) * int(10**PRECISION_DIFFERENCE) < int(liquidity) - voi.maxExposure,
+                int(amount) * int(10**PRECISION_DIFFERENCE) <= int(liquidity) - voi.maxExposure,
                 "WBTCHousePool : can't withdraw"
         );
         uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);

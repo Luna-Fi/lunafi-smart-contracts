@@ -78,7 +78,7 @@ contract HousePoolWETH is ReentrancyGuard, AccessControl, EIP712 {
             "HousePoolWETH: signed transaction expired"
         );
 
-        nonces[data.signer]++;
+        //nonces[data.signer]++;
         _;
     }
 
@@ -209,7 +209,7 @@ contract HousePoolWETH is ReentrancyGuard, AccessControl, EIP712 {
         require(amount > 0, "WETHHousePool: Zero Amount");
         require(
             amount * 10**PRECISION_DIFFERENCE <= (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
-                int(amount) * int(10**PRECISION_DIFFERENCE) < int(liquidity) - voi.maxExposure,
+                int(amount) * int(10**PRECISION_DIFFERENCE) <= int(liquidity) - voi.maxExposure,
                 "WETHHousePool : can't withdraw"
         );
         uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
