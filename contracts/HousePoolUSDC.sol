@@ -78,7 +78,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
             "HousePoolUSDC: signed transaction expired"
         );
 
-        nonces[data.signer]++;
+        //nonces[data.signer]++;
         _;
     }
 
@@ -155,7 +155,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     function getMyLiquidity(address _user) external view returns (uint256) {
-        return claimToken.balanceOf(_user) * lpTokenPrice;
+        return (claimToken.balanceOf(_user) * lpTokenPrice) / 10**MAX_PRECISION;
     }
 
     // -- Internal Functions --
@@ -214,7 +214,7 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         require(amount > 0, "USDCHousePool: Zero Amount");
         require(
             amount * 10**PRECISION_DIFFERENCE <= (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
-                int(amount) * int(10**PRECISION_DIFFERENCE) < int(liquidity) - voi.maxExposure,
+                int(amount) * int(10**PRECISION_DIFFERENCE) <= int(liquidity) - voi.maxExposure,
                 "USDCHousePool : can't withdraw"
         );
         uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);

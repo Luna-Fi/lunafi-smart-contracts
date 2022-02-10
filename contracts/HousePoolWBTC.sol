@@ -33,8 +33,8 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
 
     uint256 constant MAX_PRECISION = 18;
     uint256 constant PRECISION_DIFFERENCE = 10;
-    uint256 lpTokenPrice = 1*10**(MAX_PRECISION -1);
-    uint256 lpTokenWithdrawlPrice = 1*10**(MAX_PRECISION -1);
+    uint256 public lpTokenPrice = 1*10**(MAX_PRECISION - 2);
+    uint256 public lpTokenWithdrawlPrice = 1*10**(MAX_PRECISION - 2);
 
     bytes32 public constant DATA_PROVIDER_ORACLE =
         keccak256("DATA_PROVIDER_ORACLE");
@@ -78,7 +78,7 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
             "HousePoolWBTC: signed transaction expired"
         );
 
-        nonces[data.signer]++;
+        //nonces[data.signer]++;
         _;
     }
 
@@ -151,7 +151,7 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     function getMyLiquidity(address _user) external view returns (uint256) {
-        return claimToken.balanceOf(_user) * lpTokenPrice;
+        return (claimToken.balanceOf(_user) * lpTokenPrice) / 10**MAX_PRECISION;
     }
 
     function setTokenPrice() internal {
@@ -209,7 +209,7 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
         require(amount > 0, "WBTCHousePool: Zero Amount");
         require(
             amount * 10**PRECISION_DIFFERENCE <= (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
-                int(amount) * int(10**PRECISION_DIFFERENCE) < int(liquidity) - voi.maxExposure,
+                int(amount) * int(10**PRECISION_DIFFERENCE) <= int(liquidity) - voi.maxExposure,
                 "WBTCHousePool : can't withdraw"
         );
         uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
