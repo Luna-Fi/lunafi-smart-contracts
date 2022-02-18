@@ -3,9 +3,10 @@ pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
-import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
 import "hardhat/console.sol";
 
 interface claimTokenInterface {
@@ -15,7 +16,7 @@ interface claimTokenInterface {
     function totalSupply() external view returns (uint256);
 }
 
-contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
+contract HousePoolWETH is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgradeable {
     struct ValuesOfInterest {
         int256 expectedValue;
         int256 maxExposure;
@@ -32,9 +33,9 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     ValuesOfInterest public voi;
 
     uint256 constant MAX_PRECISION = 18;
-    uint256 constant PRECISION_DIFFERENCE = 12;
-    uint256 lpTokenPrice = 100*10**MAX_PRECISION;
-    uint256 lpTokenWithdrawlPrice = 100*10**MAX_PRECISION;
+    uint256 constant PRECISION_DIFFERENCE = 0;
+    uint256 lpTokenPrice;
+    uint256 lpTokenWithdrawlPrice;
 
     bytes32 public constant DATA_PROVIDER_ORACLE =
         keccak256("DATA_PROVIDER_ORACLE");
@@ -61,71 +62,70 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         );
         require(
             SignatureChecker.isValidSignatureNow(data.signer, digest, signature),
-            "HousePoolUSDC: invalid signature"
+            "HousePoolWETH: invalid signature"
         );
 
         require(
             data.signer != address(0),
-            "HousePoolUSDC: invalid signer");
+            "HousePoolWETH: invalid signer");
 
         require(
             hasRole(DATA_PROVIDER_ORACLE, data.signer),
-            "HousePoolUSDC: unauthorised signer"
+            "HousePoolWETH: unauthorised signer"
         );
 
         require(
             block.number < data.deadline,
-            "HousePoolUSDC: signed transaction expired"
+            "HousePoolWETH: signed transaction expired"
         );
 
         //nonces[data.signer]++;
         _;
     }
-
-    // -- Init --
-    constructor(
+    
+    function initialize (
         address _owner,
-        address _usdc,
+        address _WETH,
         address _claimToken,
         string memory _name,
         string memory _version
-    ) EIP712(_name, _version) {
-        token = IERC20(_usdc);
+    ) external initializer {
+        __EIP712_init(_name, _version);
+        token = IERC20(_WETH);
         claimToken = claimTokenInterface(_claimToken);
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
+        lpTokenPrice = 1*10**(MAX_PRECISION - 1);
+        lpTokenWithdrawlPrice = 1*10**(MAX_PRECISION - 1);
     }
 
-    // -- Authorised Functions --
     function setVOI(bytes memory sig_, ValuesOfInterest memory voi_)
         external onlyValid(voi_, sig_) onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
         _setVoi(voi_);
     }
 
-    function deposit(uint256 amountUSDC, bytes memory approval, ValuesOfInterest memory approvedValues)
+    function deposit(uint256 amountWETH, bytes memory approval, ValuesOfInterest memory approvedValues)
         external onlyValid(approvedValues, approval)
     {
         _setVoi(approvedValues);
-        _deposit(amountUSDC);
+        _deposit(amountWETH);
     }
 
-    function withdraw(uint256 amountUSDC, bytes memory approval, ValuesOfInterest memory approvedValues)
+    function withdraw(uint256 amountWETH, bytes memory approval, ValuesOfInterest memory approvedValues)
         external onlyValid(approvedValues, approval)
     {
         _setVoi(approvedValues);
-        _withdraw(amountUSDC);
+        _withdraw(amountWETH);
     }
 
-    // -- External Functions
-    function deposit_(uint usdcMicro) external {
-        _deposit(usdcMicro);
+    function deposit_(uint WETHMicro) external {
+        _deposit(WETHMicro);
     }
 
-    function withdraw_(uint usdcMicro) external {
-        _withdraw(usdcMicro);
+    function withdraw_(uint WETHMicro) external {
+        _withdraw(WETHMicro);
     }
 
-    // -- View Functions --
     function getTokenPrice() external view returns (uint256) {
         return lpTokenPrice;
     }
@@ -158,20 +158,23 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         return (claimToken.balanceOf(_user) * lpTokenPrice) / 10**MAX_PRECISION;
     }
 
-    // -- Internal Functions --
-    function _setTokenPrice() internal {
+    function getMyBalance(address _user) external view returns(uint256) {
+        return deposits[_user];
+    }
+
+    function setTokenPrice() internal {
         if(claimToken.totalSupply() != 0) {
             lpTokenPrice = (uint(tvl) * 10**MAX_PRECISION) / claimToken.totalSupply();
         }
     }
 
-    function _setTokenWithdrawlPrice() internal {
+    function setTokenWithdrawlPrice() internal {
         if(claimToken.totalSupply() != 0) {
             lpTokenWithdrawlPrice = (liquidity * 10**MAX_PRECISION) / claimToken.totalSupply();
         }
     }
 
-    function _updateTVL(int256 expectedValue) internal {
+    function updateTVL(int256 expectedValue) internal {
         if(voi.expectedValue == 0){
            tvl += expectedValue;
         } else {
@@ -190,15 +193,15 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     function _setEV(int newEV) internal {
-        _updateTVL(newEV);
+        updateTVL(newEV);
         voi.expectedValue = newEV;
-        _setTokenPrice();
+        setTokenPrice();
     }
 
     function _deposit(uint256 amount) internal nonReentrant {
         require(
             amount > 0 && amount <= token.balanceOf(msg.sender),
-            "USDCHousePool: Check the Balance"
+            "WETHHousePool: Check the Balance"
         );
         liquidity += amount * 10**PRECISION_DIFFERENCE;
         tvl += int(amount * 10**PRECISION_DIFFERENCE);
@@ -206,16 +209,16 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         token.transferFrom(msg.sender, address(this), amount);
         uint256 LPTokensToMint = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / lpTokenPrice;
         claimToken.mint(msg.sender, LPTokensToMint);
-        _setTokenPrice();
-        _setTokenWithdrawlPrice();
+        setTokenPrice();
+        setTokenWithdrawlPrice();
     }
 
     function _withdraw(uint256 amount) internal nonReentrant {
-        require(amount > 0, "USDCHousePool: Zero Amount");
+        require(amount > 0, "WETHHousePool: Zero Amount");
         require(
             amount * 10**PRECISION_DIFFERENCE <= (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
                 int(amount) * int(10**PRECISION_DIFFERENCE) <= int(liquidity) - voi.maxExposure,
-                "USDCHousePool : can't withdraw"
+                "WETHHousePool : can't withdraw"
         );
         uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
         liquidity -= amount * 10**PRECISION_DIFFERENCE;
@@ -223,8 +226,8 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         deposits[msg.sender] -= amount * 10**PRECISION_DIFFERENCE;
         token.transfer(msg.sender, amount);
         claimToken.burn(msg.sender, LPTokensToBurn);
-        _setTokenWithdrawlPrice();
-        _setTokenPrice();
+        setTokenWithdrawlPrice();
+        setTokenPrice();
     }
 
 // ********************************************  Functions to simulate the functionality **********************************
@@ -245,8 +248,8 @@ contract HousePoolUSDC is ReentrancyGuard, AccessControl, EIP712 {
         voi.expectedValue = 0;
         voi.maxExposure = 0;
         tvl += int(treasuryAmount);
-        _setTokenPrice();
-        _setTokenWithdrawlPrice();
+        setTokenPrice();
+        setTokenWithdrawlPrice();
     }
 
     function setBettingStakes(uint256 bettingAmount) external {

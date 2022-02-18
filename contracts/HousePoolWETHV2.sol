@@ -3,9 +3,10 @@ pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
-import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
 import "hardhat/console.sol";
 
 interface claimTokenInterface {
@@ -15,7 +16,7 @@ interface claimTokenInterface {
     function totalSupply() external view returns (uint256);
 }
 
-contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
+contract HousePoolWETHV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgradeable {
     struct ValuesOfInterest {
         int256 expectedValue;
         int256 maxExposure;
@@ -32,9 +33,9 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
     ValuesOfInterest public voi;
 
     uint256 constant MAX_PRECISION = 18;
-    uint256 constant PRECISION_DIFFERENCE = 10;
-    uint256 public lpTokenPrice = 1*10**(MAX_PRECISION - 2);
-    uint256 public lpTokenWithdrawlPrice = 1*10**(MAX_PRECISION - 2);
+    uint256 constant PRECISION_DIFFERENCE = 0;
+    uint256 lpTokenPrice;
+    uint256 lpTokenWithdrawlPrice;
 
     bytes32 public constant DATA_PROVIDER_ORACLE =
         keccak256("DATA_PROVIDER_ORACLE");
@@ -61,37 +62,40 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
         );
         require(
             SignatureChecker.isValidSignatureNow(data.signer, digest, signature),
-            "HousePoolWBTC: invalid signature"
+            "HousePoolWETH: invalid signature"
         );
 
         require(
             data.signer != address(0),
-            "HousePoolWBTC: invalid signer");
+            "HousePoolWETH: invalid signer");
 
         require(
             hasRole(DATA_PROVIDER_ORACLE, data.signer),
-            "HousePoolWBTC: unauthorised signer"
+            "HousePoolWETH: unauthorised signer"
         );
 
         require(
             block.number < data.deadline,
-            "HousePoolWBTC: signed transaction expired"
+            "HousePoolWETH: signed transaction expired"
         );
 
         //nonces[data.signer]++;
         _;
     }
-
-    constructor(
+    
+    function initialize (
         address _owner,
-        address _WBTC,
+        address _WETH,
         address _claimToken,
         string memory _name,
         string memory _version
-    ) EIP712(_name, _version) {
-        token = IERC20(_WBTC);
+    ) external initializer {
+        __EIP712_init(_name, _version);
+        token = IERC20(_WETH);
         claimToken = claimTokenInterface(_claimToken);
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
+        lpTokenPrice = 1*10**(MAX_PRECISION - 1);
+        lpTokenWithdrawlPrice = 1*10**(MAX_PRECISION - 1);
     }
 
     function setVOI(bytes memory sig_, ValuesOfInterest memory voi_)
@@ -100,26 +104,26 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
         _setVoi(voi_);
     }
 
-    function deposit(uint256 amountWBTC, bytes memory approval, ValuesOfInterest memory approvedValues)
+    function deposit(uint256 amountWETH, bytes memory approval, ValuesOfInterest memory approvedValues)
         external onlyValid(approvedValues, approval)
     {
         _setVoi(approvedValues);
-        _deposit(amountWBTC);
+        _deposit(amountWETH);
     }
 
-    function withdraw(uint256 amountWBTC, bytes memory approval, ValuesOfInterest memory approvedValues)
+    function withdraw(uint256 amountWETH, bytes memory approval, ValuesOfInterest memory approvedValues)
         external onlyValid(approvedValues, approval)
     {
         _setVoi(approvedValues);
-        _withdraw(amountWBTC);
+        _withdraw(amountWETH);
     }
 
-    function deposit_(uint WBTCMicro) external {
-        _deposit(WBTCMicro);
+    function deposit_(uint WETHMicro) external {
+        _deposit(WETHMicro);
     }
 
-    function withdraw_(uint WBTCMicro) external {
-        _withdraw(WBTCMicro);
+    function withdraw_(uint WETHMicro) external {
+        _withdraw(WETHMicro);
     }
 
     function getTokenPrice() external view returns (uint256) {
@@ -152,6 +156,10 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
 
     function getMyLiquidity(address _user) external view returns (uint256) {
         return (claimToken.balanceOf(_user) * lpTokenPrice) / 10**MAX_PRECISION;
+    }
+
+    function getMyBalance(address _user) external view returns(uint256) {
+        return deposits[_user];
     }
 
     function setTokenPrice() internal {
@@ -193,7 +201,7 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
     function _deposit(uint256 amount) internal nonReentrant {
         require(
             amount > 0 && amount <= token.balanceOf(msg.sender),
-            "WBTCHousePool: Check the Balance"
+            "WETHHousePool: Check the Balance"
         );
         liquidity += amount * 10**PRECISION_DIFFERENCE;
         tvl += int(amount * 10**PRECISION_DIFFERENCE);
@@ -206,11 +214,11 @@ contract HousePoolWBTC is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     function _withdraw(uint256 amount) internal nonReentrant {
-        require(amount > 0, "WBTCHousePool: Zero Amount");
+        require(amount > 0, "WETHHousePool: Zero Amount");
         require(
             amount * 10**PRECISION_DIFFERENCE <= (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
                 int(amount) * int(10**PRECISION_DIFFERENCE) <= int(liquidity) - voi.maxExposure,
-                "WBTCHousePool : can't withdraw"
+                "WETHHousePool : can't withdraw"
         );
         uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
         liquidity -= amount * 10**PRECISION_DIFFERENCE;
