@@ -1,7 +1,7 @@
 {
   "_format": "hh-sol-artifact-1",
   "contractName": "claimTokenInterface",
-  "sourceName": "contracts/HousePoolWETH.sol",
+  "sourceName": "contracts/HousePoolWETHV1.sol",
   "abi": [
     {
       "inputs": [

@@ -2,11 +2,11 @@
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
-require("@nomiclabs/hardhat-waffle");
 require("hardhat-deploy");
 require('dotenv').config();
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
+require('@openzeppelin/hardhat-upgrades');
 
 const config = {
   solidity: "0.8.10",
