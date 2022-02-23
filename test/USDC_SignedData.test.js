@@ -3,10 +3,33 @@ const { BigNumber } = require("ethers");
 const { ethers } = require("hardhat");
 
 const returnBigNumber = (number) => {
-    number = number.toString(16)
-    return BigNumber.from("0x" + number);
+    if(number >= 0) {
+        number = number.toString(16)
+        console.log('0x' + number)
+        return BigNumber.from("0x" + number);
+    } else {
+        number = Math.abs(number).toString(16)
+        console.log('-0x' + number)
+        return BigNumber.from("-0x" + number)
+    }
+
 }
 
+const generateRandomDecimal = () => {
+    var min = 0.00001,
+        max = 1,
+        highlightedNumber = Math.random() * (max - min) + min;
+
+    return highlightedNumber
+};
+
+const generateRandomBigNumber = () => {
+    var min = -100000000,
+        max = 10000000,
+        highlightedNumber = Math.random() * (max - min) + min;
+
+    return (highlightedNumber + generateRandomDecimal())
+};
 
 describe("USDC HousePool", () => {
 
@@ -198,6 +221,213 @@ describe("USDC HousePool", () => {
         // Random value to set as ME -- random value between 0 to 100 ether
         const _meValue = ethers.utils.parseUnits((Math.random() * 100).toString(), 18);
         console.log(`Attempting update ME value to: ${ethers.utils.formatEther(_meValue, { pad: true })}`);
+
+        // Prepare deadline
+        const _expiration = 4; // number of blocks
+        const _initialHeight = await ethers.provider.getBlockNumber();
+        console.log("Now at block number: ", _initialHeight);
+        const _deadline = _initialHeight + _expiration;
+        console.log("Deadline blocknumber: ", _deadline);
+        
+        // Prepare data
+        const _chain = await ethers.provider.getNetwork();
+        const _eip712Domain = {
+            name: "",
+            version: "",
+            chainId: _chain.chainId,
+            verifyingContract: usdcHousePool.address,
+        };
+        const _eip712Types = {
+            VoI: [
+                { name: "signer", type: "address" },
+                { name: "expectedValue", type: "int256" },
+                { name: "maxExposure", type: "uint256" },
+                { name: 'nonce', type: 'uint256' },
+                { name: "deadline", type: "uint256" }
+            ],
+        };
+        const _eip712Value = {
+            signer: dataProvider.address,
+            expectedValue: 0,
+            maxExposure: 0,
+            nonce: 0,
+            deadline: _deadline
+        };
+        const _data = [_eip712Domain, _eip712Types, _eip712Value];
+
+        const _signature = await dataProvider._signTypedData(..._data);
+
+        await usdcHousePool.connect(operator).withdraw(
+            tokenAmount,
+            _signature,
+            {
+                expectedValue: 0,
+                maxExposure: 0,
+                deadline: _deadline,
+                nonce: 0,
+                signer: dataProvider.address
+            });
+        const operatorTokenBalance = await mockUSDC.balanceOf(operator.address)
+        expect(ethers.utils.formatEther(operatorTokenBalance)).to.equal(ethers.utils.formatEther(tokenAmount))
+    })
+
+    it(`USDC HOUSE POOL setVOI signed data test with Decimal Data`, async () => {
+
+        const [owner, dataProvider, operator] = await ethers.getSigners()
+
+        await usdcHousePool.connect(owner).grantRole(usdcHousePool.DATA_PROVIDER_ORACLE(), dataProvider.address);
+        await usdcHousePool.connect(owner).grantRole(usdcHousePool.HOUSE_POOL_DATA_PROVIDER(), operator.address);
+
+        const initialEV = await usdcHousePool.getEV();
+        console.log(`Initial EV value is: ${ethers.utils.formatEther(initialEV)}`);
+
+        // Random value to set as EV -- random value between -500 to 500 ether
+        
+        const gennum = -42
+        console.log('gen num: ' + gennum)
+        // const parsedGennum = gennum.toString()
+        // console.log('as a stirng: ' + parsedGennum)
+        // const castString = ethers.utils.parseUnits(gennum)
+        // console.log('casted str: ' + castString)
+        const bignum = returnBigNumber(gennum)
+        console.log('bignum ' + bignum)
+        console.log('is neg: '+ bignum.isNegative())
+        const _evValue = bignum
+        console.log(`Attempting update EV value to: zzzzzzz ${_evValue}`);
+        // Random value to set as ME -- random value between 0 to 100 ether
+        const _meValue = bignum
+        console.log(`Attempting update ME value to: zzzzzzz ${_meValue}`);
+
+        // Prepare deadline
+        const _expiration = 4; // number of blocks
+        const _initialHeight = await ethers.provider.getBlockNumber();
+        console.log("Now at block number: ", _initialHeight);
+        const _deadline = _initialHeight + _expiration;
+        console.log("Deadline blocknumber: ", _deadline);
+
+        // Prepare data
+        const _chain = await ethers.provider.getNetwork();
+        const _eip712Domain = {
+            name: "",
+            version: "",
+            chainId: _chain.chainId,
+            verifyingContract: usdcHousePool.address,
+        };
+        const _eip712Types = {
+            VoI: [
+                { name: "signer", type: "address" },
+                { name: "expectedValue", type: "int256" },
+                { name: "maxExposure", type: "uint256" },
+                { name: 'nonce', type: 'uint256' },
+                { name: "deadline", type: "uint256" }
+            ],
+        };
+        const _eip712Value = {
+            signer: dataProvider.address,
+            expectedValue: _evValue,
+            maxExposure: _meValue,
+            nonce: 0,
+            deadline: _deadline
+        };
+        const _data = [_eip712Domain, _eip712Types, _eip712Value];
+
+        const _signature = await dataProvider._signTypedData(..._data);
+
+        await usdcHousePool.connect(operator).setVOI(
+            _signature,
+            {
+                expectedValue: _evValue,
+                maxExposure: _meValue,
+                deadline: _deadline,
+                nonce: 0,
+                signer: dataProvider.address
+            });
+        const updatedEV = await usdcHousePool.getEV();
+        expect(ethers.utils.formatEther(updatedEV)).to.not.equal(ethers.utils.formatEther(initialEV));
+        expect(ethers.utils.formatEther(updatedEV)).to.equal(ethers.utils.formatEther(_evValue));
+    })
+
+    it(`USDC HOUSE POOL deposit signed data test with Decimal Data`, async () => {
+        const [owner, dataProvider, operator] = await ethers.getSigners()
+
+        await usdcHousePool.connect(owner).grantRole(usdcHousePool.DATA_PROVIDER_ORACLE(), dataProvider.address);
+        await usdcHousePool.connect(owner).grantRole(usdcHousePool.HOUSE_POOL_DATA_PROVIDER(), operator.address);
+
+        const initialEV = await usdcHousePool.getEV();
+        console.log(`Initial EV value is: ${ethers.utils.formatEther(initialEV)}`);
+
+        // Random value to set as EV -- random value between -500 to 500 ether
+        const _evValue = returnBigNumber(generateRandomBigNumber());
+        console.log(`Attempting update EV value to: ${_evValue}`);
+        // Random value to set as ME -- random value between 0 to 100 ether
+        const _meValue = returnBigNumber(generateRandomBigNumber());
+        console.log(`Attempting update ME value to: ${_meValue}`);
+
+        // Prepare deadline
+        const _expiration = 4; // number of blocks
+        const _initialHeight = await ethers.provider.getBlockNumber();
+        console.log("Now at block number: ", _initialHeight);
+        const _deadline = _initialHeight + _expiration;
+        console.log("Deadline blocknumber: ", _deadline);
+
+        // Prepare data
+        const _chain = await ethers.provider.getNetwork();
+        const _eip712Domain = {
+            name: "",
+            version: "",
+            chainId: _chain.chainId,
+            verifyingContract: usdcHousePool.address,
+        };
+        const _eip712Types = {
+            VoI: [
+                { name: "signer", type: "address" },
+                { name: "expectedValue", type: "int256" },
+                { name: "maxExposure", type: "uint256" },
+                { name: 'nonce', type: 'uint256' },
+                { name: "deadline", type: "uint256" }
+            ],
+        };
+        const _eip712Value = {
+            signer: dataProvider.address,
+            expectedValue: 0,
+            maxExposure: 0,
+            nonce: 0,
+            deadline: _deadline
+        };
+        const _data = [_eip712Domain, _eip712Types, _eip712Value];
+
+        const _signature = await dataProvider._signTypedData(..._data);
+
+        await usdcHousePool.connect(operator).deposit(
+            tokenAmount,
+            _signature,
+            {
+                expectedValue: 0,
+                maxExposure: 0,
+                deadline: _deadline,
+                nonce: 0,
+                signer: dataProvider.address
+            });
+        const operatorTokenBalance = await mockUSDC.balanceOf(operator.address)
+        expect(ethers.utils.formatEther(operatorTokenBalance)).to.equal(ethers.utils.formatEther(0))
+    })
+
+    it(`USDC HOUSE POOL withdraw signed data test with Decimal Data`, async () => {
+        const [owner, dataProvider, operator] = await ethers.getSigners()
+
+        await usdcHousePool.connect(owner).grantRole(usdcHousePool.DATA_PROVIDER_ORACLE(), dataProvider.address);
+        await usdcHousePool.connect(owner).grantRole(usdcHousePool.HOUSE_POOL_DATA_PROVIDER(), operator.address);
+
+
+        const initialEV = await usdcHousePool.getEV();
+        console.log(`Initial EV value is: ${ethers.utils.formatEther(initialEV)}`);
+
+        // Random value to set as EV -- random value between -500 to 500 ether
+        const _evValue = returnBigNumber(generateRandomBigNumber);
+        console.log(`Attempting update EV value to: ${_evValue}`);
+        // Random value to set as ME -- random value between 0 to 100 ether
+        const _meValue = returnBigNumber(generateRandomBigNumber);
+        console.log(`Attempting update ME value to: ${_meValue}`);
 
         // Prepare deadline
         const _expiration = 4; // number of blocks
