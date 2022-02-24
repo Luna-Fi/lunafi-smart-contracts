@@ -31,7 +31,8 @@ describe("WBTC HousePool", () => {
         console.log(" WBTC Claim Token Address : ", wbtcClaimToken.address)
 
         WBTCHOUSEPOOL = await ethers.getContractFactory("HousePoolWBTC")
-        wbtcHousePool = await WBTCHOUSEPOOL.deploy(owner.address,mockWBTC.address,wbtcClaimToken.address, "","")
+        wbtcHousePool = await upgrades.deployProxy(WBTCHOUSEPOOL,[owner.address,mockWBTC.address,wbtcClaimToken.address,"WBTCPool","1"],{initializer: 'initialize'});
+
         await wbtcHousePool.deployed()
         console.log(" WBTC House Pool  Address  : ", wbtcHousePool.address)
 

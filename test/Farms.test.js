@@ -66,17 +66,20 @@ describe("Testing LFI Farms", () => {
 
         // Deploy HousePool
         USDCHOUSEPOOL = await ethers.getContractFactory("HousePoolUSDC")
-        usdcHousePool = await USDCHOUSEPOOL.deploy(owner.address,mockUSDC.address,usdcClaimToken.address, "USDCHP","1.0")
+        usdcHousePool = await upgrades.deployProxy(USDCHOUSEPOOL, [owner.address, mockUSDC.address, usdcClaimToken.address, "", ""], { initializer: 'initialize' });
+
         await usdcHousePool.deployed()
         console.log("USDC HousePool = ", usdcHousePool.address)
 
         WBTCHOUSEPOOL = await ethers.getContractFactory("HousePoolWBTC")
-        wbtcHousePool = await WBTCHOUSEPOOL.deploy(owner.address,mockWBTC.address,wbtcClaimToken.address, "WBTCHP","1.0")
+        wbtcHousePool = await upgrades.deployProxy(WBTCHOUSEPOOL, [owner.address, mockWBTC.address, wbtcClaimToken.address, "", ""], { initializer: 'initialize' });
+
         await wbtcHousePool.deployed()
         console.log("WBTC HousePool = ", wbtcHousePool.address)
 
         WETHHOUSEPOOL = await ethers.getContractFactory("HousePoolWETH")
-        wethHousePool = await WETHHOUSEPOOL.deploy(owner.address,mockWETH.address,wethClaimToken.address, "WETHHP","1.0")
+        wethHousePool = await upgrades.deployProxy(WETHHOUSEPOOL, [owner.address, mockWETH.address, wethClaimToken.address, "", ""], { initializer: 'initialize' });
+
         await wethHousePool.deployed()
         console.log("WETH HousePool = ", wethHousePool.address)
 
@@ -179,8 +182,8 @@ describe("Testing LFI Farms", () => {
         const farmsCount = await farm.farmLength()
         const rewards = await farm.rewardPerSecond()
 
-        expect(farmsCount).to.equal(3)
-        expect(rewards).to.equal(rewardsPerSecond)    
+        expect(ethers.utils.formatUnits(farmsCount)).to.equal(ethers.utils.formatUnits(3))
+        expect(ethers.utils.formatUnits(rewards)).to.equal(ethers.utils.formatUnits(rewardsPerSecond))    
     })
 
     it(`Should allow the users to deposit LP Tokens into the Farms`, async () => {

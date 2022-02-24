@@ -32,7 +32,7 @@ describe("USDC HousePool", () => {
         console.log(" USDC Claim Token Address : ", usdcClaimToken.address)
 
         USDCHOUSEPOOL = await ethers.getContractFactory("HousePoolUSDC")
-        usdcHousePool = await USDCHOUSEPOOL.deploy(owner.address, mockUSDC.address, usdcClaimToken.address, "", "")
+        usdcHousePool = await upgrades.deployProxy(USDCHOUSEPOOL,[owner.address,mockUSDC.address,usdcClaimToken.address,"",""],{initializer: 'initialize'});
         await usdcHousePool.deployed()
         console.log(" USDC House Pool  Address  : ", usdcHousePool.address)
 
@@ -175,7 +175,7 @@ describe("USDC HousePool", () => {
                 signer: owner.address,
                 expectedValue: ethers.utils.formatUnits(eVValue, 0),
                 maxExposure: meValue,
-                nonce: 1,
+                nonce: 0,
                 deadline: _deadline
             }
         );
@@ -257,7 +257,7 @@ describe("USDC HousePool", () => {
                 signer: owner.address,
                 expectedValue: _evValue,
                 maxExposure: _meValue,
-                nonce: 2,
+                nonce: 0,
                 deadline: _deadline
             }
         );
@@ -341,7 +341,7 @@ describe("USDC HousePool", () => {
                 signer: owner.address,
                 expectedValue: ethers.utils.formatUnits(eVValue, 0),
                 maxExposure: meValue,
-                nonce: 3,
+                nonce: 0,
                 deadline: _deadline
             }
         );
@@ -418,7 +418,7 @@ describe("USDC HousePool", () => {
                 signer: owner.address,
                 expectedValue: eVValue,
                 maxExposure: meValue,
-                nonce: 4,
+                nonce: 0,
                 deadline: _deadline
             }
         );

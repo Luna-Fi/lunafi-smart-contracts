@@ -7,7 +7,7 @@ const returnBigNumber = (number) => {
 }
 
 
-describe("WBTC HousePool", () => {
+describe("WETH HousePool", () => {
    
     let MOCKWETH
     let WETHCLAIMTOKEN
@@ -31,7 +31,8 @@ describe("WBTC HousePool", () => {
         console.log(" WETH Claim Token Address : ", wethClaimToken.address)
 
         WETHHOUSEPOOL = await ethers.getContractFactory("HousePoolWETH")
-        wethHousePool = await WETHHOUSEPOOL.deploy(owner.address,mockWETH.address,wethClaimToken.address, "","")
+        wethHousePool = await upgrades.deployProxy(WETHHOUSEPOOL,[owner.address,mockWETH.address,wethClaimToken.address,"WETHPool","1"],{initializer: 'initialize'});
+
         await wethHousePool.deployed()
         console.log(" WETH House Pool  Address  : ", wethHousePool.address)
 
