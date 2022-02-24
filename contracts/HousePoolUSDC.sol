@@ -16,7 +16,7 @@ interface claimTokenInterface {
     function totalSupply() external view returns (uint256);
 }
 
-contract HousePoolWBTCV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgradeable {
+contract HousePoolUSDC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgradeable {
     struct ValuesOfInterest {
         int256 expectedValue;
         int256 maxExposure;
@@ -33,9 +33,9 @@ contract HousePoolWBTCV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upg
     ValuesOfInterest public voi;
 
     uint256 constant MAX_PRECISION = 18;
-    uint256 constant PRECISION_DIFFERENCE = 10;
-    uint256 public lpTokenPrice;
-    uint256 public lpTokenWithdrawlPrice;
+    uint256 constant PRECISION_DIFFERENCE = 12;
+    uint256 lpTokenPrice;
+    uint256 lpTokenWithdrawlPrice;
 
     bytes32 public constant DATA_PROVIDER_ORACLE =
         keccak256("DATA_PROVIDER_ORACLE");
@@ -62,70 +62,74 @@ contract HousePoolWBTCV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upg
         );
         require(
             SignatureChecker.isValidSignatureNow(data.signer, digest, signature),
-            "HousePoolWBTC: invalid signature"
+            "HousePoolUSDC: invalid signature"
         );
 
         require(
             data.signer != address(0),
-            "HousePoolWBTC: invalid signer");
+            "HousePoolUSDC: invalid signer");
 
         require(
             hasRole(DATA_PROVIDER_ORACLE, data.signer),
-            "HousePoolWBTC: unauthorised signer"
+            "HousePoolUSDC: unauthorised signer"
         );
 
         require(
             block.number < data.deadline,
-            "HousePoolWBTC: signed transaction expired"
+            "HousePoolUSDC: signed transaction expired"
         );
 
         //nonces[data.signer]++;
         _;
     }
 
+    // -- Init --
     function initialize (
         address _owner,
-        address _WBTC,
+        address _usdc,
         address _claimToken,
         string memory _name,
         string memory _version
     ) external initializer {
         __EIP712_init(_name, _version);
-        token = IERC20(_WBTC);
+        token = IERC20(_usdc);
         claimToken = claimTokenInterface(_claimToken);
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
-        lpTokenPrice = 1*10**(MAX_PRECISION - 2);
-        lpTokenWithdrawlPrice = 1*10**(MAX_PRECISION - 2);
+        lpTokenPrice = 100*10**MAX_PRECISION;
+        lpTokenWithdrawlPrice = 100*10**MAX_PRECISION;
     }
 
+    // -- Authorised Functions --
     function setVOI(bytes memory sig_, ValuesOfInterest memory voi_)
         external onlyValid(voi_, sig_) onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
         _setVoi(voi_);
     }
 
-    function deposit(uint256 amountWBTC, bytes memory approval, ValuesOfInterest memory approvedValues)
+    function deposit(uint256 amountUSDC, bytes memory approval, ValuesOfInterest memory approvedValues)
         external onlyValid(approvedValues, approval)
     {
         _setVoi(approvedValues);
-        _deposit(amountWBTC);
+        _deposit(amountUSDC);
     }
 
-    function withdraw(uint256 amountWBTC, bytes memory approval, ValuesOfInterest memory approvedValues)
+    function withdraw(uint256 amountUSDC, bytes memory approval, ValuesOfInterest memory approvedValues)
         external onlyValid(approvedValues, approval)
     {
         _setVoi(approvedValues);
-        _withdraw(amountWBTC);
+        _withdraw(amountUSDC);
     }
 
-    function deposit_(uint WBTCMicro) external {
-        _deposit(WBTCMicro);
+    // -- External Functions
+    function deposit_(uint usdcMicro) external {
+        _deposit(usdcMicro);
     }
 
-    function withdraw_(uint WBTCMicro) external {
-        _withdraw(WBTCMicro);
+    function withdraw_(uint usdcMicro) external {
+        _withdraw(usdcMicro);
     }
 
+    // -- View Functions --
     function getTokenPrice() external view returns (uint256) {
         return lpTokenPrice;
     }
@@ -158,19 +162,20 @@ contract HousePoolWBTCV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upg
         return (claimToken.balanceOf(_user) * lpTokenPrice) / 10**MAX_PRECISION;
     }
 
-    function setTokenPrice() internal {
+    // -- Internal Functions --
+    function _setTokenPrice() internal {
         if(claimToken.totalSupply() != 0) {
             lpTokenPrice = (uint(tvl) * 10**MAX_PRECISION) / claimToken.totalSupply();
         }
     }
 
-    function setTokenWithdrawlPrice() internal {
+    function _setTokenWithdrawlPrice() internal {
         if(claimToken.totalSupply() != 0) {
             lpTokenWithdrawlPrice = (liquidity * 10**MAX_PRECISION) / claimToken.totalSupply();
         }
     }
 
-    function updateTVL(int256 expectedValue) internal {
+    function _updateTVL(int256 expectedValue) internal {
         if(voi.expectedValue == 0){
            tvl += expectedValue;
         } else {
@@ -189,15 +194,15 @@ contract HousePoolWBTCV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upg
     }
 
     function _setEV(int newEV) internal {
-        updateTVL(newEV);
+        _updateTVL(newEV);
         voi.expectedValue = newEV;
-        setTokenPrice();
+        _setTokenPrice();
     }
 
     function _deposit(uint256 amount) internal nonReentrant {
         require(
             amount > 0 && amount <= token.balanceOf(msg.sender),
-            "WBTCHousePool: Check the Balance"
+            "USDCHousePool: Check the Balance"
         );
         liquidity += amount * 10**PRECISION_DIFFERENCE;
         tvl += int(amount * 10**PRECISION_DIFFERENCE);
@@ -205,16 +210,16 @@ contract HousePoolWBTCV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upg
         token.transferFrom(msg.sender, address(this), amount);
         uint256 LPTokensToMint = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / lpTokenPrice;
         claimToken.mint(msg.sender, LPTokensToMint);
-        setTokenPrice();
-        setTokenWithdrawlPrice();
+        _setTokenPrice();
+        _setTokenWithdrawlPrice();
     }
 
     function _withdraw(uint256 amount) internal nonReentrant {
-        require(amount > 0, "WBTCHousePool: Zero Amount");
+        require(amount > 0, "USDCHousePool: Zero Amount");
         require(
             amount * 10**PRECISION_DIFFERENCE <= (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
                 int(amount) * int(10**PRECISION_DIFFERENCE) <= int(liquidity) - voi.maxExposure,
-                "WBTCHousePool : can't withdraw"
+                "USDCHousePool : can't withdraw"
         );
         uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
         liquidity -= amount * 10**PRECISION_DIFFERENCE;
@@ -222,7 +227,7 @@ contract HousePoolWBTCV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upg
         deposits[msg.sender] -= amount * 10**PRECISION_DIFFERENCE;
         token.transfer(msg.sender, amount);
         claimToken.burn(msg.sender, LPTokensToBurn);
-        setTokenWithdrawlPrice();
-        setTokenPrice();
+        _setTokenWithdrawlPrice();
+        _setTokenPrice();
     }
 }
