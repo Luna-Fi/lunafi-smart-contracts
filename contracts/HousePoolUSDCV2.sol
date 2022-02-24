@@ -162,10 +162,6 @@ contract HousePoolUSDCV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upg
         return (claimToken.balanceOf(_user) * lpTokenPrice) / 10**MAX_PRECISION;
     }
 
-    function getMyBalance(address _user) external view returns(uint256) {
-        return deposits[_user];
-    }
-
     // -- Internal Functions --
     function _setTokenPrice() internal {
         if(claimToken.totalSupply() != 0) {
@@ -233,35 +229,5 @@ contract HousePoolUSDCV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upg
         claimToken.burn(msg.sender, LPTokensToBurn);
         _setTokenWithdrawlPrice();
         _setTokenPrice();
-    }
-
-// ********************************************  Functions to simulate the functionality **********************************
-
-    // TODO DELETE ONCE ORDER PLACEMENT IS BUILT
-    // Following methods are only for simulating end to end order placement functionality which has not been built yet
-    // Outcome provider method used to simulate outcome for a particular betting stake amount
-    // oucome = true represents a bet won by the user and the beAmount is the bet amount for the bet
-    // outcome = false represents a bet lost by the user and the betAmount is the bet amount for the bet
-    function simulateOutcome(bool outcome, uint256 betAmount) external {
-        if(outcome == false) {
-            treasuryAmount += betAmount/100;
-            liquidity += (betAmount/100) * 99;
-        } else {
-            treasuryAmount += bettingStakes/100;
-            bettingStakes -= betAmount;
-        }
-        voi.expectedValue = 0;
-        voi.maxExposure = 0;
-        tvl += int(treasuryAmount);
-        _setTokenPrice();
-        _setTokenWithdrawlPrice();
-    }
-
-    function setBettingStakes(uint256 bettingAmount) external {
-        bettingStakes = bettingAmount;
-    }
-
-    function getBettingStakes() external view returns (uint256) {
-        return bettingStakes;
     }
 }
