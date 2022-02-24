@@ -100,7 +100,6 @@ describe("USDC HousePool", () => {
         const claimTokenPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenPrice(), 0)
         const claimTokenWithdrawlPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenWithdrawlPrice(), 0)
         const evValue = ethers.utils.formatUnits(await usdcHousePool.getEV(), 0)
-        const bettingStakes = ethers.utils.formatUnits(await usdcHousePool.getBettingStakes(), 0)
         const treasuryAmount = ethers.utils.formatUnits(await usdcHousePool.getTreasuryAmount(), 0)
 
         const amountInhexString = (amount * 10 ** 12).toString(16)
@@ -121,7 +120,6 @@ describe("USDC HousePool", () => {
         console.log("Liquidity                : ", liquidity / 10 ** 18)
         console.log("TVL of Pool              : ", tvlOfPool / 10 ** 18)
         console.log("EV value                 : ", evValue / 10 ** 18)
-        console.log("Betting Stakes           : ", bettingStakes / 10 ** 18)
         console.log("ClaimTokens Issued       : ", claimTokensIssued / 10 ** 18)
         console.log("LP Tokens Issued at rate : ", claimTokenPrice / 10 ** 18)
         console.log("LP Token withdraw rate   : ", claimTokenWithdrawlPrice / 10 ** 18)
@@ -150,8 +148,6 @@ describe("USDC HousePool", () => {
 
         await usdcHousePool.grantRole(DataProviderValue, owner.address)
         await usdcHousePool.grantRole(usdcHousePool.HOUSE_POOL_DATA_PROVIDER(), owner.address)
-        await usdcHousePool.setBettingStakes(ethers.utils.formatUnits(bet, 0))
-
         const _chain = await ethers.provider.getNetwork();
         const _deadline = (await ethers.provider.getBlockNumber()) + 4;
 
@@ -194,7 +190,6 @@ describe("USDC HousePool", () => {
         const claimTokenPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenPrice(), 0)
         const claimTokenWithdrawlPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenWithdrawlPrice(), 0)
         const evValue = ethers.utils.formatUnits(await usdcHousePool.getEV(), 0)
-        const bettingStakes = ethers.utils.formatUnits(await usdcHousePool.getBettingStakes(), 0)
         const treasuryAmount = ethers.utils.formatUnits(await usdcHousePool.getTreasuryAmount(), 0)
 
         const TV = tvlOfPool / 10 ** 18
@@ -208,7 +203,6 @@ describe("USDC HousePool", () => {
         console.log("Liquidity                 : ", liquidity / 10 ** 18)
         console.log("TVL of Pool               : ", tvlOfPool / 10 ** 18)
         console.log("EV value                  : ", evValue / 10 ** 18)
-        console.log("Betting Stakes            : ", bettingStakes / 10 ** 18)
         console.log("claimTokens Issued :      : ", claimTokensIssued / 10 ** 18)
         console.log("LP Token Issued at rate   : ", claimTokenPrice / 10 ** 18)
         console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice / 10 ** 18)
@@ -278,7 +272,6 @@ describe("USDC HousePool", () => {
         const claimTokenPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenPrice(), 0)
         const claimTokenWithdrawlPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenWithdrawlPrice(), 0)
         const evValue = ethers.utils.formatUnits(await usdcHousePool.getEV(), 0)
-        const bettingStakes = ethers.utils.formatUnits(await usdcHousePool.getBettingStakes(), 0)
         const treasuryAmount = ethers.utils.formatUnits(await usdcHousePool.getTreasuryAmount(), 0)
 
 
@@ -292,7 +285,6 @@ describe("USDC HousePool", () => {
         console.log("Liquidity                 : ", liquidity / 10 ** 18)
         console.log("TVL of Pool               : ", tvlOfPool / 10 ** 18)
         console.log("EV value                  : ", evValue / 10 ** 18)
-        console.log("Betting Stakes            : ", bettingStakes / 10 ** 18)
         console.log("claimTokens Issued :      : ", claimTokensIssued / 10 ** 18)
         console.log("LP Token Issued at rate   : ", claimTokenPrice / 10 ** 18)
         console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice / 10 ** 18)
@@ -360,7 +352,6 @@ describe("USDC HousePool", () => {
         const claimTokenPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenPrice(), 0)
         const claimTokenWithdrawlPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenWithdrawlPrice(), 0)
         const evValue = ethers.utils.formatUnits(await usdcHousePool.getEV(), 0)
-        const bettingStakes = ethers.utils.formatUnits(await usdcHousePool.getBettingStakes(), 0)
         const treasuryAmount = ethers.utils.formatUnits(await usdcHousePool.getTreasuryAmount(), 0)
 
         expect(tvlOfPool / 10 ** 18).to.equal(liquidity / 10 ** 18 + evValue / 10 ** 18)
@@ -375,7 +366,6 @@ describe("USDC HousePool", () => {
         console.log("Liquidity                 : ", liquidity / 10 ** 18)
         console.log("TVL of Pool               : ", tvlOfPool / 10 ** 18)
         console.log("EV value                  : ", eVValue / 10 ** 18)
-        console.log("Betting Stakes            : ", bettingStakes / 10 ** 18)
         console.log("claimTokens Issued :      : ", claimTokensIssued / 10 ** 18)
         console.log("LP Token Issued at rate   : ", claimTokenPrice / 10 ** 18)
         console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice / 10 ** 18)
@@ -440,7 +430,6 @@ describe("USDC HousePool", () => {
         const claimTokenPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenPrice(), 0)
         const claimTokenWithdrawlPrice = ethers.utils.formatUnits(await usdcHousePool.getTokenWithdrawlPrice(), 0)
         const evValue = ethers.utils.formatUnits(await usdcHousePool.getEV(), 0)
-        const bettingStakes = ethers.utils.formatUnits(await usdcHousePool.getBettingStakes(), 0)
         const treasuryAmount = ethers.utils.formatUnits(await usdcHousePool.getTreasuryAmount(), 0)
 
         expect(liquidity / 10 ** 18).to.equal((beforeLiquidity / 10 ** 18) - (withdrawAmount / 10 ** 6));
@@ -453,7 +442,6 @@ describe("USDC HousePool", () => {
         console.log("Liquidity                 : ", liquidity / 10 ** 18)
         console.log("TVL of Pool               : ", tvlOfPool / 10 ** 18)
         console.log("EV value                  : ", evValue / 10 ** 18)
-        console.log("Betting Stakes            : ", bettingStakes / 10 ** 18)
         console.log("claimTokens Issued :      : ", claimTokensIssued / 10 ** 18)
         console.log("LP Token Issued at rate   : ", claimTokenPrice / 10 ** 18)
         console.log("LP Token Withdraw rate    : ", claimTokenWithdrawlPrice / 10 ** 18)

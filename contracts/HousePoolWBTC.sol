@@ -16,7 +16,7 @@ interface claimTokenInterface {
     function totalSupply() external view returns (uint256);
 }
 
-contract HousePoolWETHV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgradeable {
+contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgradeable {
     struct ValuesOfInterest {
         int256 expectedValue;
         int256 maxExposure;
@@ -33,9 +33,9 @@ contract HousePoolWETHV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upg
     ValuesOfInterest public voi;
 
     uint256 constant MAX_PRECISION = 18;
-    uint256 constant PRECISION_DIFFERENCE = 0;
-    uint256 lpTokenPrice;
-    uint256 lpTokenWithdrawlPrice;
+    uint256 constant PRECISION_DIFFERENCE = 10;
+    uint256 public lpTokenPrice;
+    uint256 public lpTokenWithdrawlPrice;
 
     bytes32 public constant DATA_PROVIDER_ORACLE =
         keccak256("DATA_PROVIDER_ORACLE");
@@ -62,40 +62,40 @@ contract HousePoolWETHV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upg
         );
         require(
             SignatureChecker.isValidSignatureNow(data.signer, digest, signature),
-            "HousePoolWETH: invalid signature"
+            "HousePoolWBTC: invalid signature"
         );
 
         require(
             data.signer != address(0),
-            "HousePoolWETH: invalid signer");
+            "HousePoolWBTC: invalid signer");
 
         require(
             hasRole(DATA_PROVIDER_ORACLE, data.signer),
-            "HousePoolWETH: unauthorised signer"
+            "HousePoolWBTC: unauthorised signer"
         );
 
         require(
             block.number < data.deadline,
-            "HousePoolWETH: signed transaction expired"
+            "HousePoolWBTC: signed transaction expired"
         );
 
         //nonces[data.signer]++;
         _;
     }
-    
+
     function initialize (
         address _owner,
-        address _WETH,
+        address _WBTC,
         address _claimToken,
         string memory _name,
         string memory _version
     ) external initializer {
         __EIP712_init(_name, _version);
-        token = IERC20(_WETH);
+        token = IERC20(_WBTC);
         claimToken = claimTokenInterface(_claimToken);
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
-        lpTokenPrice = 1*10**(MAX_PRECISION - 1);
-        lpTokenWithdrawlPrice = 1*10**(MAX_PRECISION - 1);
+        lpTokenPrice = 1*10**(MAX_PRECISION - 2);
+        lpTokenWithdrawlPrice = 1*10**(MAX_PRECISION - 2);
     }
 
     function setVOI(bytes memory sig_, ValuesOfInterest memory voi_)
@@ -104,26 +104,26 @@ contract HousePoolWETHV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upg
         _setVoi(voi_);
     }
 
-    function deposit(uint256 amountWETH, bytes memory approval, ValuesOfInterest memory approvedValues)
+    function deposit(uint256 amountWBTC, bytes memory approval, ValuesOfInterest memory approvedValues)
         external onlyValid(approvedValues, approval)
     {
         _setVoi(approvedValues);
-        _deposit(amountWETH);
+        _deposit(amountWBTC);
     }
 
-    function withdraw(uint256 amountWETH, bytes memory approval, ValuesOfInterest memory approvedValues)
+    function withdraw(uint256 amountWBTC, bytes memory approval, ValuesOfInterest memory approvedValues)
         external onlyValid(approvedValues, approval)
     {
         _setVoi(approvedValues);
-        _withdraw(amountWETH);
+        _withdraw(amountWBTC);
     }
 
-    function deposit_(uint WETHMicro) external {
-        _deposit(WETHMicro);
+    function deposit_(uint WBTCMicro) external {
+        _deposit(WBTCMicro);
     }
 
-    function withdraw_(uint WETHMicro) external {
-        _withdraw(WETHMicro);
+    function withdraw_(uint WBTCMicro) external {
+        _withdraw(WBTCMicro);
     }
 
     function getTokenPrice() external view returns (uint256) {
@@ -197,7 +197,7 @@ contract HousePoolWETHV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upg
     function _deposit(uint256 amount) internal nonReentrant {
         require(
             amount > 0 && amount <= token.balanceOf(msg.sender),
-            "WETHHousePool: Check the Balance"
+            "WBTCHousePool: Check the Balance"
         );
         liquidity += amount * 10**PRECISION_DIFFERENCE;
         tvl += int(amount * 10**PRECISION_DIFFERENCE);
@@ -210,11 +210,11 @@ contract HousePoolWETHV2 is ReentrancyGuardUpgradeable, AccessControl, EIP712Upg
     }
 
     function _withdraw(uint256 amount) internal nonReentrant {
-        require(amount > 0, "WETHHousePool: Zero Amount");
+        require(amount > 0, "WBTCHousePool: Zero Amount");
         require(
             amount * 10**PRECISION_DIFFERENCE <= (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
                 int(amount) * int(10**PRECISION_DIFFERENCE) <= int(liquidity) - voi.maxExposure,
-                "WETHHousePool : can't withdraw"
+                "WBTCHousePool : can't withdraw"
         );
         uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
         liquidity -= amount * 10**PRECISION_DIFFERENCE;
