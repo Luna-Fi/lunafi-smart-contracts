@@ -151,7 +151,7 @@ contract LFiFarms is AccessControl {
         emit FarmDeposit(msg.sender, fid, lpAmount, benefitor);
     }
 
-    function withdraw(uint fid, uint LPTokenAmount, address receiver) public {
+    function withdraw(uint fid, uint LPTokenAmount, address receiver) external {
         FarmInfo memory farm = updateFarm(fid);
         UserInfo storage user = userInfo[fid][msg.sender];
         // Effects

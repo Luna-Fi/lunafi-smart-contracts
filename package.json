@@ -38,6 +38,7 @@
   "homepage": "https://github.com/LunaBets/lunafi-smart-contracts#readme",
   "dependencies": {
     "@openzeppelin/contracts-upgradeable": "^4.5.1",
+    "eth-permit": "^0.2.1",
     "openzeppelin-test-helpers": "^0.5.1"
   }
 }
