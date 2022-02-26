@@ -1,3 +1,6 @@
+Note: To enable preview of designs add Markdown Preview Mermaid extension to VS Code.
+### Please refer to docs folder for more information
+
 # Stand alone HousePool contracts.
 
 Contracts are deployed on to Ropsten testnet 
