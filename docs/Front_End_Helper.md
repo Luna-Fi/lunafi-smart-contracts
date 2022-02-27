@@ -29,8 +29,6 @@ In the front end we can remove mulitple calls for `getLiquidityStatus` and repla
 sequenceDiagram
     %%{init:{'theme': 'base', "themeVariables": {
         'primaryColor': '#9caaf7',
-        'primaryTextColor': '#08176d',
-        'actorTextColor':'#000000'
     }
     }}%%
     participant A as Front End
