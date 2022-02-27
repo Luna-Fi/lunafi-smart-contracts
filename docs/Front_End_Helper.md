@@ -1,19 +1,3 @@
-<style>
-    .cssClass > .actor {
-    stroke: #ccccff;
-    fill: #60ce2d;
-}
-text.actor {
-    fill: black;
-    stroke: none;
-    font-family: Helvetica;
-}
-
-.actor-line {
-    stroke: grey;
-}
-
-</style>
 ### Helper Contract for Front End
 
 Front end currently calls a number of contracts and reads information in multiple calls to the blockchain.
@@ -27,10 +11,6 @@ In the front end we can remove mulitple calls for `getLiquidityStatus` and repla
 
 ```mermaid
 sequenceDiagram
-    %%{init:{'theme': 'base', "themeVariables": {
-        'primaryColor': '#9caaf7',
-    }
-    }}%%
     participant A as Front End
     participant B as Helper Contract
     participant C as House Pools(3)
