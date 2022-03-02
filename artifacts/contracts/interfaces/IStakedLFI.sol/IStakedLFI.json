@@ -1,74 +1,67 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "claimTokenInterface",
-  "sourceName": "contracts/DAOStakingPool.sol",
+  "contractName": "IStakedLFI",
+  "sourceName": "contracts/interfaces/IStakedLFI.sol",
   "abi": [
     {
       "inputs": [
         {
           "internalType": "address",
-          "name": "tokenOwner",
-          "type": "address"
-        }
-      ],
-      "name": "balanceOf",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "getBalance",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "account",
+          "name": "to",
           "type": "address"
         },
         {
           "internalType": "uint256",
-          "name": "tokens",
+          "name": "amount",
           "type": "uint256"
         }
       ],
-      "name": "burn",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "tokens",
-          "type": "uint256"
-        }
-      ],
-      "name": "mint",
+      "name": "claimRewards",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [],
-      "name": "totalSupply",
-      "outputs": [
+      "name": "cooldown",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
         {
           "internalType": "uint256",
-          "name": "",
+          "name": "amount",
           "type": "uint256"
         }
       ],
-      "stateMutability": "view",
+      "name": "redeem",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "stake",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     }
   ],
