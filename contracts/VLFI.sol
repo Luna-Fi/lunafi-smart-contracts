@@ -4,6 +4,7 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "hardhat/console.sol";
 
 contract VLFI is ERC20 {
 
@@ -31,7 +32,7 @@ contract VLFI is ERC20 {
     mapping(address => uint256) public stakerRewardsToClaim;
     mapping(address => uint256) public stakersCooldowns;
     mapping(address => uint256) public userLFIDeposits;
-    uint256 private constant ACC_REWARD_PRECISION = 1e12;
+    uint256 private constant ACC_REWARD_PRECISION = 1e18;
 
     event Deposited(address indexed from, address indexed onBehalfOf, uint256 amount);
     event Redeemed(address indexed from, address indexed to, uint256 amount);
@@ -48,14 +49,15 @@ contract VLFI is ERC20 {
         UNSTAKE_WINDOW = unstakeWindow;
     }
 
-    function updateFarm(address user) public returns(FarmInfo memory farm) {
+    function updateFarm() public returns(FarmInfo memory farm) {
         farm = farmInfo;
         if(farm.lastRewardTime < block.timestamp) {
-            uint256 lpsupply = balanceOf(user);
-            if(lpsupply > 0) {
+            uint256 totalSupply = totalSupply();
+            console.log("LPSupply is : ", totalSupply);
+            if(totalSupply > 0) {
                 uint256 time = block.timestamp - farm.lastRewardTime;
                 uint256 rewardAmount = time * rewardPerSecond;
-                farm.accRewardsPerShare += rewardAmount * ACC_REWARD_PRECISION / lpsupply;
+                farm.accRewardsPerShare += rewardAmount * ACC_REWARD_PRECISION/totalSupply;
             }
             farm.lastRewardTime = block.timestamp;
             farmInfo = farm;
@@ -76,10 +78,10 @@ contract VLFI is ERC20 {
     function depositLFI(uint256 amount) external { //LFI
         require(amount != 0,"VLFI:INVALID_AMOUNT");
         uint256 balanceOfUser = balanceOf(msg.sender); 
-        FarmInfo memory farm = updateFarm(msg.sender);
+        FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
-        user.amount += balanceOfUser;
-        user.rewardDebt = int(balanceOfUser * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
+        user.amount += (amount/conversionPrice) * 10**18;
+        user.rewardDebt = int((amount/conversionPrice) * 10**18 * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
         stakersCooldowns[msg.sender] = getNextCooldownTimestamp(0, amount, msg.sender, balanceOfUser);
         _mint(msg.sender,(amount/conversionPrice)* 10**18); // When it's minting in the stakedVLI check whether before transfer happens
         IERC20(STAKED_TOKEN).safeTransferFrom(msg.sender, address(this), amount);
@@ -99,7 +101,7 @@ contract VLFI is ERC20 {
     );
         uint256 balanceOfMessageSender = balanceOf(msg.sender);
         uint256 amountToRedeem = (amount > balanceOfMessageSender) ? balanceOfMessageSender : amount;
-        FarmInfo memory farm = updateFarm(msg.sender);
+        FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
         user.rewardDebt -= int(balanceOfMessageSender * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
         user.amount -= amountToRedeem/conversionPrice *10 **18;
@@ -119,10 +121,12 @@ contract VLFI is ERC20 {
     }
 
     function claimRewards() external {
-        FarmInfo memory farm = updateFarm(msg.sender);
+        FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
         int accumulatedReward = int(user.amount * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
+        console.logInt(accumulatedReward);
         uint _pendingReward = uint(accumulatedReward - user.rewardDebt);
+        console.log("Pending Reward is",_pendingReward);
         user.rewardDebt = accumulatedReward; //check for the reward debt again.
         IERC20(STAKED_TOKEN).transfer(msg.sender, _pendingReward);
   }
@@ -159,7 +163,5 @@ contract VLFI is ERC20 {
     }
     return toCooldownTimestamp;
   }
-
-  
 
 }
