@@ -23,6 +23,7 @@ contract VLFI is ERC20 {
     FarmInfo public farmInfo;
     uint256 public rewardPerSecond;
     mapping (address => UserInfo) public userInfo;
+    
 
     uint256 constant MAX_PRECISION = 18;
     uint256 conversionPrice = 1000*10**MAX_PRECISION; 
@@ -64,6 +65,19 @@ contract VLFI is ERC20 {
         }
     }
 
+    function pendingReward() external view returns(uint256 pendingRewards) {
+      FarmInfo memory farm = farmInfo;
+      UserInfo storage user = userInfo[msg.sender];
+      uint256 accRewardPerShare = farm.accRewardsPerShare;
+      uint256 totalSupply = totalSupply();
+      if(block.timestamp > farm.lastRewardTime && totalSupply != 0) {
+        uint256 time = block.timestamp - farm.lastRewardTime;
+        uint256 rewardAmount = time * rewardPerSecond;
+        accRewardPerShare += (rewardAmount * ACC_REWARD_PRECISION) / totalSupply;
+      }
+      pendingRewards = uint256(int256(user.amount * accRewardPerShare / ACC_REWARD_PRECISION) - user.rewardDebt);
+    }
+
     function setRewardPerSecond(uint256 _rewardPerSecond) public  {
         rewardPerSecond = _rewardPerSecond;
     }
@@ -81,11 +95,17 @@ contract VLFI is ERC20 {
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
         user.amount += (amount/conversionPrice) * 10**18;
-        user.rewardDebt = int((amount/conversionPrice) * 10**18 * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
+        user.rewardDebt += int(lpAmount * farm.accRewardPerShare / ACC_REWARD_PRECISION);
         stakersCooldowns[msg.sender] = getNextCooldownTimestamp(0, amount, msg.sender, balanceOfUser);
         _mint(msg.sender,(amount/conversionPrice)* 10**18); // When it's minting in the stakedVLI check whether before transfer happens
         IERC20(STAKED_TOKEN).safeTransferFrom(msg.sender, address(this), amount);
         emit Deposited(msg.sender, msg.sender, amount);
+    }
+
+    function updateRewardsToClaim() external {
+      uint256 rewards;
+      stakerRewardsToClaim[msg.sender] = rewards;
+      
     }
 
     function redeemLFI(uint256 amount) external {
@@ -103,7 +123,7 @@ contract VLFI is ERC20 {
         uint256 amountToRedeem = (amount > balanceOfMessageSender) ? balanceOfMessageSender : amount;
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
-        user.rewardDebt -= int(balanceOfMessageSender * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
+        user.rewardDebt -= int((amountToRedeem/conversionPrice)*10**18 * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
         user.amount -= amountToRedeem/conversionPrice *10 **18;
         _burn(msg.sender, (amountToRedeem/conversionPrice)*10**18);
         if (balanceOfMessageSender - (amountToRedeem) == 0) {
@@ -124,9 +144,7 @@ contract VLFI is ERC20 {
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
         int accumulatedReward = int(user.amount * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
-        console.logInt(accumulatedReward);
         uint _pendingReward = uint(accumulatedReward - user.rewardDebt);
-        console.log("Pending Reward is",_pendingReward);
         user.rewardDebt = accumulatedReward; //check for the reward debt again.
         IERC20(STAKED_TOKEN).transfer(msg.sender, _pendingReward);
   }
