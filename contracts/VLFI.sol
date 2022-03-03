@@ -64,7 +64,7 @@ contract VLFI is ERC20 {
         }
     }
 
-    function pendingReward() external view returns(uint256 pendingRewards) {
+    function pendingReward() public view returns(uint256 pendingRewards) {
       FarmInfo memory farm = farmInfo;
       UserInfo storage user = userInfo[msg.sender];
       uint256 accRewardPerShare = farm.accRewardsPerShare;
@@ -133,10 +133,38 @@ contract VLFI is ERC20 {
     }
 
     function cooldown() external {
-    require(balanceOf(msg.sender) != 0, "VLFI:INVALID_BALANCE_ON_COOLDOWN");
-    //solium-disable-next-line
-    stakersCooldowns[msg.sender] = block.timestamp;
+        require(balanceOf(msg.sender) != 0, "VLFI:INVALID_BALANCE_ON_COOLDOWN");
+        //solium-disable-next-line
+        stakersCooldowns[msg.sender] = block.timestamp;
 
+    }
+
+    function transfer(address to, uint256 amount) public override returns(bool) {
+        uint256 senderBalance = balanceOf(msg.sender);
+        uint256 senderPendingRewards = pendingReward();
+        stakerRewardsToClaim[msg.sender]= stakerRewardsToClaim[msg.sender] + (senderPendingRewards);
+
+        if(msg.sender != to) {
+          uint256 receiverBalance = balanceOf(to);
+          uint256 receiverPendingRewards = pendingReward();
+          stakerRewardsToClaim[to] = stakerRewardsToClaim[to] + (receiverPendingRewards);
+          uint256 previousSenderCooldown = stakersCooldowns[msg.sender];
+          stakersCooldowns[to] = getNextCooldownTimestamp(
+            previousSenderCooldown,
+            amount,
+            to,
+            receiverBalance
+          );
+
+          // If cooldown was set and whole balance of sender was trnasferred - clear cooldown
+
+          if(senderBalance == amount && previousSenderCooldown != 0) {
+            stakersCooldowns[msg.sender] = 0;
+          }
+        }
+        
+       _transfer(msg.sender,to,amount);
+       return true;
     }
 
     function claimRewards() external {
