@@ -54,7 +54,6 @@ contract VLFI is ERC20 {
         farm = farmInfo;
         if(farm.lastRewardTime < block.timestamp) {
             uint256 totalSupply = totalSupply();
-            console.log("LPSupply is : ", totalSupply);
             if(totalSupply > 0) {
                 uint256 time = block.timestamp - farm.lastRewardTime;
                 uint256 rewardAmount = time * rewardPerSecond;
@@ -95,7 +94,7 @@ contract VLFI is ERC20 {
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
         user.amount += (amount/conversionPrice) * 10**18;
-        user.rewardDebt += int(lpAmount * farm.accRewardPerShare / ACC_REWARD_PRECISION);
+        user.rewardDebt += int( (amount/conversionPrice)* 10**18 * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
         stakersCooldowns[msg.sender] = getNextCooldownTimestamp(0, amount, msg.sender, balanceOfUser);
         _mint(msg.sender,(amount/conversionPrice)* 10**18); // When it's minting in the stakedVLI check whether before transfer happens
         IERC20(STAKED_TOKEN).safeTransferFrom(msg.sender, address(this), amount);

@@ -38,34 +38,36 @@ describe("VLFI TOKEN", () => {
 
     it("Should allow the owner to deposit 10000 LFI and get a proportionate amount on VLFI", async () => {
         const [owner] = await ethers.getSigners();
-        const amount = ethers.utils.formatUnits(returnBigNumber(1000 * 10 **18),0);
+        const amount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
         const rewardsPerSecond = ethers.utils.formatUnits(returnBigNumber(3* 10 **18),0);
         await vlfi.createFarm();
         await vlfi.setRewardPerSecond(rewardsPerSecond)
         await vlfi.depositLFI(amount);
-        const userDetails = await vlfi.userInfo(owner.address);
-        const userVLFIBalance = await vlfi.balanceOf(owner.address)
+        const ownerDetails = await vlfi.userInfo(owner.address);
+        const ownerVLFIBalance = await vlfi.balanceOf(owner.address)
         const farmDetails = await vlfi.farmInfo()
-        console.log("VLFI Balance = ", userVLFIBalance.toString())
-        console.log("User Deposit = ", (userDetails.amount).toString())
-        console.log("User Reward Debt = ",(userDetails.rewardDebt).toString())  
+        console.log("VLFI Balance = ", ownerVLFIBalance.toString())
+        console.log("Owner Deposit = ", (ownerDetails.amount).toString())
+        console.log("Owner Reward Debt = ",(ownerDetails.rewardDebt).toString())  
         console.log("Farm Acc Rewards Share = ", (farmDetails.accRewardsPerShare).toString()) 
         console.log("Farm lastRewardTime = ",(farmDetails.lastRewardTime).toString())
     })
 
     it("Should allow the user to deposit another 10000 LFI to check the farm details on VLFI", async () => {
-        const [owner,user1] = await ethers.getSigners();
-        const amount = ethers.utils.formatUnits(returnBigNumber(1000 * 10 **18),0);
-        await lfi.transfer(user1.address,amount);
-        await vlfi.connect(user1).depositLFI(amount);
-        const userDetails = await vlfi.connect(user1).userInfo(user1.address);
-        const userVLFIBalance = await vlfi.balanceOf(user1.address)
+        const [owner] = await ethers.getSigners();
+        const amount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
+        const rewardsPerSecond = ethers.utils.formatUnits(returnBigNumber(3* 10 **18),0);
+        await vlfi.createFarm();
+        await vlfi.setRewardPerSecond(rewardsPerSecond)
+        await vlfi.depositLFI(amount);
+        const ownerDetails = await vlfi.userInfo(owner.address);
+        const ownerVLFIBalance = await vlfi.balanceOf(owner.address)
         const farmDetails = await vlfi.farmInfo()
-        console.log("VLFI Balance = ", userVLFIBalance.toString())
-        console.log("User Deposit = ", (userDetails.amount).toString())
-        console.log("User Reward Debt = ",(userDetails.rewardDebt).toString())  
+        console.log("VLFI Balance = ", ownerVLFIBalance.toString())
+        console.log("Owner Deposit = ", (ownerDetails.amount).toString())
+        console.log("Owner Reward Debt = ",(ownerDetails.rewardDebt).toString())  
         console.log("Farm Acc Rewards Share = ", (farmDetails.accRewardsPerShare).toString()) 
-        console.log("Farm lastRewardTime = ",(farmDetails.lastRewardTime).toString() )
+        console.log("Farm lastRewardTime = ",(farmDetails.lastRewardTime).toString())
     })
 
     it('Should allow the user to claim the rewards in LFI Token', async () => {
@@ -75,11 +77,11 @@ describe("VLFI TOKEN", () => {
         await vlfi.connect(user1).claimRewards()
         await vlfi.claimRewards()
         const LFIBalanceAfterClaim = await lfi.balanceOf(user1.address);
-        console.log("LFI Balance Before claim = ", LFIBalanceBeforeClaim.toString())
-        console.log("LFI Balance after claim  = ", LFIBalanceAfterClaim.toString())
+        console.log(" User1 LFI Balance Before claim = ", LFIBalanceBeforeClaim.toString())
+        console.log("User 1 LFI Balance after claim  = ", LFIBalanceAfterClaim.toString())
         const LFIOwnerBalanceAfterClaim = await lfi.balanceOf(owner.address);
-        console.log("LFI Balance Before claim = ", LFIOwnerBalanceBeforeClaim.toString())
-        console.log("LFI Balance after claim  = ", LFIOwnerBalanceAfterClaim.toString())
+        console.log(" Owner LFI Balance Before claim = ", LFIOwnerBalanceBeforeClaim.toString())
+        console.log(" Owner LFI Balance after claim  = ", LFIOwnerBalanceAfterClaim.toString())
 
     })
 
