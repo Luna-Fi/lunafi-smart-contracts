@@ -38,7 +38,7 @@ describe("VLFI TOKEN", () => {
 
     it("Should allow the owner to deposit 10000 LFI and get a proportionate amount on VLFI", async () => {
         const [owner] = await ethers.getSigners();
-        const amount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
+        const amount = ethers.utils.formatUnits(returnBigNumber(400 * 10 **18),0);
         const rewardsPerSecond = ethers.utils.formatUnits(returnBigNumber(3* 10 **18),0);
         await vlfi.createFarm();
         await vlfi.setRewardPerSecond(rewardsPerSecond)

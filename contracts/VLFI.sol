@@ -4,7 +4,7 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "hardhat/console.sol";
+
 
 contract VLFI is ERC20 {
 
@@ -26,7 +26,7 @@ contract VLFI is ERC20 {
     
 
     uint256 constant MAX_PRECISION = 18;
-    uint256 conversionPrice = 1000*10**MAX_PRECISION; 
+    uint256 lpTokenPrice = 1000*10**MAX_PRECISION; 
     IERC20 public immutable STAKED_TOKEN;
     uint256 public immutable COOLDOWN_SECONDS;
     uint256 public immutable UNSTAKE_WINDOW;
@@ -93,10 +93,10 @@ contract VLFI is ERC20 {
         uint256 balanceOfUser = balanceOf(msg.sender); 
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
-        user.amount += (amount/conversionPrice) * 10**18;
-        user.rewardDebt += int( (amount/conversionPrice)* 10**18 * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
+        user.amount += ((amount * 10**18) / lpTokenPrice);
+        user.rewardDebt += int( ((amount * 10**18) /lpTokenPrice) * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
         stakersCooldowns[msg.sender] = getNextCooldownTimestamp(0, amount, msg.sender, balanceOfUser);
-        _mint(msg.sender,(amount/conversionPrice)* 10**18); // When it's minting in the stakedVLI check whether before transfer happens
+        _mint(msg.sender, (amount * 10**18) / lpTokenPrice); 
         IERC20(STAKED_TOKEN).safeTransferFrom(msg.sender, address(this), amount);
         emit Deposited(msg.sender, msg.sender, amount);
     }
@@ -122,9 +122,9 @@ contract VLFI is ERC20 {
         uint256 amountToRedeem = (amount > balanceOfMessageSender) ? balanceOfMessageSender : amount;
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
-        user.rewardDebt -= int((amountToRedeem/conversionPrice)*10**18 * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
-        user.amount -= amountToRedeem/conversionPrice *10 **18;
-        _burn(msg.sender, (amountToRedeem/conversionPrice)*10**18);
+        user.rewardDebt -= int(((amountToRedeem * 10**18)/lpTokenPrice) * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
+        user.amount -= (amountToRedeem * 10**18)/lpTokenPrice ;
+        _burn(msg.sender, (amountToRedeem * 10**18)/lpTokenPrice);
         if (balanceOfMessageSender - (amountToRedeem) == 0) {
              stakersCooldowns[msg.sender] = 0;
         }
