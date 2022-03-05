@@ -30,7 +30,7 @@ function sleep(milliseconds) {
 }
 
 
-contract("simpleVesting", (accounts) => {
+contract("vesting", (accounts) => {
    let token, dec;
    let MINUTES_IN_DAY = 1;
 
@@ -47,7 +47,7 @@ contract("simpleVesting", (accounts) => {
       const timenow = parseInt((new Date()).getTime() / 1000);
       const startTime = timenow + 5 * MINUTES_IN_DAY * 60;
 
-      SimpleVesting = await hre.ethers.getContractFactory("simpleVesting");
+      SimpleVesting = await hre.ethers.getContractFactory("vesting");
       Vesting = await SimpleVesting.deploy(token.address, startTime);
 
       await Vesting.deployed();
@@ -117,8 +117,29 @@ contract("simpleVesting", (accounts) => {
       console.log("account3 : " + formatNumberFromBN(balanceOfAccount3, dec));
    });
 
-   it("Should successfully transfer after 34 days", async () => {
-      await time.increase(34 * MINUTES_IN_DAY * 60);
+
+   it("Deposit token from manager to contract after 14 days", async () => {
+      await time.increase(14 * MINUTES_IN_DAY * 60);
+
+      console.log("Balance of owner and contract");
+      console.log("Before deposit: ")
+      let ownerBalance = await token.balanceOf(owner.address);
+      let contractBalance = await token.balanceOf(Vesting.address);
+      console.log("owner : " + formatNumberFromBN(ownerBalance, dec));
+      console.log("contract : " + formatNumberFromBN(contractBalance, dec));
+
+      await expect(Vesting.connect(owner).depositVestingAmount(getBNFromNumber(100000, dec))).to.be.not.reverted;
+      console.log("Deposit 100,000 tokens to vesting contract");
+
+      console.log("After deposit")
+      ownerBalance = await token.balanceOf(owner.address);
+      contractBalance = await token.balanceOf(Vesting.address);
+      console.log("owner : " + formatNumberFromBN(ownerBalance, dec));
+      console.log("contract : " + formatNumberFromBN(contractBalance, dec));
+   });
+
+   it("Should successfully transfer after 20 days", async () => {
+      await time.increase(20 * MINUTES_IN_DAY * 60);
 
       await expect(Vesting.transferVestedTokens()).to.be.not.reverted;
 
@@ -132,8 +153,8 @@ contract("simpleVesting", (accounts) => {
       console.log("account2 : " + formatNumberFromBN(balanceOfAccount2, dec));
       console.log("account3 : " + formatNumberFromBN(balanceOfAccount3, dec));
 
-      const ownerBalance = await token.balanceOf(owner.address);
-      console.log("Owner balance after vesting : " + formatNumberFromBN(ownerBalance, dec));
+      const contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
    });
 
    it("Should successfully transfer vested tokens after 60 days", async () => {
@@ -151,8 +172,8 @@ contract("simpleVesting", (accounts) => {
       console.log("account2 : " + formatNumberFromBN(balanceOfAccount2, dec));
       console.log("account3 : " + formatNumberFromBN(balanceOfAccount3, dec));
 
-      const ownerBalance = await token.balanceOf(owner.address);
-      console.log("Owner balance after vesting : " + formatNumberFromBN(ownerBalance, dec));
+      const contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
    });
 
    it("Should successfully transfer after 90 days", async () => {
@@ -170,8 +191,8 @@ contract("simpleVesting", (accounts) => {
       console.log("account2 : " + formatNumberFromBN(balanceOfAccount2, dec));
       console.log("account3 : " + formatNumberFromBN(balanceOfAccount3, dec));
 
-      const ownerBalance = await token.balanceOf(owner.address);
-      console.log("Owner balance after vesting : " + formatNumberFromBN(ownerBalance, dec));
+      const contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
    });
 
    it("Should successfully transfer vested tokens after 90 days", async () => {
@@ -189,8 +210,8 @@ contract("simpleVesting", (accounts) => {
       console.log("account2 : " + formatNumberFromBN(balanceOfAccount2, dec));
       console.log("account3 : " + formatNumberFromBN(balanceOfAccount3, dec));
 
-      const ownerBalance = await token.balanceOf(owner.address);
-      console.log("Owner balance after vesting : " + formatNumberFromBN(ownerBalance, dec));
+      const contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
    });
 
    it("Should successfully transfer vested tokens after 91 days", async () => {
@@ -208,8 +229,8 @@ contract("simpleVesting", (accounts) => {
       console.log("account2 : " + formatNumberFromBN(balanceOfAccount2, dec));
       console.log("account3 : " + formatNumberFromBN(balanceOfAccount3, dec));
 
-      const ownerBalance = await token.balanceOf(owner.address);
-      console.log("Owner balance after vesting : " + formatNumberFromBN(ownerBalance, dec));
+      const contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
    });
 
    it("Should successfully transfer vested tokens after 10 days", async () => {
@@ -227,8 +248,8 @@ contract("simpleVesting", (accounts) => {
       console.log("account2 : " + formatNumberFromBN(balanceOfAccount2, dec));
       console.log("account3 : " + formatNumberFromBN(balanceOfAccount3, dec));
 
-      const ownerBalance = await token.balanceOf(owner.address);
-      console.log("Owner balance after vesting : " + formatNumberFromBN(ownerBalance, dec));
+      const contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
    });
 
 })

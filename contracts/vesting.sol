@@ -5,16 +5,14 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
- * @title simpleVesting
+ * @title vesting
  */
-contract simpleVesting is Ownable, ReentrancyGuard, AccessControl {
-    using SafeMath for uint256;
+contract vesting is Ownable, ReentrancyGuard, AccessControl {
     using SafeERC20 for IERC20;
 
     struct VestingSchedule {
@@ -47,6 +45,8 @@ contract simpleVesting is Ownable, ReentrancyGuard, AccessControl {
     // total amount vested in schedules
     uint256 private vestingTotalAmount;
 
+    uint256 public totalRemainedVestingAmount;
+
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
 
     uint256 public vestingScheduleCounter = 0;
@@ -57,6 +57,8 @@ contract simpleVesting is Ownable, ReentrancyGuard, AccessControl {
     uint32 private MINUTES_IN_DAY;
 
     event TokenVested(address indexed accout, uint256 amount);
+
+    event DepositTokenToContract(uint256 amount);
 
     /**
      * @dev Creates a vesting contract.
@@ -112,27 +114,28 @@ contract simpleVesting is Ownable, ReentrancyGuard, AccessControl {
 
         vestingAccounts[vestingScheduleCounter] = _recipient;
 
-        VestingSchedule memory vesting = VestingSchedule(
+        VestingSchedule memory vestingSchedule = VestingSchedule(
             vestingScheduleCounter,
             _recipient,
-            (_vestingPeriod).mul(MINUTES_IN_DAY).mul(60),
+            _vestingPeriod * MINUTES_IN_DAY * 60,
             _amount,
             0,
             false
         );
 
-        vestingSchedulesByAddress[_recipient] = vesting;
-        vestingSchedulesById[vestingScheduleCounter] = vesting;
+        vestingSchedulesByAddress[_recipient] = vestingSchedule;
+        vestingSchedulesById[vestingScheduleCounter] = vestingSchedule;
 
         vestingScheduleCounter++;
-        vestingTotalAmount = vestingTotalAmount.add(_amount);
+        vestingTotalAmount = vestingTotalAmount + _amount;
     }
 
     /**
      * @notice Release vested amount of tokens.
      */
     function transferVestedTokens() public onlyRole(MANAGER_ROLE) nonReentrant {
-        require(block.timestamp > startTime, 'Vesting is not started.');
+        require(block.timestamp > startTime, "Vesting is not started.");
+        require(totalRemainedVestingAmount > 0, "Not remained vesting token");
 
         bool isFinalEnded = true;
         for (uint256 i = 0; i < vestingScheduleCounter; i++) {
@@ -142,7 +145,7 @@ contract simpleVesting is Ownable, ReentrancyGuard, AccessControl {
             }
         }
 
-        require(!isFinalEnded, 'Vesting is ended.');
+        require(!isFinalEnded, "Vesting is ended.");
 
         for (uint256 i = 0; i < vestingScheduleCounter; i++) {
             transferVestedTokenById(i);
@@ -157,17 +160,25 @@ contract simpleVesting is Ownable, ReentrancyGuard, AccessControl {
         internal
         onlyRole(MANAGER_ROLE)
     {
+        require(totalRemainedVestingAmount > 0, "Not remained vesting token");
+
         uint256 _amount = computeReleasableAmount(id);
         vestingSchedulesById[id].vestedAmount += _amount;
 
-        if (block.timestamp > startTime.add(vestingSchedulesById[id].vestingPeriod)){
+        if (
+            block.timestamp >
+            startTime + vestingSchedulesById[id].vestingPeriod
+        ) {
             vestingSchedulesById[id].isEnded = true;
         }
 
         // _token.approve(msg.sender, _amount);
 
-        // _token.transfer(vestingSchedulesById[id].recipient, _amount);
-        _token.transferFrom(msg.sender, vestingSchedulesById[id].recipient, _amount);
+        _token.transfer(vestingSchedulesById[id].recipient, _amount);
+        // _token.transferFrom(msg.sender, vestingSchedulesById[id].recipient, _amount);
+
+        // update totalRemainedVestingAmount
+        totalRemainedVestingAmount = totalRemainedVestingAmount - _amount;
 
         emit TokenVested(vestingSchedulesById[id].recipient, _amount);
     }
@@ -185,19 +196,40 @@ contract simpleVesting is Ownable, ReentrancyGuard, AccessControl {
         if (vestingSchedulesById[id].isEnded) {
             _amount = 0;
         } else {
-            if (block.timestamp < startTime) 
-            {
+            if (block.timestamp < startTime) {
                 _amount = 0;
-            }
-            else if (block.timestamp > startTime.add(vestingSchedulesById[id].vestingPeriod))
-            {
-                _amount = vestingSchedulesById[id].allocatedAmount - vestingSchedulesById[id].vestedAmount;
-            }
-            else
-            {
-                _amount = (vestingSchedulesById[id].allocatedAmount).mul(block.timestamp - startTime).div(vestingSchedulesById[id].vestingPeriod).sub(vestingSchedulesById[id].vestedAmount);
+            } else if (
+                block.timestamp >
+                startTime + vestingSchedulesById[id].vestingPeriod
+            ) {
+                _amount =
+                    vestingSchedulesById[id].allocatedAmount -
+                    vestingSchedulesById[id].vestedAmount;
+            } else {
+                _amount =
+                    (vestingSchedulesById[id].allocatedAmount *
+                        (block.timestamp - startTime)) /
+                    vestingSchedulesById[id].vestingPeriod -
+                    vestingSchedulesById[id].vestedAmount;
             }
         }
+    }
+
+    /**
+     * @notice Owner deposit depositVestingAmount to contract.
+     * @param _amount amount of tokens which Owner deposit to contract
+     */
+    function depositVestingAmount(uint256 _amount)
+        public
+        onlyRole(MANAGER_ROLE)
+        nonReentrant
+    {
+        _token.transferFrom(msg.sender, address(this), _amount);
+
+        //update totalRemainedVestingAmount
+        totalRemainedVestingAmount = totalRemainedVestingAmount + _amount;
+
+        emit DepositTokenToContract(_amount);
     }
 
     function getStartTime() public view returns (uint256) {
@@ -208,14 +240,10 @@ contract simpleVesting is Ownable, ReentrancyGuard, AccessControl {
      * @dev Returns the vesting account address at the given id.
      * @return the vesting account address
      */
-    function getVestingAccountById(uint256 id)
-        public
-        view
-        returns (address)
-    {
+    function getVestingAccountById(uint256 id) public view returns (address) {
         require(
             id < vestingScheduleCounter,
-            "simpleVesting: index out of bounds"
+            "vesting: index out of bounds"
         );
         return vestingSchedulesById[id].recipient;
     }
