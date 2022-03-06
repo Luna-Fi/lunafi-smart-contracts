@@ -12,7 +12,7 @@ contract VLFI is ERC20 {
 
     struct FarmInfo {
        uint256 accRewardsPerShare;
-       uint256 lastRewardTime ;
+       uint256 lastRewardTime ; // --- 
     }
 
     struct UserInfo{
@@ -90,11 +90,12 @@ contract VLFI is ERC20 {
 
     function depositLFI(uint256 amount) external { //LFI
         require(amount != 0,"VLFI:INVALID_AMOUNT");
-        uint256 balanceOfUser = balanceOf(msg.sender); 
+        uint256 balanceOfUser = balanceOf(msg.sender);
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
         user.amount += ((amount * 10**18) / lpTokenPrice);
         user.rewardDebt += int( ((amount * 10**18) /lpTokenPrice) * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
+        //stakersCooldowns[msg.sender] = block.timestamp;
         stakersCooldowns[msg.sender] = getNextCooldownTimestamp(0, amount, msg.sender, balanceOfUser);
         _mint(msg.sender, (amount * 10**18) / lpTokenPrice); 
         IERC20(STAKED_TOKEN).safeTransferFrom(msg.sender, address(this), amount);
@@ -138,30 +139,42 @@ contract VLFI is ERC20 {
         stakersCooldowns[msg.sender] = block.timestamp;
 
     }
-
+  // what we are doing on deposit is what needs to happen for both sender and receiver in Transfer also.Do this only if MSG.sender != to
     function transfer(address to, uint256 amount) public override returns(bool) {
+        require(msg.sender != to, "VLFI: INVALID TRANSFER");
+        require(amount <= balanceOf(msg.sender));
         uint256 senderBalance = balanceOf(msg.sender);
-        uint256 senderPendingRewards = pendingReward();
-        stakerRewardsToClaim[msg.sender]= stakerRewardsToClaim[msg.sender] + (senderPendingRewards);
+        uint256 receiverBalance = balanceOf(to);
+        uint256 cooldownStartTimestamp = stakersCooldowns[msg.sender];
+        require(
+            (block.timestamp) > (cooldownStartTimestamp + (COOLDOWN_SECONDS)),
+            "VLFI:INSUFFICIENT_COOLDOWN"
+        );
+        require(
+            block.timestamp - (cooldownStartTimestamp + (COOLDOWN_SECONDS)) <= UNSTAKE_WINDOW,
+            "VLFI:UNSTAKE_WINDOW_FINISHED"
+        );
+        
+         FarmInfo memory farm = updateFarm();
+         UserInfo storage sender = userInfo[msg.sender];
+         sender.rewardDebt -= int(((amount * 10**18)/lpTokenPrice) * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
+         sender.amount -= (amount * 10**18)/lpTokenPrice ;
 
-        if(msg.sender != to) {
-          uint256 receiverBalance = balanceOf(to);
-          uint256 receiverPendingRewards = pendingReward();
-          stakerRewardsToClaim[to] = stakerRewardsToClaim[to] + (receiverPendingRewards);
-          uint256 previousSenderCooldown = stakersCooldowns[msg.sender];
-          stakersCooldowns[to] = getNextCooldownTimestamp(
+         UserInfo storage receiver = userInfo[to];
+         receiver.rewardDebt += int(((amount * 10**18)/lpTokenPrice) * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
+         receiver.amount += (amount * 10**18)/lpTokenPrice ;
+
+         uint256 previousSenderCooldown = stakersCooldowns[msg.sender];
+         stakersCooldowns[to] = getNextCooldownTimestamp(
             previousSenderCooldown,
             amount,
             to,
             receiverBalance
           );
-
           // If cooldown was set and whole balance of sender was trnasferred - clear cooldown
-
           if(senderBalance == amount && previousSenderCooldown != 0) {
             stakersCooldowns[msg.sender] = 0;
           }
-        }
         
        _transfer(msg.sender,to,amount);
        return true;
@@ -169,7 +182,7 @@ contract VLFI is ERC20 {
 
     function claimRewards() external {
         FarmInfo memory farm = updateFarm();
-        UserInfo storage user = userInfo[msg.sender];
+        UserInfo storage user = userInfo[msg.sender];  
         int accumulatedReward = int(user.amount * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
         uint _pendingReward = uint(accumulatedReward - user.rewardDebt);
         user.rewardDebt = accumulatedReward; //check for the reward debt again.
