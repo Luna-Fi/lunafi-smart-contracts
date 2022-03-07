@@ -240,7 +240,6 @@ describe("Testing LFI Farms", () => {
         console.log(USDCLPFarmBalance.toString())
         console.log(WBTCLPFarmBalance.toString())
         console.log(WETHLPFarmBalance.toString())
-
         
     })
 

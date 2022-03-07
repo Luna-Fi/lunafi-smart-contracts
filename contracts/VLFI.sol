@@ -20,19 +20,19 @@ contract VLFI is ERC20 {
         int256 rewardDebt;
     }
 
-    FarmInfo public farmInfo;
+    FarmInfo  farmInfo;
     uint256 public rewardPerSecond;
-    mapping (address => UserInfo) public userInfo;
+    mapping (address => UserInfo)  userInfo;
     
 
     uint256 constant MAX_PRECISION = 18;
     uint256 lpTokenPrice = 1000*10**MAX_PRECISION; 
     IERC20 public immutable STAKED_TOKEN;
-    uint256 public immutable COOLDOWN_SECONDS;
-    uint256 public immutable UNSTAKE_WINDOW;
-    mapping(address => uint256) public stakerRewardsToClaim;
-    mapping(address => uint256) public stakersCooldowns;
-    mapping(address => uint256) public userLFIDeposits;
+    uint256  COOLDOWN_SECONDS;
+    uint256  UNSTAKE_WINDOW;
+    mapping(address => uint256) private stakerRewardsToClaim;
+    mapping(address => uint256) private stakersCooldowns;
+    mapping(address => uint256) private userDeposits;
     uint256 private constant ACC_REWARD_PRECISION = 1e18;
 
     event Deposited(address indexed from, address indexed onBehalfOf, uint256 amount);
@@ -50,6 +50,48 @@ contract VLFI is ERC20 {
         UNSTAKE_WINDOW = unstakeWindow;
     }
 
+    function getStakersCooldowns(address staker) external view returns(uint256) {
+      return stakersCooldowns[staker];
+    }
+
+    function getUserDeposits(address user) external view returns(uint256) {
+      return userDeposits[user];
+    }
+
+    function getUserAmount(address benefitor) external view returns(uint256){
+      return userInfo[benefitor].amount;
+    }
+
+    function getUserRewardDebt(address benefitor) external view returns(int256){
+      return userInfo[benefitor].rewardDebt;
+    }
+
+    function getFarmAccRewardPerShare() external view returns(uint256) {
+      return farmInfo.accRewardsPerShare;
+    }
+
+    function getFarmLastRewardTime() external view returns(uint256) {
+      return farmInfo.lastRewardTime;
+    }
+
+    function getCooldownSeconds() external view returns(uint256) {
+      return COOLDOWN_SECONDS;
+    }
+
+    function setCooldownSeconds(uint256 coolDownSeconds) external {
+      COOLDOWN_SECONDS = coolDownSeconds;
+    }
+
+    function getUnstakeWindowTime() external view returns(uint256) {
+      return UNSTAKE_WINDOW;
+    }
+
+    function setUnstakeWindowTime(uint256 unstakeWindow) external {
+      UNSTAKE_WINDOW = unstakeWindow;
+    }
+
+
+
     function updateFarm() public returns(FarmInfo memory farm) {
         farm = farmInfo;
         if(farm.lastRewardTime < block.timestamp) {
@@ -64,9 +106,9 @@ contract VLFI is ERC20 {
         }
     }
 
-    function pendingReward() public view returns(uint256 pendingRewards) {
+    function pendingReward(address benefitor) public view returns(uint256 pendingRewards) {
       FarmInfo memory farm = farmInfo;
-      UserInfo storage user = userInfo[msg.sender];
+      UserInfo storage user = userInfo[benefitor];
       uint256 accRewardPerShare = farm.accRewardsPerShare;
       uint256 totalSupply = totalSupply();
       if(block.timestamp > farm.lastRewardTime && totalSupply != 0) {
@@ -76,6 +118,7 @@ contract VLFI is ERC20 {
       }
       pendingRewards = uint256(int256(user.amount * accRewardPerShare / ACC_REWARD_PRECISION) - user.rewardDebt);
     }
+
 
     function setRewardPerSecond(uint256 _rewardPerSecond) public  {
         rewardPerSecond = _rewardPerSecond;
@@ -88,18 +131,18 @@ contract VLFI is ERC20 {
         });
     }
 
-    function depositLFI(uint256 amount) external { //LFI
+    function stake(address onBehalfOf, uint256 amount) external { //LFI
         require(amount != 0,"VLFI:INVALID_AMOUNT");
-        uint256 balanceOfUser = balanceOf(msg.sender);
+        uint256 balanceOfUser = balanceOf(onBehalfOf);
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
         user.amount += ((amount * 10**18) / lpTokenPrice);
         user.rewardDebt += int( ((amount * 10**18) /lpTokenPrice) * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
-        //stakersCooldowns[msg.sender] = block.timestamp;
-        stakersCooldowns[msg.sender] = getNextCooldownTimestamp(0, amount, msg.sender, balanceOfUser);
-        _mint(msg.sender, (amount * 10**18) / lpTokenPrice); 
+        stakersCooldowns[onBehalfOf] = getNextCooldownTimestamp(0, amount, onBehalfOf, balanceOfUser);
+        _mint(onBehalfOf, (amount * 10**18) / lpTokenPrice); 
         IERC20(STAKED_TOKEN).safeTransferFrom(msg.sender, address(this), amount);
-        emit Deposited(msg.sender, msg.sender, amount);
+        userDeposits[msg.sender] += amount;
+        emit Deposited(msg.sender, onBehalfOf, amount);
     }
 
     function updateRewardsToClaim() external {
@@ -108,7 +151,7 @@ contract VLFI is ERC20 {
       
     }
 
-    function redeemLFI(uint256 amount) external {
+    function redeem(address to, uint256 amount) external {
         require(amount != 0,"VLFI:INVALID_AMOUNT");
         uint256 cooldownStartTimestamp = stakersCooldowns[msg.sender];
         require(
@@ -129,7 +172,8 @@ contract VLFI is ERC20 {
         if (balanceOfMessageSender - (amountToRedeem) == 0) {
              stakersCooldowns[msg.sender] = 0;
         }
-        IERC20(STAKED_TOKEN).safeTransfer(msg.sender, amountToRedeem);
+        IERC20(STAKED_TOKEN).safeTransfer(to, amountToRedeem);
+        userDeposits[msg.sender] -= amount;
         emit Redeemed(msg.sender,msg.sender,amountToRedeem);
     }
 
@@ -180,13 +224,13 @@ contract VLFI is ERC20 {
        return true;
     }
 
-    function claimRewards() external {
+    function claimRewards(address to) external {
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];  
         int accumulatedReward = int(user.amount * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
         uint _pendingReward = uint(accumulatedReward - user.rewardDebt);
         user.rewardDebt = accumulatedReward; //check for the reward debt again.
-        IERC20(STAKED_TOKEN).transfer(msg.sender, _pendingReward);
+        IERC20(STAKED_TOKEN).transfer(to, _pendingReward);
   }
 
     function getNextCooldownTimestamp(
