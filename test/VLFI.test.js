@@ -42,28 +42,27 @@ describe("VLFI TOKEN", () => {
         const approvalAmount = ethers.utils.formatUnits(returnBigNumber(10000000 * 10 **18),0);
         await lfi.approve(vlfi.address,approvalAmount)
         await lfi.connect(user1).approve(vlfi.address,approvalAmount)
+
+        console.log("*********************************************************************")
     })
 
     it("Should allow the owner to deposit 10000 LFI and get a proportionate amount on VLFI", async () => {
         const [owner] = await ethers.getSigners();
         const amount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
-        const rewardsPerSecond = ethers.utils.formatUnits(returnBigNumber(7 * 10 **18),0);
+        const rewardsPerSecond = ethers.utils.formatUnits(returnBigNumber(1 * 10 **18),0);
         await vlfi.createFarm();
         await vlfi.setRewardPerSecond(rewardsPerSecond)
         await vlfi.stake(owner.address,amount);
 
         // Farm  details :
-
-        const farmAccRewardsperShare = await vlfi.getFarmAccRewardPerShare();
-        const farmLastRewardTime = await vlfi.getFarmLastRewardTime();
-
+        const farmAccRewardsperShare = ethers.utils.formatUnits(await vlfi.getFarmAccRewardPerShare(), 0)
+        const farmLastRewardTime = ethers.utils.formatUnits(await vlfi.getFarmLastRewardTime(), 0)
+        
         // Owner details :
-        const ownerVLFIBalance = await vlfi.balanceOf(owner.address)
-        
-        const ownerAmount = await vlfi.getUserAmount(owner.address);
-        const ownerRewardDebt = await vlfi.getUserRewardDebt(owner.address);
+        const ownerVLFIBalance = ethers.utils.formatUnits(await vlfi.balanceOf(owner.address), 0)
+        const ownerAmount = ethers.utils.formatUnits(await vlfi.getUserAmount(owner.address), 0)
+        const ownerRewardDebt = ethers.utils.formatUnits(await vlfi.getUserRewardDebt(owner.address), 0)
        
-        
         // Log Farm Details for first deposit 
         console.log("Acc Reward per Share in the Farm = ", farmAccRewardsperShare.toString())
         console.log("Last Reward Time = ", farmLastRewardTime.toString())
@@ -74,117 +73,67 @@ describe("VLFI TOKEN", () => {
         console.log("Owner Reward Debt = ", ownerRewardDebt.toString())
     })
 
+    it("Should allow another user to deposit LFI and get VLFI", async () => {
+        const [owner,user1] = await ethers.getSigners();
+        const transferLFIAmount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
+        const amount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
+        await lfi.connect(user1).approve(vlfi.address,transferLFIAmount)
+        await lfi.transfer(user1.address,transferLFIAmount)
+        await vlfi.connect(user1).stake(user1.address,amount);
+        await vlfi.stake(owner.address,amount);
 
-    it("Should get the pending rewards  for the user", async () => {
-        const [owner] = await ethers.getSigners()
+        // Farm  details :
+        const farmAccRewardsperShare = ethers.utils.formatUnits(await vlfi.getFarmAccRewardPerShare(), 0)
+        const farmLastRewardTime = ethers.utils.formatUnits(await vlfi.getFarmLastRewardTime(), 0)
 
-        
+         // User1 details :
+         const user1VLFIBalance = ethers.utils.formatUnits(await vlfi.balanceOf(user1.address), 0)
+         const user1Amount = ethers.utils.formatUnits(await vlfi.getUserAmount(user1.address), 0)
+         const user1RewardDebt = ethers.utils.formatUnits(await vlfi.getUserRewardDebt(user1.address), 0)
 
-        sleep(10000)
+         
+         // Owner details :
+        const ownerVLFIBalance = ethers.utils.formatUnits(await vlfi.balanceOf(owner.address), 0)
+        const ownerAmount = ethers.utils.formatUnits(await vlfi.getUserAmount(owner.address), 0)
+        const ownerRewardDebt = ethers.utils.formatUnits(await vlfi.getUserRewardDebt(owner.address), 0) 
 
-        const pendingRewards = await vlfi.pendingReward(owner.address)
+         // Log Farm Details after second deposit 
+        console.log("Acc Reward per Share in the Farm = ", farmAccRewardsperShare.toString())
+        console.log("Last Reward Time = ", farmLastRewardTime.toString())
 
-        console.log(pendingRewards.toString())
+        // Log user Details for second deposit
+        console.log("User1 VLFI Balance = ", user1VLFIBalance.toString())
+        console.log("User1 Amount = ", user1Amount.toString())
+        console.log("User1 Reward Debt = ", user1RewardDebt.toString())
+        console.log("*********************************************************")
+
+        // Log user Details for first deposit
+        console.log("owner VLFI Balance = ", ownerVLFIBalance.toString())
+        console.log("Owner Amount = ", ownerAmount.toString())
+        console.log("Owner Reward Debt = ", ownerRewardDebt.toString())
 
     })
 
-    // it("Should not allow the user to withdraw the VLFI without activating the cooldown period", async () => {
-    //     const [owner] = await ethers.getSigners()
-    //     const amount = ethers.utils.formatUnits(returnBigNumber(1000 * 10 **18),0);
+    it("Should allow the users to get their pending rewards", async() => {
+        const [owner,user1] = await ethers.getSigners()
+        const ownerPendingRewards = ethers.utils.formatUnits(await vlfi.pendingReward(owner.address), 0)
+        const user1PendingRewards = ethers.utils.formatUnits(await vlfi.pendingReward(user1.address), 0)
 
-    //     // Farm Details before withdrawl 
-    //     const BfarmDetails= await vlfi.farmInfo()
-    //     const BfarmAccRewardsperShare = BfarmDetails.accRewardsPerShare;
-    //     const BfarmLastRewardTime = BfarmDetails.lastRewardTime;
+        console.log("Owner Pending Rewards = ", ownerPendingRewards)
+        console.log("User1 Pending Rewards = ", user1PendingRewards)
 
-    //     console.log("Acc Reward per Share in the Farm = ", BfarmAccRewardsperShare.toString())
-    //     console.log("Last Reward Time = ", BfarmLastRewardTime.toString())
+    })
 
-    //     //Owner Details before withdrawl
-    //     const BownerVLFIBalance = await vlfi.balanceOf(owner.address)
-    //     const BownerDetails = await vlfi.userInfo(owner.address);
-    //     const BownerAmount = BownerDetails.amount;
-    //     const BownerRewardDebt = BownerDetails.rewardDebt;
+    it("Should allow the users to get their pending rewards", async() => {
+        const [owner,user1] = await ethers.getSigners()
+        const ownerPendingRewards = ethers.utils.formatUnits(await vlfi.pendingReward(owner.address), 0)
+        const user1PendingRewards = ethers.utils.formatUnits(await vlfi.pendingReward(user1.address), 0)
 
-    //     console.log("owner VLFI Balance = ", BownerVLFIBalance.toString())
-    //     console.log("Owner Amount = ", BownerAmount.toString())
-    //     console.log("Owner Reward Debt = ", BownerRewardDebt.toString())
+        console.log("Owner Pending Rewards = ", ownerPendingRewards)
+        console.log("User1 Pending Rewards = ", user1PendingRewards)
 
-        
+    })
 
-    //     await vlfi.cooldown()
-    //     const Bcooldown = await vlfi.stakersCooldowns(owner.address);
-    //     console.log("Before Cooldown",Bcooldown.toString())
-    //     sleep(310000)
-    //     await vlfi.redeemLFI(amount)
 
-    //     // Farm Details after the withdrawl
-
-    //     const AfarmDetails= await vlfi.farmInfo()
-    //     const AfarmAccRewardsperShare = AfarmDetails.accRewardsPerShare;
-    //     const AfarmLastRewardTime = AfarmDetails.lastRewardTime;
-
-    //     console.log("Acc Reward per Share in the Farm = ", AfarmAccRewardsperShare.toString())
-    //     console.log("Last Reward Time = ", AfarmLastRewardTime.toString())
-
-    //     // Owner details :
-
-    //     const AownerVLFIBalance = await vlfi.balanceOf(owner.address)
-    //     const AownerDetails = await vlfi.userInfo(owner.address);
-    //     const AownerAmount = AownerDetails.amount;
-    //     const AownerRewardDebt = AownerDetails.rewardDebt;
-
-    //     const ACoolDown = await vlfi.stakersCooldowns(owner.address);
-    //     console.log(" A Cooldown = ", ACoolDown.toString())
-
-    //     console.log("owner VLFI Balance = ", AownerVLFIBalance.toString())
-    //     console.log("Owner Amount = ", AownerAmount.toString())
-    //     console.log("Owner Reward Debt = ", AownerRewardDebt.toString())
-
-    // })
-
-    // it("should allow the owner of the tokens to transfer with a cooldown activated", async () => {
-    //     const [owner,user1] = await ethers.getSigners();
-    //     const amount = ethers.utils.formatUnits(returnBigNumber(1 * 10 **18),0);
-    //     const ownerBalance = await vlfi.balanceOf(owner.address)
-    //     console.log("My Balance", ownerBalance.toString())
-    //     await vlfi.cooldown()
-    //     sleep(310000)
-    //     await vlfi.transfer(user1.address,amount);
-    //     const userBalance = await vlfi.balanceOf(user1.address)
-    //     console.log("user balance is ", userBalance.toString())
-    // })
-
-    // it("Should allow the user to deposit another 10000 LFI to check the farm details on VLFI", async () => {
-    //     const [owner] = await ethers.getSigners();
-    //     const amount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
-    //     const rewardsPerSecond = ethers.utils.formatUnits(returnBigNumber(3* 10 **18),0);
-    //     await vlfi.createFarm();
-    //     await vlfi.setRewardPerSecond(rewardsPerSecond)
-    //     await vlfi.depositLFI(amount);
-    //     const ownerDetails = await vlfi.userInfo(owner.address);
-    //     const ownerVLFIBalance = await vlfi.balanceOf(owner.address)
-    //     const farmDetails = await vlfi.farmInfo()
-    //     console.log("VLFI Balance = ", ownerVLFIBalance.toString())
-    //     console.log("Owner Deposit = ", (ownerDetails.amount).toString())
-    //     console.log("Owner Reward Debt = ",(ownerDetails.rewardDebt).toString())  
-    //     console.log("Farm Acc Rewards Share = ", (farmDetails.accRewardsPerShare).toString()) 
-    //     console.log("Farm lastRewardTime = ",(farmDetails.lastRewardTime).toString())
-    // })
-
-    // it('Should allow the user to claim the rewards in LFI Token', async () => {
-    //     const [owner,user1] = await ethers.getSigners();
-    //     const LFIBalanceBeforeClaim = await lfi.balanceOf(user1.address);
-    //     const LFIOwnerBalanceBeforeClaim = await lfi.balanceOf(owner.address);
-    //     await vlfi.connect(user1).claimRewards()
-    //     await vlfi.claimRewards()
-    //     const LFIBalanceAfterClaim = await lfi.balanceOf(user1.address);
-    //     console.log(" User1 LFI Balance Before claim = ", LFIBalanceBeforeClaim.toString())
-    //     console.log("User 1 LFI Balance after claim  = ", LFIBalanceAfterClaim.toString())
-    //     const LFIOwnerBalanceAfterClaim = await lfi.balanceOf(owner.address);
-    //     console.log(" Owner LFI Balance Before claim = ", LFIOwnerBalanceBeforeClaim.toString())
-    //     console.log(" Owner LFI Balance after claim  = ", LFIOwnerBalanceAfterClaim.toString())
-
-    // })
-
+     
 })

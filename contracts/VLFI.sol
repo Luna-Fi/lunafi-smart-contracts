@@ -21,8 +21,8 @@ contract VLFI is ERC20 {
     }
 
     FarmInfo  farmInfo;
-    uint256 public rewardPerSecond;
-    mapping (address => UserInfo)  userInfo;
+    uint256 private rewardPerSecond;
+    mapping (address => UserInfo) private userInfo;
     
 
     uint256 constant MAX_PRECISION = 18;
@@ -54,11 +54,11 @@ contract VLFI is ERC20 {
       return stakersCooldowns[staker];
     }
 
-    function getUserDeposits(address user) external view returns(uint256) {
+    function getUserLFIDeposits(address user) external view returns(uint256) {
       return userDeposits[user];
     }
 
-    function getUserAmount(address benefitor) external view returns(uint256){
+    function getUserVLFIAmount(address benefitor) external view returns(uint256){
       return userInfo[benefitor].amount;
     }
 
@@ -89,8 +89,6 @@ contract VLFI is ERC20 {
     function setUnstakeWindowTime(uint256 unstakeWindow) external {
       UNSTAKE_WINDOW = unstakeWindow;
     }
-
-
 
     function updateFarm() public returns(FarmInfo memory farm) {
         farm = farmInfo;
@@ -152,7 +150,7 @@ contract VLFI is ERC20 {
     }
 
     function redeem(address to, uint256 amount) external {
-        require(amount != 0,"VLFI:INVALID_AMOUNT");
+        require(amount != 0 && amount <= STAKED_TOKEN.balanceOf(msg.sender),"VLFI:INVALID_AMOUNT");
         uint256 cooldownStartTimestamp = stakersCooldowns[msg.sender];
         require(
             (block.timestamp) > (cooldownStartTimestamp + (COOLDOWN_SECONDS)),
@@ -163,18 +161,18 @@ contract VLFI is ERC20 {
             "VLFI:UNSTAKE_WINDOW_FINISHED"
     );
         uint256 balanceOfMessageSender = balanceOf(msg.sender);
-        uint256 amountToRedeem = (amount > balanceOfMessageSender) ? balanceOfMessageSender : amount;
+        //uint256 amountToRedeem = (amount > balanceOfMessageSender) ? balanceOfMessageSender : amount;
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
-        user.rewardDebt -= int(((amountToRedeem * 10**18)/lpTokenPrice) * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
-        user.amount -= (amountToRedeem * 10**18)/lpTokenPrice ;
-        _burn(msg.sender, (amountToRedeem * 10**18)/lpTokenPrice);
-        if (balanceOfMessageSender - (amountToRedeem) == 0) {
+        user.rewardDebt -= int(((amount * 10**18)/lpTokenPrice) * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
+        user.amount -= (amount * 10**18)/lpTokenPrice ;
+        _burn(msg.sender, (amount * 10**18)/lpTokenPrice);
+        if (balanceOfMessageSender - ((amount * 10**18)/lpTokenPrice) == 0) {
              stakersCooldowns[msg.sender] = 0;
         }
-        IERC20(STAKED_TOKEN).safeTransfer(to, amountToRedeem);
+        IERC20(STAKED_TOKEN).safeTransfer(to, amount);
         userDeposits[msg.sender] -= amount;
-        emit Redeemed(msg.sender,msg.sender,amountToRedeem);
+        emit Redeemed(msg.sender,msg.sender,amount);
     }
 
     function cooldown() external {
