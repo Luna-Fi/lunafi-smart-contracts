@@ -68,10 +68,7 @@ contract LFIToken is
 
     mapping(string => bytes32) internal roles;
 
-    constructor()
-        ERC20(TOKEN_NAME, TOKEN_SYMBOL)
-        ERC20Permit(TOKEN_NAME)
-    {
+    constructor() ERC20(TOKEN_NAME, TOKEN_SYMBOL) ERC20Permit(TOKEN_NAME) {
         maxSupply = 1000000000 * 10**DECIMAL_PLACES; // 1 Billion Tokens ^ 10 decimals
 
         super._mint(msg.sender, maxSupply);

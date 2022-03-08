@@ -11,7 +11,11 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "contracts/interfaces/IclaimToken.sol";
 import "hardhat/console.sol";
 
-contract HousePoolUSDC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgradeable {
+contract HousePoolUSDC is
+    ReentrancyGuardUpgradeable,
+    AccessControl,
+    EIP712Upgradeable
+{
     using SafeERC20 for IERC20;
     struct ValuesOfInterest {
         int256 expectedValue;
@@ -57,13 +61,15 @@ contract HousePoolUSDC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
             )
         );
         require(
-            SignatureChecker.isValidSignatureNow(data.signer, digest, signature),
+            SignatureChecker.isValidSignatureNow(
+                data.signer,
+                digest,
+                signature
+            ),
             "HousePoolUSDC: invalid signature"
         );
 
-        require(
-            data.signer != address(0),
-            "HousePoolUSDC: invalid signer");
+        require(data.signer != address(0), "HousePoolUSDC: invalid signer");
 
         require(
             hasRole(DATA_PROVIDER_ORACLE, data.signer),
@@ -80,7 +86,7 @@ contract HousePoolUSDC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
     }
 
     // -- Init --
-    function initialize (
+    function initialize(
         address _owner,
         address _usdc,
         address _claimToken,
@@ -91,37 +97,43 @@ contract HousePoolUSDC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
         token = IERC20(_usdc);
         claimToken = claimTokenInterface(_claimToken);
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
-        lpTokenPrice = 100*10**MAX_PRECISION;
-        lpTokenWithdrawlPrice = 100*10**MAX_PRECISION;
+        lpTokenPrice = 100 * 10**MAX_PRECISION;
+        lpTokenWithdrawlPrice = 100 * 10**MAX_PRECISION;
     }
 
     // -- Authorised Functions --
     function setVOI(bytes memory sig_, ValuesOfInterest memory voi_)
-        external onlyValid(voi_, sig_) onlyRole(HOUSE_POOL_DATA_PROVIDER)
+        external
+        onlyValid(voi_, sig_)
+        onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
         _setVoi(voi_);
     }
 
-    function deposit(uint256 amountUSDC, bytes memory approval, ValuesOfInterest memory approvedValues)
-        external onlyValid(approvedValues, approval)
-    {
+    function deposit(
+        uint256 amountUSDC,
+        bytes memory approval,
+        ValuesOfInterest memory approvedValues
+    ) external onlyValid(approvedValues, approval) {
         _setVoi(approvedValues);
         _deposit(amountUSDC);
     }
 
-    function withdraw(uint256 amountUSDC, bytes memory approval, ValuesOfInterest memory approvedValues)
-        external onlyValid(approvedValues, approval)
-    {
+    function withdraw(
+        uint256 amountUSDC,
+        bytes memory approval,
+        ValuesOfInterest memory approvedValues
+    ) external onlyValid(approvedValues, approval) {
         _setVoi(approvedValues);
         _withdraw(amountUSDC);
     }
 
     // -- External Functions
-    function deposit_(uint usdcMicro) external {
+    function deposit_(uint256 usdcMicro) external {
         _deposit(usdcMicro);
     }
 
-    function withdraw_(uint usdcMicro) external {
+    function withdraw_(uint256 usdcMicro) external {
         _withdraw(usdcMicro);
     }
 
@@ -130,11 +142,11 @@ contract HousePoolUSDC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
         return lpTokenPrice;
     }
 
-    function getTreasuryAmount() external view returns(uint256) {
+    function getTreasuryAmount() external view returns (uint256) {
         return treasuryAmount;
     }
 
-    function getTokenWithdrawlPrice() external view returns(uint256) {
+    function getTokenWithdrawlPrice() external view returns (uint256) {
         return lpTokenWithdrawlPrice;
     }
 
@@ -160,20 +172,24 @@ contract HousePoolUSDC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
 
     // -- Internal Functions --
     function _setTokenPrice() internal {
-        if(claimToken.totalSupply() != 0) {
-            lpTokenPrice = (uint(tvl) * 10**MAX_PRECISION) / claimToken.totalSupply();
+        if (claimToken.totalSupply() != 0) {
+            lpTokenPrice =
+                (uint256(tvl) * 10**MAX_PRECISION) /
+                claimToken.totalSupply();
         }
     }
 
     function _setTokenWithdrawlPrice() internal {
-        if(claimToken.totalSupply() != 0) {
-            lpTokenWithdrawlPrice = (liquidity * 10**MAX_PRECISION) / claimToken.totalSupply();
+        if (claimToken.totalSupply() != 0) {
+            lpTokenWithdrawlPrice =
+                (liquidity * 10**MAX_PRECISION) /
+                claimToken.totalSupply();
         }
     }
 
     function _updateTVL(int256 expectedValue) internal {
-        if(voi.expectedValue == 0){
-           tvl += expectedValue;
+        if (voi.expectedValue == 0) {
+            tvl += expectedValue;
         } else {
             tvl -= voi.expectedValue;
             tvl += expectedValue;
@@ -181,15 +197,19 @@ contract HousePoolUSDC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
     }
 
     function _setVoi(ValuesOfInterest memory _voi) internal {
-        if(_voi.expectedValue != voi.expectedValue) {_setEV(_voi.expectedValue);}
-        if(_voi.maxExposure != voi.maxExposure) {_setME(_voi.maxExposure);}
+        if (_voi.expectedValue != voi.expectedValue) {
+            _setEV(_voi.expectedValue);
+        }
+        if (_voi.maxExposure != voi.maxExposure) {
+            _setME(_voi.maxExposure);
+        }
     }
 
     function _setME(int256 exposure) internal {
         voi.maxExposure = exposure;
     }
 
-    function _setEV(int newEV) internal {
+    function _setEV(int256 newEV) internal {
         _updateTVL(newEV);
         voi.expectedValue = newEV;
         _setTokenPrice();
@@ -201,10 +221,12 @@ contract HousePoolUSDC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
             "USDCHousePool: Check the Balance"
         );
         liquidity += amount * 10**PRECISION_DIFFERENCE;
-        tvl += int(amount * 10**PRECISION_DIFFERENCE);
+        tvl += int256(amount * 10**PRECISION_DIFFERENCE);
         deposits[msg.sender] += amount * 10**PRECISION_DIFFERENCE;
         token.safeTransferFrom(msg.sender, address(this), amount);
-        uint256 LPTokensToMint = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / lpTokenPrice;
+        uint256 LPTokensToMint = (amount *
+            10**PRECISION_DIFFERENCE *
+            10**MAX_PRECISION) / lpTokenPrice;
         claimToken.mint(msg.sender, LPTokensToMint);
         _setTokenPrice();
         _setTokenWithdrawlPrice();
@@ -213,13 +235,18 @@ contract HousePoolUSDC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
     function _withdraw(uint256 amount) internal nonReentrant {
         require(amount > 0, "USDCHousePool: Zero Amount");
         require(
-            amount * 10**PRECISION_DIFFERENCE <= (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
-                int(amount) * int(10**PRECISION_DIFFERENCE) <= int(liquidity) - voi.maxExposure,
-                "USDCHousePool : can't withdraw"
+            amount * 10**PRECISION_DIFFERENCE <=
+                (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) *
+                    lpTokenWithdrawlPrice &&
+                int256(amount) * int256(10**PRECISION_DIFFERENCE) <=
+                int256(liquidity) - voi.maxExposure,
+            "USDCHousePool : can't withdraw"
         );
-        uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
+        uint256 LPTokensToBurn = (amount *
+            10**PRECISION_DIFFERENCE *
+            10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
         liquidity -= amount * 10**PRECISION_DIFFERENCE;
-        tvl -= int(amount) * int(10**PRECISION_DIFFERENCE);
+        tvl -= int256(amount) * int256(10**PRECISION_DIFFERENCE);
         deposits[msg.sender] -= amount * 10**PRECISION_DIFFERENCE;
         token.safeTransfer(msg.sender, amount);
         claimToken.burn(msg.sender, LPTokensToBurn);

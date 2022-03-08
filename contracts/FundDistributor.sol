@@ -6,10 +6,12 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import 'hardhat/console.sol';
+import "hardhat/console.sol";
 
 interface IRewardToken is IERC20 {
-    function transfer(address _recipient, uint256 _amount) external returns(bool);
+    function transfer(address _recipient, uint256 _amount)
+        external
+        returns (bool);
 }
 
 contract FundDistributor is Ownable {
@@ -33,7 +35,8 @@ contract FundDistributor is Ownable {
     }
 
     function distributeReward(address _receiver, uint256 _amount)
-        public onlyRequester
+        public
+        onlyRequester
     {
         require(_receiver != address(0), "Invalid address");
         if (_amount > 0) {
@@ -41,16 +44,19 @@ contract FundDistributor is Ownable {
             rewardToken.safeTransfer(_receiver, _amount);
         }
     }
+
     function addRequester(address _requester) external onlyOwner {
         require(!requesters[_requester], "requester existed");
         requesters[_requester] = true;
         emit RequesterAdded(_requester);
     }
+
     function removeRequester(address _requester) external onlyOwner {
         require(requesters[_requester], "requester not found");
         delete requesters[_requester];
         emit RequesterRemoved(_requester);
     }
+
     event RequesterAdded(address indexed requester);
     event RequesterRemoved(address indexed requester);
     event FundRequested(uint256 indexed amount);

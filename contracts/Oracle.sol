@@ -8,7 +8,8 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 /// @notice Provide HousePool values & accept betting stakes
 /// @dev Interface with HousePool contracts
 contract LunaFiOracle is AccessControl {
-    bytes32 public constant HOUSE_POOL_DATA_PROVIDER = keccak256("HOUSEPOOL_DATA_PROVIDER");
+    bytes32 public constant HOUSE_POOL_DATA_PROVIDER =
+        keccak256("HOUSEPOOL_DATA_PROVIDER");
 
     struct HPData {
         uint256 expectedPendingValue;
@@ -31,7 +32,8 @@ contract LunaFiOracle is AccessControl {
     /// @param housePool contract address of House Pool for which Data is to be updated
     /// @param newHPData House Pool Data to be updated
     function updateHPData(address housePool, HPData calldata newHPData)
-    external onlyRole(HOUSE_POOL_DATA_PROVIDER)
+        external
+        onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
         data[housePool] = newHPData;
         emit HPDataUpdated(housePool, newHPData);
@@ -41,8 +43,9 @@ contract LunaFiOracle is AccessControl {
     /// @param housePool contract address of House Pool for which Data is to be updated
     /// @return housePoolInfo House Pool information
     function getHPData(address housePool)
-    external view
-    returns (HPData memory housePoolInfo)
+        external
+        view
+        returns (HPData memory housePoolInfo)
     {
         housePoolInfo = data[housePool];
     }
@@ -51,9 +54,7 @@ contract LunaFiOracle is AccessControl {
     /// @dev only by Betting contract & House Pool Data Providers // TODO sync issue
     /// @param housePool contract address of the House Pool
     /// @param newBSValue new value for betting stakes
-    function updateBS(address housePool, uint256 newBSValue)
-    external
-    {
+    function updateBS(address housePool, uint256 newBSValue) external {
         data[housePool].bettingStakes = newBSValue;
     }
 }
