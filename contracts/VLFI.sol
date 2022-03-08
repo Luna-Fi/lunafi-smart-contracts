@@ -103,12 +103,16 @@ contract VLFI is ERC20, ERC20Permit, AccessControl {
         return userInfo[benefitor].rewardDebt;
     }
 
-    function getFarmAccRewardPerShare() external view returns (uint256) {
+    function getAccRewardPerShare() external view returns (uint256) {
         return farmInfo.accRewardsPerShare;
     }
 
-    function getFarmLastRewardTime() external view returns (uint256) {
+    function getLastRewardTime() external view returns (uint256) {
         return farmInfo.lastRewardTime;
+    }
+
+    function getRewardPerSecond() external view returns(uint256) {
+        return rewardPerSecond;
     }
 
     function getCooldownSeconds() external view returns (uint256) {
