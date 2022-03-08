@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.10;
-
-
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 //--------------------------------------
 //   WBTC claim Token Contract 
@@ -13,53 +12,7 @@ pragma solidity 0.8.10;
 // Decimals    : 18
 //--------------------------------------
 
-/// @title An ERC20 Contract for 
-/// @author Chay
-
-abstract contract ERC20Interface {
-    function totalSupply() virtual external view returns (uint256);
-    function balanceOf(address tokenOwner) virtual external view returns (uint);
-    function allowance(address tokenOwner, address spender) virtual external view returns (uint);
-    function transfer(address to, uint tokens) virtual external returns (bool);
-    function approve(address spender, uint tokens) virtual external returns (bool);
-    function transferFrom(address from, address to, uint tokens) virtual external returns (bool);
-    
-    event Transfer(address indexed from, address indexed to, uint tokens);
-    event Approval(address indexed tokenOwner, address indexed spender, uint tokens); 
-
-  }
-
-
-/// @title Safe Math Contract
-/// @notice This is used for safe add and safe subtract. This overcomes the overflow errors.
-
-contract SafeMath {
-    /// @notice Perform a safe additon with out an overflow/underflow
-    /// @param a an unsigned integer
-    /// @param b an unsigned integer
-    /// @return c an unsigned integer which is a sum of two given params.
-    function safeAdd(uint a, uint b) public pure returns (uint c) {
-        c = a + b;
-        require(c >= a, "SafeMath: addition overflow");
-        return c;
-    }
-
-    /// @notice Perform a safe additon with out an overflow/underflow
-    /// @param a an unsigned integer
-    /// @param b an unsigned integer
-    /// @return c an unsigned integer which is a difference of two given params.
-    function safeSub(uint a, uint b) public pure returns (uint c) {
-        require(b <= a, "SafeMath: subtraction overflow"); 
-        c = a - b; 
-        return c;
-    }
-
-}
-
-/// @title An ERC20 Interface
-/// @author Chay
- 
-contract WBTCclaimToken is ERC20Interface, SafeMath {
+contract WBTCclaimToken is IERC20 {
     
     uint8 public decimals;
     address public owner;
@@ -108,7 +61,7 @@ contract WBTCclaimToken is ERC20Interface, SafeMath {
 
 
     function totalSupply() external view override returns (uint256) {
-        return safeSub(_totalSupply, balances[address(0)]);
+        return _totalSupply - balances[address(0)];
     }
 
     function balanceOf(address tokenOwner) external view override returns (uint getBalance) {
@@ -127,17 +80,17 @@ contract WBTCclaimToken is ERC20Interface, SafeMath {
     
     function transfer(address to, uint tokens) external override returns (bool success) {
         require(to != address(0),"WBTCclaimToken: Address should not be a zero");
-        balances[msg.sender] = safeSub(balances[msg.sender], tokens);
-        balances[to] = safeAdd(balances[to], tokens);
+        balances[msg.sender] = balances[msg.sender] - tokens;
+        balances[to] = balances[to] + tokens;
         emit Transfer(msg.sender, to, tokens);
         return true;
     }
     
    function transferFrom(address from, address to, uint tokens) external override returns (bool success) {
         require(to != address(0),"WBTCclaimToken: Address should not be a zero");
-        balances[from] = safeSub(balances[from], tokens);
-        allowed[from][msg.sender] = safeSub(allowed[from][msg.sender], tokens);
-        balances[to] = safeAdd(balances[to], tokens);
+        balances[from] = balances[from] - tokens;
+        allowed[from][msg.sender] = allowed[from][msg.sender] - tokens;
+        balances[to] = balances[to] + tokens;
         emit Transfer(from, to, tokens);
         return true;
     }
@@ -146,15 +99,15 @@ contract WBTCclaimToken is ERC20Interface, SafeMath {
         require(account != address(0),"WBTCclaimToken: Burn from a zero address");
         uint256 accountBalance = balances[account];
         require(accountBalance >= tokens , "WBTCclaimToken: Burn amount exceeds Balance");
-        balances[account] = safeSub(accountBalance,tokens);
-        _totalSupply = safeSub(_totalSupply,tokens);
+        balances[account] = accountBalance - tokens;
+        _totalSupply = _totalSupply - tokens;
         emit Transfer(account,address(0), tokens);
     }
     
     function mint(address account,uint tokens) external onlyAdmin {
         require(account != address(0),"WBTCclaimToken: Mint from a zero address");
-        balances[account] = safeAdd(balances[account],tokens);
-        _totalSupply = safeAdd(_totalSupply,tokens);
+        balances[account] = balances[account] + tokens;
+        _totalSupply = _totalSupply + tokens;
         emit Transfer(address(0),account,tokens);  
     }
 

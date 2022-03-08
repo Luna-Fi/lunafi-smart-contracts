@@ -7,16 +7,12 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "contracts/interfaces/IclaimToken.sol";
 import "hardhat/console.sol";
 
-interface claimTokenInterface {
-    function burn(address account, uint256 tokens) external;
-    function mint(address account, uint256 tokens) external;
-    function balanceOf(address tokenOwner) external view returns (uint256 getBalance);
-    function totalSupply() external view returns (uint256);
-}
-
 contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgradeable {
+    using SafeERC20 for IERC20;
     struct ValuesOfInterest {
         int256 expectedValue;
         int256 maxExposure;
@@ -26,7 +22,7 @@ contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
 
     uint256 bettingStakes;
     uint256 liquidity;
-    uint256 treasuryAmount;
+    uint256 treasuryAmount = 0; // Initialized this to suffice uninitialized-state-variables
     int256 tvl;
     IERC20 token;
     claimTokenInterface claimToken;
@@ -202,7 +198,7 @@ contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
         liquidity += amount * 10**PRECISION_DIFFERENCE;
         tvl += int(amount * 10**PRECISION_DIFFERENCE);
         deposits[msg.sender] += amount * 10**PRECISION_DIFFERENCE;
-        token.transferFrom(msg.sender, address(this), amount);
+        token.safeTransferFrom(msg.sender, address(this), amount);
         uint256 LPTokensToMint = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / lpTokenPrice;
         claimToken.mint(msg.sender, LPTokensToMint);
         setTokenPrice();
@@ -220,7 +216,7 @@ contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
         liquidity -= amount * 10**PRECISION_DIFFERENCE;
         tvl -= int(amount) * int(10**PRECISION_DIFFERENCE);
         deposits[msg.sender] -= amount * 10**PRECISION_DIFFERENCE;
-        token.transfer(msg.sender, amount);
+        token.safeTransfer(msg.sender, amount);
         claimToken.burn(msg.sender, LPTokensToBurn);
         setTokenWithdrawlPrice();
         setTokenPrice();

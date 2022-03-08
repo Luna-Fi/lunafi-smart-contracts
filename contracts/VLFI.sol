@@ -15,7 +15,7 @@ contract VLFI is ERC20,ERC20Permit,AccessControl {
 
     struct FarmInfo {
        uint256 accRewardsPerShare;
-       uint256 lastRewardTime ; // --- 
+       uint256 lastRewardTime ; 
     }
 
     struct UserInfo{
@@ -31,6 +31,8 @@ contract VLFI is ERC20,ERC20Permit,AccessControl {
     IERC20 public immutable STAKED_TOKEN;
     uint256  COOLDOWN_SECONDS;
     uint256  UNSTAKE_WINDOW;
+    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
+    uint256 public  maxTreasuryWithdrawalPercentage;
     mapping(address => uint256) private stakerRewardsToClaim;
     mapping(address => uint256) private cooldownStartTimes;
     mapping(address => uint256) private userDeposits;
@@ -51,6 +53,7 @@ contract VLFI is ERC20,ERC20Permit,AccessControl {
     // Governance should be added.
 
     // votes and upgradeable hardhat.
+    // transfer To Treasury
 
   
     constructor(
@@ -59,17 +62,19 @@ contract VLFI is ERC20,ERC20Permit,AccessControl {
         IERC20 stakedToken,
         uint256 cooldownSeconds,
         uint256 unstakeWindow,
-        uint256 rewardsPerSecond
+        uint256 rewardsPerSecond,
+        uint256 treasuryWithdrawlPercentage
     ) ERC20(name,symbol) ERC20Permit(name){
         STAKED_TOKEN = stakedToken;
         COOLDOWN_SECONDS = cooldownSeconds;
         UNSTAKE_WINDOW = unstakeWindow;
+        maxTreasuryWithdrawalPercentage = treasuryWithdrawlPercentage;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(MANAGER_ROLE,msg.sender);
         setRewardPerSecond(rewardsPerSecond);
         createFarm();
     }
 
-    
     function getCooldown(address staker) external view returns(uint256) {
       return cooldownStartTimes[staker];
     }
@@ -102,16 +107,26 @@ contract VLFI is ERC20,ERC20Permit,AccessControl {
         return liquidity;
     }
 
-    function setCooldownSeconds(uint256 coolDownSeconds) external {
+    function setCooldownSeconds(uint256 coolDownSeconds) external onlyRole(MANAGER_ROLE){
       COOLDOWN_SECONDS = coolDownSeconds;
+    }
+
+    function setUnstakeWindowTime(uint256 unstakeWindow) external onlyRole(MANAGER_ROLE) {
+      UNSTAKE_WINDOW = unstakeWindow;
     }
 
     function getUnstakeWindowTime() external view returns(uint256) {
       return UNSTAKE_WINDOW;
     }
 
-    function setUnstakeWindowTime(uint256 unstakeWindow) external {
-      UNSTAKE_WINDOW = unstakeWindow;
+    function transferToTreasury(address to, uint256 treasuryWithdrawl) external onlyRole(MANAGER_ROLE) {
+        uint256 maxWithdrawalLiquidity =  (liquidity * maxTreasuryWithdrawalPercentage) / 100;
+        require(treasuryWithdrawl <= maxWithdrawalLiquidity);
+        IERC20(STAKED_TOKEN).safeTransfer(to, treasuryWithdrawl);
+    }
+
+    function setMaxTreasuryWithdrawalPercentage(uint256 percentage) external onlyRole(MANAGER_ROLE) {
+        maxTreasuryWithdrawalPercentage = percentage;
     }
 
     function updateFarm() public returns(FarmInfo memory farm) {
@@ -142,11 +157,11 @@ contract VLFI is ERC20,ERC20Permit,AccessControl {
     }
 
 
-    function setRewardPerSecond(uint256 _rewardPerSecond) public  {
+    function setRewardPerSecond(uint256 _rewardPerSecond) public onlyRole(DEFAULT_ADMIN_ROLE) {
         rewardPerSecond = _rewardPerSecond;
     }
 
-    function createFarm() public {
+    function createFarm() public onlyRole(MANAGER_ROLE) {
         farmInfo = FarmInfo({
             accRewardsPerShare: 0,
             lastRewardTime: block.timestamp
@@ -160,7 +175,9 @@ contract VLFI is ERC20,ERC20Permit,AccessControl {
         this.stake(onBehalfOf,LFIamount);
     }
 
-    function stake(address onBehalfOf, uint256 amount) external { //LFI
+
+    
+    function stake(address onBehalfOf, uint256 amount) external { 
         require(amount != 0,"VLFI:INVALID_AMOUNT");
         uint256 balanceOfUser = balanceOf(onBehalfOf);
         FarmInfo memory farm = updateFarm();
@@ -260,7 +277,7 @@ contract VLFI is ERC20,ERC20Permit,AccessControl {
         int accumulatedReward = int(user.amount * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
         uint _pendingReward = uint(accumulatedReward - user.rewardDebt);
         user.rewardDebt = accumulatedReward; 
-        IERC20(STAKED_TOKEN).transfer(to, _pendingReward);
+        IERC20(STAKED_TOKEN).safeTransfer(to, _pendingReward);
         emit RewardsClaimed(msg.sender, to, _pendingReward);
   }
 
