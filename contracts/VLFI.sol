@@ -4,9 +4,12 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
 
-contract VLFI is ERC20 {
+contract VLFI is ERC20,ERC20Permit,AccessControl {
 
     using SafeERC20 for IERC20;
 
@@ -22,36 +25,53 @@ contract VLFI is ERC20 {
 
     FarmInfo  farmInfo;
     uint256 private rewardPerSecond;
-    mapping (address => UserInfo) private userInfo;
-    
-
     uint256 constant MAX_PRECISION = 18;
+    uint256 liquidity;
     uint256 lpTokenPrice = 1000*10**MAX_PRECISION; 
     IERC20 public immutable STAKED_TOKEN;
     uint256  COOLDOWN_SECONDS;
     uint256  UNSTAKE_WINDOW;
     mapping(address => uint256) private stakerRewardsToClaim;
-    mapping(address => uint256) private stakersCooldowns;
+    mapping(address => uint256) private cooldownStartTimes;
     mapping(address => uint256) private userDeposits;
+    mapping (address => UserInfo) private userInfo;
+
+    // Arrange the variables
     uint256 private constant ACC_REWARD_PRECISION = 1e18;
 
-    event Deposited(address indexed from, address indexed onBehalfOf, uint256 amount);
-    event Redeemed(address indexed from, address indexed to, uint256 amount);
+    event Staked(address indexed from, address indexed onBehalfOf, uint256 amount);
+    event UnStaked(address indexed from, address indexed to, uint256 amount);
+    event CooldownActivated(address indexed user);
+    event RewardsClaimed(address indexed from, address indexed to, uint256 amount);
+    // RewardsAccumulated
+ 
 
+    // Natspec comments.
+
+    // Governance should be added.
+
+    // votes and upgradeable hardhat.
+
+  
     constructor(
         string memory name,
         string memory symbol,
         IERC20 stakedToken,
         uint256 cooldownSeconds,
-        uint256 unstakeWindow
-    ) ERC20(name,symbol){
+        uint256 unstakeWindow,
+        uint256 rewardsPerSecond
+    ) ERC20(name,symbol) ERC20Permit(name){
         STAKED_TOKEN = stakedToken;
         COOLDOWN_SECONDS = cooldownSeconds;
         UNSTAKE_WINDOW = unstakeWindow;
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        setRewardPerSecond(rewardsPerSecond);
+        createFarm();
     }
 
-    function getStakersCooldowns(address staker) external view returns(uint256) {
-      return stakersCooldowns[staker];
+    
+    function getCooldown(address staker) external view returns(uint256) {
+      return cooldownStartTimes[staker];
     }
 
     function getUserLFIDeposits(address user) external view returns(uint256) {
@@ -76,6 +96,10 @@ contract VLFI is ERC20 {
 
     function getCooldownSeconds() external view returns(uint256) {
       return COOLDOWN_SECONDS;
+    }
+
+    function getLiquidityStatus() external view returns (uint256) {
+        return liquidity;
     }
 
     function setCooldownSeconds(uint256 coolDownSeconds) external {
@@ -104,7 +128,7 @@ contract VLFI is ERC20 {
         }
     }
 
-    function pendingReward(address benefitor) public view returns(uint256 pendingRewards) {
+    function getRewards(address benefitor) public view returns(uint256 pendingRewards) {
       FarmInfo memory farm = farmInfo;
       UserInfo storage user = userInfo[benefitor];
       uint256 accRewardPerShare = farm.accRewardsPerShare;
@@ -122,11 +146,18 @@ contract VLFI is ERC20 {
         rewardPerSecond = _rewardPerSecond;
     }
 
-    function createFarm() external {
+    function createFarm() public {
         farmInfo = FarmInfo({
             accRewardsPerShare: 0,
             lastRewardTime: block.timestamp
         });
+    }
+
+    function permitAndStake(address owner,address spender,uint256 value,uint256 deadline,uint8 v,
+                            bytes32 r, bytes32 s,address onBehalfOf, uint256 LFIamount) external {
+          
+        permit(owner, spender, value, deadline, v, r, s);
+        this.stake(onBehalfOf,LFIamount);
     }
 
     function stake(address onBehalfOf, uint256 amount) external { //LFI
@@ -136,99 +167,101 @@ contract VLFI is ERC20 {
         UserInfo storage user = userInfo[msg.sender];
         user.amount += ((amount * 10**18) / lpTokenPrice);
         user.rewardDebt += int( ((amount * 10**18) /lpTokenPrice) * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
-        stakersCooldowns[onBehalfOf] = getNextCooldownTimestamp(0, amount, onBehalfOf, balanceOfUser);
+        userDeposits[msg.sender] += amount;
+        liquidity += amount;
+        cooldownStartTimes[onBehalfOf] = getNextCooldownTimestamp(0, amount, onBehalfOf, balanceOfUser);
         _mint(onBehalfOf, (amount * 10**18) / lpTokenPrice); 
         IERC20(STAKED_TOKEN).safeTransferFrom(msg.sender, address(this), amount);
-        userDeposits[msg.sender] += amount;
-        emit Deposited(msg.sender, onBehalfOf, amount);
+        emit Staked(msg.sender, onBehalfOf, amount);
     }
 
     function updateRewardsToClaim() external {
       uint256 rewards;
       stakerRewardsToClaim[msg.sender] = rewards;
-      
     }
 
-    function redeem(address to, uint256 amount) external {
+    function unStake(address to, uint256 amount) external {
         require(amount != 0 && amount <= STAKED_TOKEN.balanceOf(msg.sender),"VLFI:INVALID_AMOUNT");
-        uint256 cooldownStartTimestamp = stakersCooldowns[msg.sender];
+        uint256 cooldownStartTimestamp = cooldownStartTimes[msg.sender];
         require(
             (block.timestamp) > (cooldownStartTimestamp + (COOLDOWN_SECONDS)),
-            "VLFI:INSUFFICIENT_COOLDOWN"
+            "VLFI:COOLDOWN_NOT_COMPLETE"
         );
         require(
             block.timestamp - (cooldownStartTimestamp + (COOLDOWN_SECONDS)) <= UNSTAKE_WINDOW,
             "VLFI:UNSTAKE_WINDOW_FINISHED"
-    );
+        );
         uint256 balanceOfMessageSender = balanceOf(msg.sender);
-        //uint256 amountToRedeem = (amount > balanceOfMessageSender) ? balanceOfMessageSender : amount;
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
         user.rewardDebt -= int(((amount * 10**18)/lpTokenPrice) * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
         user.amount -= (amount * 10**18)/lpTokenPrice ;
-        _burn(msg.sender, (amount * 10**18)/lpTokenPrice);
-        if (balanceOfMessageSender - ((amount * 10**18)/lpTokenPrice) == 0) {
-             stakersCooldowns[msg.sender] = 0;
-        }
-        IERC20(STAKED_TOKEN).safeTransfer(to, amount);
         userDeposits[msg.sender] -= amount;
-        emit Redeemed(msg.sender,msg.sender,amount);
+        liquidity -= amount;
+        _burn(msg.sender, (amount * 10**18)/lpTokenPrice); // VLFI
+        if (balanceOfMessageSender - ((amount * 10**18)/lpTokenPrice) == 0) {
+             cooldownStartTimes[msg.sender] = 0;
+        }
+        IERC20(STAKED_TOKEN).safeTransfer(to, amount); // LFI transfer to user
+        
+        emit UnStaked(msg.sender,msg.sender,amount);
     }
 
-    function cooldown() external {
+    function activateCooldown() external {
         require(balanceOf(msg.sender) != 0, "VLFI:INVALID_BALANCE_ON_COOLDOWN");
         //solium-disable-next-line
-        stakersCooldowns[msg.sender] = block.timestamp;
-
+        cooldownStartTimes[msg.sender] = block.timestamp;
+        emit CooldownActivated(msg.sender);
     }
-  // what we are doing on deposit is what needs to happen for both sender and receiver in Transfer also.Do this only if MSG.sender != to
-    function transfer(address to, uint256 amount) public override returns(bool) {
-        require(msg.sender != to, "VLFI: INVALID TRANSFER");
-        require(amount <= balanceOf(msg.sender));
-        uint256 senderBalance = balanceOf(msg.sender);
-        uint256 receiverBalance = balanceOf(to);
-        uint256 cooldownStartTimestamp = stakersCooldowns[msg.sender];
-        require(
-            (block.timestamp) > (cooldownStartTimestamp + (COOLDOWN_SECONDS)),
-            "VLFI:INSUFFICIENT_COOLDOWN"
-        );
-        require(
-            block.timestamp - (cooldownStartTimestamp + (COOLDOWN_SECONDS)) <= UNSTAKE_WINDOW,
-            "VLFI:UNSTAKE_WINDOW_FINISHED"
-        );
-        
-         FarmInfo memory farm = updateFarm();
-         UserInfo storage sender = userInfo[msg.sender];
-         sender.rewardDebt -= int(((amount * 10**18)/lpTokenPrice) * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
-         sender.amount -= (amount * 10**18)/lpTokenPrice ;
 
-         UserInfo storage receiver = userInfo[to];
-         receiver.rewardDebt += int(((amount * 10**18)/lpTokenPrice) * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
-         receiver.amount += (amount * 10**18)/lpTokenPrice ;
+    /**
+   * @dev Internal ERC20 _transfer of the tokenized staked tokens
+   * @param from Address to transfer from
+   * @param to Address to transfer to
+   * @param amount Amount to transfer
+   **/
+  function _transfer(
+    address from,
+    address to,
+    uint256 amount
+  ) internal override {
+    uint256 balanceOfFrom = balanceOf(from);
+    FarmInfo memory farm = updateFarm();
+    // Sender
+    UserInfo storage sender = userInfo[from];
+    sender.rewardDebt -= int(amount  * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
+    sender.amount -= amount ;
 
-         uint256 previousSenderCooldown = stakersCooldowns[msg.sender];
-         stakersCooldowns[to] = getNextCooldownTimestamp(
-            previousSenderCooldown,
-            amount,
-            to,
-            receiverBalance
-          );
-          // If cooldown was set and whole balance of sender was trnasferred - clear cooldown
-          if(senderBalance == amount && previousSenderCooldown != 0) {
-            stakersCooldowns[msg.sender] = 0;
-          }
-        
-       _transfer(msg.sender,to,amount);
-       return true;
+    // Recipient
+    if (from != to) {
+      uint256 balanceOfTo = balanceOf(to);
+      UserInfo storage receiver = userInfo[to];
+      receiver.rewardDebt += int(amount * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
+      receiver.amount += amount;
+
+      uint256 previousSenderCooldown = cooldownStartTimes[from];
+      cooldownStartTimes[to] = getNextCooldownTimestamp(
+        previousSenderCooldown,
+        amount,
+        to,
+        balanceOfTo
+      );
+      // if cooldown was set and whole balance of sender was transferred - clear cooldown
+      if (balanceOfFrom == amount && previousSenderCooldown != 0) {
+        cooldownStartTimes[from] = 0;
+      }
     }
+    super._transfer(from, to, amount);
+  }
 
     function claimRewards(address to) external {
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];  
         int accumulatedReward = int(user.amount * farm.accRewardsPerShare / ACC_REWARD_PRECISION);
         uint _pendingReward = uint(accumulatedReward - user.rewardDebt);
-        user.rewardDebt = accumulatedReward; //check for the reward debt again.
+        user.rewardDebt = accumulatedReward; 
         IERC20(STAKED_TOKEN).transfer(to, _pendingReward);
+        emit RewardsClaimed(msg.sender, to, _pendingReward);
   }
 
     function getNextCooldownTimestamp(
@@ -237,7 +270,7 @@ contract VLFI is ERC20 {
     address toAddress,
     uint256 toBalance
   ) public view returns (uint256) {
-    uint256 toCooldownTimestamp = stakersCooldowns[toAddress];
+    uint256 toCooldownTimestamp = cooldownStartTimes[toAddress];
     if (toCooldownTimestamp == 0) {
       return 0;
     }

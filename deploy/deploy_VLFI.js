@@ -6,7 +6,7 @@ module.exports  = async ({getNamedAccounts, deployments}) => {
 
     const LFIAddress = "0x9c4c940205cF972e0B5742c17B3B9a3eAAF87a47"
     
-    const VLFI = await deploy('VLFI', {from: deployer, log: true, args: ["VLFI", "VLFI",LFIAddress,300,60 ]});
+    const VLFI = await deploy('VLFI', {from: deployer, log: true, args: ["VLFI", "VLFI",LFIAddress,120,60 ]});
    
     console.log("VLFIAddress : ", VLFI.address)
 
