@@ -22,6 +22,8 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
         address recipient;
         // duration of the vesting period in seconds
         uint256 vestingPeriod;
+        // duration of cliff period in seconds
+        uint256 cliffPeriod;
         // total amount of tokens to be vested to the beneficiary
         uint256 allocatedAmount;
         // amount of tokens released
@@ -34,7 +36,7 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
     IERC20 private immutable _token;
 
     // mapping from address to VestingSchedule
-    mapping(address => VestingSchedule) private vestingSchedulesByAddress;
+    mapping(address => uint256) private vestingScheduleIdsByAddress;
 
     // mapping from id to VestingSchedule
     mapping(uint256 => VestingSchedule) private vestingSchedulesById;
@@ -76,25 +78,223 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
         MINUTES_IN_DAY = 1; // 24 * 60 for mainnet, 1 for testnet
 
         uint8 decimals = 18;
+
+        // Team
         createVestingSchedule(
-            address(0x70997970C51812dc3A010C7d01b50e0d17dc79C8),
+            address(0x27106C0f5c450ED30B4547681992709808964600),
+            1080,
             180,
-            10000 * 10**decimals
+            115000000 * 10**decimals
         );
         createVestingSchedule(
-            address(0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC),
+            address(0xFdA31099FcB1Fc146B7bd93dd99dD7F6c081c560),
+            1080,
+            180,
+            10000000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0x00e294652292776e4d59F416ef35a73Cae0e01dc),
+            1080,
+            180,
+            5000000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0x8959f1D534C83a3031ef4b8E5aAF0C2aB954ddE4),
+            1080,
+            180,
+            10000000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0xBCB5BA11f7Aa02dF7d7e607Ec83F3F24880807A1),
+            1080,
+            180,
+            2000000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0xBc9F27d42D2D9dFb3Ea58DAE8dfb22Dc9934E0fd),
+            1080,
+            180,
+            2000000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0xe96703DbE09AA2f3F172c01D0fbD6F4408Ff83C2),
+            1080,
+            180,
+            2000000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0xaD6f284437367357f9d4C825D95a7122E4AD60aB),
+            1080,
+            180,
+            2000000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0x9c999F738693AB7d5fAEbDdd7B0f1564DADEAB00),
+            1080,
+            180,
+            2000000 * 10**decimals
+        );
+
+        // Seed
+        createVestingSchedule(
+            address(0xce46f9aFb2cD26030021c24DC1AB52116B19B68A),
             360,
-            20000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0x90F79bf6EB2c4f870365E785982E1f101E93b906),
             90,
-            30000 * 10**decimals
+            3333333333 * 10**(decimals - 3)
         );
         createVestingSchedule(
-            address(0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65),
+            address(0x555187752Ef6d73758862B5d364AAB362c996d0e),
             360,
-            40000 * 10**decimals
+            90,
+            3333333333 * 10**(decimals - 3)
+        );
+        createVestingSchedule(
+            address(0x5E46884a77E0aC5F3126e30720Bd5218814dc5E2),
+            360,
+            90,
+            3333333333 * 10**(decimals - 3)
+        );
+        createVestingSchedule(
+            address(0xF49779d278F9b25e0Ac50c44CaD48ca74e50D043),
+            360,
+            90,
+            10000000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0xfE27c67D7a05E7D6c9C83672454a7dB7F1fD3eF1),
+            360,
+            90,
+            2500000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0x6F557741B2E0f1ED9563e1088f257C0086B5C8b0),
+            360,
+            90,
+            1000000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0xEC4636Af52275d303B71F2544389e363A0619234),
+            360,
+            90,
+            2500000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0xcF808867dFd2bFfb9444cf9981C3a2c2B984b330),
+            360,
+            90,
+            2500000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0xE0C6023B6c292D23f41dCEE3424cD24547DDca90),
+            360,
+            90,
+            5000000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0xc8c8559ab47C68B2A5f24D8F559Ae95290Cd68DF),
+            360,
+            90,
+            300000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0xdd930D3453FbEfd41938e2048a6fb49c7d3cC71F),
+            360,
+            90,
+            500000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0x5e351A2387512b4C19C78b530Fc872925362d37F),
+            360,
+            90,
+            500000 * 10**decimals
+        );
+
+        // Strategic
+        createVestingSchedule(
+            address(0x824F0e73561D2E154F8e54dCA2987f960114C601),
+            360,
+            0,
+            6666666667 * 10**(decimals - 4)
+        );
+        createVestingSchedule(
+            address(0x28aD1D1559f0ff9a9EcF4e261305B5811b8786f5),
+            360,
+            0,
+            6666666667 * 10**(decimals - 4)
+        );
+        createVestingSchedule(
+            address(0x2bC474A6285527c708827f924333e904860fFa86),
+            360,
+            0,
+            6666666667 * 10**(decimals - 4)
+        );
+        createVestingSchedule(
+            address(0x85b0157c74D77c5952fA31f9e2a55025a09f697e),
+            360,
+            0,
+            6666666667 * 10**(decimals - 4)
+        );
+        createVestingSchedule(
+            address(0x3Cd734d663AaF9d51Da45f14019dfC4EcAfEad73),
+            360,
+            0,
+            3333333333 * 10**(decimals - 4)
+        );
+        createVestingSchedule(
+            address(0x8b47e534964ec0389138b43ca39f598f18806fEC),
+            360,
+            0,
+            220000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0xCb2052f7cB59BcBD77f0ec8Ae27Ef61B39fF57C3),
+            360,
+            0,
+            50000000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0x49A323CC2fa5F9A138f30794B9348e43065D8dA2),
+            360,
+            0,
+            10000000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0x265C50DDc99C986912D4f7Cc8357303baeEB01d9),
+            360,
+            0,
+            3333333333 * 10**(decimals - 3)
+        );
+        createVestingSchedule(
+            address(0xA9F28648CaB79322fB50912Ae00D68E5dc5E704f),
+            360,
+            0,
+            3333333333 * 10**(decimals - 3)
+        );
+        createVestingSchedule(
+            address(0xA37e4eF510150E942Def77B79d262D5Fb31299EE),
+            360,
+            0,
+            6666666667 * 10**(decimals - 4)
+        );
+        createVestingSchedule(
+            address(0x1fcd4F6046FE53F914d7E7379CeE359790b0e9ff),
+            360,
+            0,
+            1666666667 * 10**(decimals - 4)
+        );
+
+        // Advisory
+        createVestingSchedule(
+            address(0x09A855d54C987D8e437A975f92A4E4F10bAB235c),
+            1080,
+            180,
+            10000000 * 10**decimals
+        );
+        createVestingSchedule(
+            address(0x16F700f8713Ca47c6693DbDD814126f7a1704f87),
+            1080,
+            180,
+            10000000 * 10**decimals
         );
     }
 
@@ -107,6 +307,7 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
     function createVestingSchedule(
         address _recipient,
         uint256 _vestingPeriod,
+        uint256 _cliffPeriod,
         uint256 _amount
     ) internal onlyOwner {
         require(_vestingPeriod > 0, "Vesting period must be > 0");
@@ -118,12 +319,13 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
             vestingScheduleCounter,
             _recipient,
             _vestingPeriod * MINUTES_IN_DAY * 60,
+            _cliffPeriod * MINUTES_IN_DAY * 60,
             _amount,
             0,
             false
         );
 
-        vestingSchedulesByAddress[_recipient] = vestingSchedule;
+        vestingScheduleIdsByAddress[_recipient] = vestingScheduleCounter;
         vestingSchedulesById[vestingScheduleCounter] = vestingSchedule;
 
         vestingScheduleCounter++;
@@ -166,16 +368,12 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
         vestingSchedulesById[id].vestedAmount += _amount;
 
         if (
-            block.timestamp >
-            startTime + vestingSchedulesById[id].vestingPeriod
+            block.timestamp > startTime + vestingSchedulesById[id].vestingPeriod
         ) {
             vestingSchedulesById[id].isEnded = true;
         }
 
-        // _token.approve(msg.sender, _amount);
-
         _token.transfer(vestingSchedulesById[id].recipient, _amount);
-        // _token.transferFrom(msg.sender, vestingSchedulesById[id].recipient, _amount);
 
         // update totalRemainedVestingAmount
         totalRemainedVestingAmount = totalRemainedVestingAmount - _amount;
@@ -206,11 +404,18 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
                     vestingSchedulesById[id].allocatedAmount -
                     vestingSchedulesById[id].vestedAmount;
             } else {
-                _amount =
-                    (vestingSchedulesById[id].allocatedAmount *
-                        (block.timestamp - startTime)) /
-                    vestingSchedulesById[id].vestingPeriod -
-                    vestingSchedulesById[id].vestedAmount;
+                if (
+                    block.timestamp >
+                    startTime + vestingSchedulesById[id].cliffPeriod
+                ) {
+                    _amount =
+                        (vestingSchedulesById[id].allocatedAmount *
+                            (block.timestamp - startTime)) /
+                        vestingSchedulesById[id].vestingPeriod -
+                        vestingSchedulesById[id].vestedAmount;
+                } else {
+                    _amount = 0;
+                }
             }
         }
     }
@@ -241,10 +446,7 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
      * @return the vesting account address
      */
     function getVestingAccountById(uint256 id) public view returns (address) {
-        require(
-            id < vestingScheduleCounter,
-            "vesting: index out of bounds"
-        );
+        require(id < vestingScheduleCounter, "vesting: index out of bounds");
         return vestingSchedulesById[id].recipient;
     }
 
@@ -257,7 +459,7 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
         view
         returns (VestingSchedule memory)
     {
-        return vestingSchedulesByAddress[account];
+        return vestingSchedulesById[vestingScheduleIdsByAddress[account]];
     }
 
     /**

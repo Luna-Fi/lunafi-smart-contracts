@@ -1,11 +1,11 @@
-const { expect } = require("chai");
-const { MockProvider } = require("ethereum-waffle");
-const { ethers } = require("hardhat");
-const { time } = require('openzeppelin-test-helpers');
+const {expect} = require("chai");
+const {MockProvider} = require("ethereum-waffle");
+const {ethers} = require("hardhat");
+const {time} = require('openzeppelin-test-helpers');
 
 require("@nomiclabs/hardhat-ethers");
 const assert = require('assert').strict;
-const { BigNumber } = require("ethers");
+const {BigNumber} = require("ethers");
 
 const managerRole = ethers.utils.id("MANAGER_ROLE");
 
@@ -18,7 +18,7 @@ const getBNFromNumber = (num, d) => {
 }
 
 const formatNumberFromBN = (bn, d) => {
-   return (getNumberFromBN(bn, d)).toString().split("").reverse().reduce(function (acc, num, i, orig) { return num + (num != "-" && i && !(i % 3) ? "," : "") + acc; }, "");;
+   return (getNumberFromBN(bn, d)).toString().split("").reverse().reduce(function (acc, num, i, orig) {return num + (num != "-" && i && !(i % 3) ? "," : "") + acc;}, "");;
 }
 
 function sleep(milliseconds) {
