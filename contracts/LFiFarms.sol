@@ -83,15 +83,19 @@ contract LFiFarms is AccessControl {
     event LogSetPool(uint256 indexed fid, uint256 allocPoint, bool overwrite);
     event FarmFundChanged(address indexed fund);
 
+    /// @dev Constructor function to consturct the LFI Farm contract
+    /// @param admin Address of the manager who can do admin activities on the contract
+    /// @param rewardToken Address of the LFI Token contract address
+    /// @param fundContract Fund contract address to set at the deployment
     constructor(
-        address _admin,
-        IERC20 _rewardToken,
-        IFundDistributor _fund
+        address admin,
+        IERC20 rewardToken,
+        IFundDistributor fundContract
     ) {
-        reward = _rewardToken;
-        fund = _fund;
-        _grantRole(DEFAULT_ADMIN_ROLE, _admin);
-        _grantRole(MANAGER_ROLE, _admin);
+        reward = rewardToken;
+        fund = fundContract;
+        _grantRole(DEFAULT_ADMIN_ROLE, admin);
+        _grantRole(MANAGER_ROLE, admin);
     }
 
     /// @notice Returns the number LFIFarms
@@ -102,45 +106,49 @@ contract LFiFarms is AccessControl {
 
     /// @notice Function to set the Fund Distributor Contract
     /// @dev Set the Fund distributor contract , to distribute rewards, and Only Manager can call the contract
-    /// @param _fund Fund Distributor Contract address
-    function setFund(IFundDistributor _fund)
+    /// @param fundContract Fund Distributor Contract address
+    function setFund(IFundDistributor fundContract)
         external
         onlyRole(MANAGER_ROLE)
     {
-        fund = _fund;
-        emit FarmFundChanged(address(_fund));
+        fund = fundContract;
+        emit FarmFundChanged(address(fundContract));
     }
 
-    /// @notice
-    function createFarm(uint256 _allocPoint, IERC20 _lpToken)
+    /// @notice Function to create a Farm. Only can be called by the Manager of the contract
+    /// @param allocPoint The number of allocation points assiged to the farm. Total allocatio points of all farms should be 100.
+    /// @param poolToken The address of the pool token contract.
+    function createFarm(uint256 allocPoint, IERC20 poolToken)
         external
         onlyRole(MANAGER_ROLE)
     {
-        checkFarmDoesntExist(_lpToken);
+        checkFarmDoesntExist(poolToken);
 
-        totalAllocPoint += _allocPoint;
+        totalAllocPoint += allocPoint;
         farmInfo.push(
             FarmInfo({
                 accRewardPerShare: 0,
                 lastRewardTime: block.timestamp,
-                allocPoint: _allocPoint
+                allocPoint: allocPoint
             })
         );
-        lpToken.push(_lpToken);
-        emit FarmCreated(lpToken.length - 1, _allocPoint, _lpToken);
+        lpToken.push(poolToken);
+        emit FarmCreated(lpToken.length - 1, allocPoint, poolToken);
     }
 
-
+    /// @notice Function to set the number of rewards to issue per second. Only can be called by Manager of the contract
+    /// @param rewardPerEverySecond The amount of rewards to be issued per second
+    /// @param fids An array of farmIDs. Eg. if we have two farms provide [0,1]
     function setRewardPerSecond(
-        uint256 _rewardPerSecond,
+        uint256 rewardPerEverySecond,
         uint256[] calldata fids
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external onlyRole(MANAGER_ROLE) {
         massUpdateFarms(fids);
-        rewardPerSecond = _rewardPerSecond;
-        emit RewardPerSecondUpdated(_rewardPerSecond);
+        rewardPerSecond = rewardPerEverySecond;
+        emit RewardPerSecondUpdated(rewardPerEverySecond);
     }
 
-     //Set Farm
+     
     function setFarm(
         uint256 fid,
         uint256 allocPoint,
