@@ -6,13 +6,14 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "hardhat/console.sol";
+import "contracts/interfaces/IFundDistributor.sol";
 
-interface IRewardToken is IERC20 {
+interface IRewardToken is IERC20,IFundDistributor {
     function transfer(address _recipient, uint256 _amount)
         external
         returns (bool);
 }
+
 
 contract FundDistributor is Ownable {
     using SafeMath for uint256;

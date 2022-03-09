@@ -1,7 +1,7 @@
 {
   "_format": "hh-sol-artifact-1",
   "contractName": "IFundDistributor",
-  "sourceName": "contracts/LFiFarms.sol",
+  "sourceName": "contracts/interfaces/IFundDistributor.sol",
   "abi": [
     {
       "inputs": [
