@@ -91,7 +91,8 @@ const config = {
     }     
   },
   etherscan: {
-    apiKey: "6J8G9VC791WVYDIQK5FA2XUJXVGNP2YH4I"
+    //apiKey: "6J8G9VC791WVYDIQK5FA2XUJXVGNP2YH4I"
+    apiKey: "NT48PSDWUK7TGM27NPPGTRQBBHBSS29HZI"
   }
 };
 

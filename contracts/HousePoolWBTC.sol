@@ -7,16 +7,16 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "contracts/interfaces/IclaimToken.sol";
 import "hardhat/console.sol";
 
-interface claimTokenInterface {
-    function burn(address account, uint256 tokens) external;
-    function mint(address account, uint256 tokens) external;
-    function balanceOf(address tokenOwner) external view returns (uint256 getBalance);
-    function totalSupply() external view returns (uint256);
-}
-
-contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgradeable {
+contract HousePoolWBTC is
+    ReentrancyGuardUpgradeable,
+    AccessControl,
+    EIP712Upgradeable
+{
+    using SafeERC20 for IERC20;
     struct ValuesOfInterest {
         int256 expectedValue;
         int256 maxExposure;
@@ -26,7 +26,7 @@ contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
 
     uint256 bettingStakes;
     uint256 liquidity;
-    uint256 treasuryAmount;
+    uint256 treasuryAmount = 0; // Initialized this to suffice uninitialized-state-variables
     int256 tvl;
     IERC20 token;
     claimTokenInterface claimToken;
@@ -61,13 +61,15 @@ contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
             )
         );
         require(
-            SignatureChecker.isValidSignatureNow(data.signer, digest, signature),
+            SignatureChecker.isValidSignatureNow(
+                data.signer,
+                digest,
+                signature
+            ),
             "HousePoolWBTC: invalid signature"
         );
 
-        require(
-            data.signer != address(0),
-            "HousePoolWBTC: invalid signer");
+        require(data.signer != address(0), "HousePoolWBTC: invalid signer");
 
         require(
             hasRole(DATA_PROVIDER_ORACLE, data.signer),
@@ -83,7 +85,7 @@ contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
         _;
     }
 
-    function initialize (
+    function initialize(
         address _owner,
         address _WBTC,
         address _claimToken,
@@ -94,35 +96,41 @@ contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
         token = IERC20(_WBTC);
         claimToken = claimTokenInterface(_claimToken);
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
-        lpTokenPrice = 1*10**(MAX_PRECISION - 2);
-        lpTokenWithdrawlPrice = 1*10**(MAX_PRECISION - 2);
+        lpTokenPrice = 1 * 10**(MAX_PRECISION - 2);
+        lpTokenWithdrawlPrice = 1 * 10**(MAX_PRECISION - 2);
     }
 
     function setVOI(bytes memory sig_, ValuesOfInterest memory voi_)
-        external onlyValid(voi_, sig_) onlyRole(HOUSE_POOL_DATA_PROVIDER)
+        external
+        onlyValid(voi_, sig_)
+        onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
         _setVoi(voi_);
     }
 
-    function deposit(uint256 amountWBTC, bytes memory approval, ValuesOfInterest memory approvedValues)
-        external onlyValid(approvedValues, approval)
-    {
+    function deposit(
+        uint256 amountWBTC,
+        bytes memory approval,
+        ValuesOfInterest memory approvedValues
+    ) external onlyValid(approvedValues, approval) {
         _setVoi(approvedValues);
         _deposit(amountWBTC);
     }
 
-    function withdraw(uint256 amountWBTC, bytes memory approval, ValuesOfInterest memory approvedValues)
-        external onlyValid(approvedValues, approval)
-    {
+    function withdraw(
+        uint256 amountWBTC,
+        bytes memory approval,
+        ValuesOfInterest memory approvedValues
+    ) external onlyValid(approvedValues, approval) {
         _setVoi(approvedValues);
         _withdraw(amountWBTC);
     }
 
-    function deposit_(uint WBTCMicro) external {
+    function deposit_(uint256 WBTCMicro) external {
         _deposit(WBTCMicro);
     }
 
-    function withdraw_(uint WBTCMicro) external {
+    function withdraw_(uint256 WBTCMicro) external {
         _withdraw(WBTCMicro);
     }
 
@@ -130,11 +138,11 @@ contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
         return lpTokenPrice;
     }
 
-    function getTreasuryAmount() external view returns(uint256) {
+    function getTreasuryAmount() external view returns (uint256) {
         return treasuryAmount;
     }
 
-    function getTokenWithdrawlPrice() external view returns(uint256) {
+    function getTokenWithdrawlPrice() external view returns (uint256) {
         return lpTokenWithdrawlPrice;
     }
 
@@ -159,20 +167,24 @@ contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
     }
 
     function setTokenPrice() internal {
-        if(claimToken.totalSupply() != 0) {
-            lpTokenPrice = (uint(tvl) * 10**MAX_PRECISION) / claimToken.totalSupply();
+        if (claimToken.totalSupply() != 0) {
+            lpTokenPrice =
+                (uint256(tvl) * 10**MAX_PRECISION) /
+                claimToken.totalSupply();
         }
     }
 
     function setTokenWithdrawlPrice() internal {
-        if(claimToken.totalSupply() != 0) {
-            lpTokenWithdrawlPrice = (liquidity * 10**MAX_PRECISION) / claimToken.totalSupply();
+        if (claimToken.totalSupply() != 0) {
+            lpTokenWithdrawlPrice =
+                (liquidity * 10**MAX_PRECISION) /
+                claimToken.totalSupply();
         }
     }
 
     function updateTVL(int256 expectedValue) internal {
-        if(voi.expectedValue == 0){
-           tvl += expectedValue;
+        if (voi.expectedValue == 0) {
+            tvl += expectedValue;
         } else {
             tvl -= voi.expectedValue;
             tvl += expectedValue;
@@ -180,15 +192,19 @@ contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
     }
 
     function _setVoi(ValuesOfInterest memory _voi) internal {
-        if(_voi.expectedValue != voi.expectedValue) {_setEV(_voi.expectedValue);}
-        if(_voi.maxExposure != voi.maxExposure) {_setME(_voi.maxExposure);}
+        if (_voi.expectedValue != voi.expectedValue) {
+            _setEV(_voi.expectedValue);
+        }
+        if (_voi.maxExposure != voi.maxExposure) {
+            _setME(_voi.maxExposure);
+        }
     }
 
     function _setME(int256 exposure) internal {
         voi.maxExposure = exposure;
     }
 
-    function _setEV(int newEV) internal {
+    function _setEV(int256 newEV) internal {
         updateTVL(newEV);
         voi.expectedValue = newEV;
         setTokenPrice();
@@ -200,10 +216,12 @@ contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
             "WBTCHousePool: Check the Balance"
         );
         liquidity += amount * 10**PRECISION_DIFFERENCE;
-        tvl += int(amount * 10**PRECISION_DIFFERENCE);
+        tvl += int256(amount * 10**PRECISION_DIFFERENCE);
         deposits[msg.sender] += amount * 10**PRECISION_DIFFERENCE;
-        token.transferFrom(msg.sender, address(this), amount);
-        uint256 LPTokensToMint = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / lpTokenPrice;
+        token.safeTransferFrom(msg.sender, address(this), amount);
+        uint256 LPTokensToMint = (amount *
+            10**PRECISION_DIFFERENCE *
+            10**MAX_PRECISION) / lpTokenPrice;
         claimToken.mint(msg.sender, LPTokensToMint);
         setTokenPrice();
         setTokenWithdrawlPrice();
@@ -212,15 +230,20 @@ contract HousePoolWBTC is ReentrancyGuardUpgradeable, AccessControl, EIP712Upgra
     function _withdraw(uint256 amount) internal nonReentrant {
         require(amount > 0, "WBTCHousePool: Zero Amount");
         require(
-            amount * 10**PRECISION_DIFFERENCE <= (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
-                int(amount) * int(10**PRECISION_DIFFERENCE) <= int(liquidity) - voi.maxExposure,
-                "WBTCHousePool : can't withdraw"
+            amount * 10**PRECISION_DIFFERENCE <=
+                (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) *
+                    lpTokenWithdrawlPrice &&
+                int256(amount) * int256(10**PRECISION_DIFFERENCE) <=
+                int256(liquidity) - voi.maxExposure,
+            "WBTCHousePool : can't withdraw"
         );
-        uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
+        uint256 LPTokensToBurn = (amount *
+            10**PRECISION_DIFFERENCE *
+            10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
         liquidity -= amount * 10**PRECISION_DIFFERENCE;
-        tvl -= int(amount) * int(10**PRECISION_DIFFERENCE);
+        tvl -= int256(amount) * int256(10**PRECISION_DIFFERENCE);
         deposits[msg.sender] -= amount * 10**PRECISION_DIFFERENCE;
-        token.transfer(msg.sender, amount);
+        token.safeTransfer(msg.sender, amount);
         claimToken.burn(msg.sender, LPTokensToBurn);
         setTokenWithdrawlPrice();
         setTokenPrice();
