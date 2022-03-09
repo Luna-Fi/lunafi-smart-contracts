@@ -14,7 +14,7 @@ module.exports  = async ({getNamedAccounts, deployments}) => {
 
   };
 
-  module.exports = ['deployClaimTokens']
+  module.exports.tags = ['deployClaimTokens']
     
   
   

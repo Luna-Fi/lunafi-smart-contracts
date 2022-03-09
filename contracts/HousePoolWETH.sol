@@ -3,19 +3,20 @@ pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
-import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "contracts/interfaces/IclaimToken.sol";
 import "hardhat/console.sol";
 
-interface claimTokenInterface {
-    function burn(address account, uint256 tokens) external;
-    function mint(address account, uint256 tokens) external;
-    function balanceOf(address tokenOwner) external view returns (uint256 getBalance);
-    function totalSupply() external view returns (uint256);
-}
-
-contract HousePoolWETH is ReentrancyGuard, AccessControl, EIP712 {
+contract HousePoolWETH is
+    ReentrancyGuardUpgradeable,
+    AccessControl,
+    EIP712Upgradeable
+{
+    using SafeERC20 for IERC20;
     struct ValuesOfInterest {
         int256 expectedValue;
         int256 maxExposure;
@@ -25,7 +26,7 @@ contract HousePoolWETH is ReentrancyGuard, AccessControl, EIP712 {
 
     uint256 bettingStakes;
     uint256 liquidity;
-    uint256 treasuryAmount;
+    uint256 treasuryAmount = 0; // Initialized this to suffice uninitialized-state-variables
     int256 tvl;
     IERC20 token;
     claimTokenInterface claimToken;
@@ -33,8 +34,8 @@ contract HousePoolWETH is ReentrancyGuard, AccessControl, EIP712 {
 
     uint256 constant MAX_PRECISION = 18;
     uint256 constant PRECISION_DIFFERENCE = 0;
-    uint256 lpTokenPrice = 100*10**MAX_PRECISION;
-    uint256 lpTokenWithdrawlPrice = 100*10**MAX_PRECISION;
+    uint256 lpTokenPrice;
+    uint256 lpTokenWithdrawlPrice;
 
     bytes32 public constant DATA_PROVIDER_ORACLE =
         keccak256("DATA_PROVIDER_ORACLE");
@@ -60,13 +61,15 @@ contract HousePoolWETH is ReentrancyGuard, AccessControl, EIP712 {
             )
         );
         require(
-            SignatureChecker.isValidSignatureNow(data.signer, digest, signature),
+            SignatureChecker.isValidSignatureNow(
+                data.signer,
+                digest,
+                signature
+            ),
             "HousePoolWETH: invalid signature"
         );
 
-        require(
-            data.signer != address(0),
-            "HousePoolWETH: invalid signer");
+        require(data.signer != address(0), "HousePoolWETH: invalid signer");
 
         require(
             hasRole(DATA_PROVIDER_ORACLE, data.signer),
@@ -78,47 +81,56 @@ contract HousePoolWETH is ReentrancyGuard, AccessControl, EIP712 {
             "HousePoolWETH: signed transaction expired"
         );
 
-        nonces[data.signer]++;
+        //nonces[data.signer]++;
         _;
     }
 
-    constructor(
+    function initialize(
         address _owner,
         address _WETH,
         address _claimToken,
         string memory _name,
         string memory _version
-    ) EIP712(_name, _version) {
+    ) external initializer {
+        __EIP712_init(_name, _version);
         token = IERC20(_WETH);
         claimToken = claimTokenInterface(_claimToken);
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
+        lpTokenPrice = 1 * 10**(MAX_PRECISION - 1);
+        lpTokenWithdrawlPrice = 1 * 10**(MAX_PRECISION - 1);
     }
 
     function setVOI(bytes memory sig_, ValuesOfInterest memory voi_)
-        external onlyValid(voi_, sig_) onlyRole(HOUSE_POOL_DATA_PROVIDER)
+        external
+        onlyValid(voi_, sig_)
+        onlyRole(HOUSE_POOL_DATA_PROVIDER)
     {
         _setVoi(voi_);
     }
 
-    function deposit(uint256 amountWETH, bytes memory approval, ValuesOfInterest memory approvedValues)
-        external onlyValid(approvedValues, approval)
-    {
+    function deposit(
+        uint256 amountWETH,
+        bytes memory approval,
+        ValuesOfInterest memory approvedValues
+    ) external onlyValid(approvedValues, approval) {
         _setVoi(approvedValues);
         _deposit(amountWETH);
     }
 
-    function withdraw(uint256 amountWETH, bytes memory approval, ValuesOfInterest memory approvedValues)
-        external onlyValid(approvedValues, approval)
-    {
+    function withdraw(
+        uint256 amountWETH,
+        bytes memory approval,
+        ValuesOfInterest memory approvedValues
+    ) external onlyValid(approvedValues, approval) {
         _setVoi(approvedValues);
         _withdraw(amountWETH);
     }
 
-    function deposit_(uint WETHMicro) external {
+    function deposit_(uint256 WETHMicro) external {
         _deposit(WETHMicro);
     }
 
-    function withdraw_(uint WETHMicro) external {
+    function withdraw_(uint256 WETHMicro) external {
         _withdraw(WETHMicro);
     }
 
@@ -126,11 +138,11 @@ contract HousePoolWETH is ReentrancyGuard, AccessControl, EIP712 {
         return lpTokenPrice;
     }
 
-    function getTreasuryAmount() external view returns(uint256) {
+    function getTreasuryAmount() external view returns (uint256) {
         return treasuryAmount;
     }
 
-    function getTokenWithdrawlPrice() external view returns(uint256) {
+    function getTokenWithdrawlPrice() external view returns (uint256) {
         return lpTokenWithdrawlPrice;
     }
 
@@ -150,25 +162,29 @@ contract HousePoolWETH is ReentrancyGuard, AccessControl, EIP712 {
         return liquidity;
     }
 
-    function getMyBalance(address _user) external view returns (uint256) {
-        return deposits[_user];
+    function getMyLiquidity(address _user) external view returns (uint256) {
+        return (claimToken.balanceOf(_user) * lpTokenPrice) / 10**MAX_PRECISION;
     }
 
     function setTokenPrice() internal {
-        if(claimToken.totalSupply() != 0) {
-            lpTokenPrice = (uint(tvl) * 10**MAX_PRECISION) / claimToken.totalSupply();
+        if (claimToken.totalSupply() != 0) {
+            lpTokenPrice =
+                (uint256(tvl) * 10**MAX_PRECISION) /
+                claimToken.totalSupply();
         }
     }
 
     function setTokenWithdrawlPrice() internal {
-        if(claimToken.totalSupply() != 0) {
-            lpTokenWithdrawlPrice = (liquidity * 10**MAX_PRECISION) / claimToken.totalSupply();
+        if (claimToken.totalSupply() != 0) {
+            lpTokenWithdrawlPrice =
+                (liquidity * 10**MAX_PRECISION) /
+                claimToken.totalSupply();
         }
     }
 
     function updateTVL(int256 expectedValue) internal {
-        if(voi.expectedValue == 0){
-           tvl += expectedValue;
+        if (voi.expectedValue == 0) {
+            tvl += expectedValue;
         } else {
             tvl -= voi.expectedValue;
             tvl += expectedValue;
@@ -176,15 +192,19 @@ contract HousePoolWETH is ReentrancyGuard, AccessControl, EIP712 {
     }
 
     function _setVoi(ValuesOfInterest memory _voi) internal {
-        if(_voi.expectedValue != voi.expectedValue) {_setEV(_voi.expectedValue);}
-        if(_voi.maxExposure != voi.maxExposure) {_setME(_voi.maxExposure);}
+        if (_voi.expectedValue != voi.expectedValue) {
+            _setEV(_voi.expectedValue);
+        }
+        if (_voi.maxExposure != voi.maxExposure) {
+            _setME(_voi.maxExposure);
+        }
     }
 
     function _setME(int256 exposure) internal {
         voi.maxExposure = exposure;
     }
 
-    function _setEV(int newEV) internal {
+    function _setEV(int256 newEV) internal {
         updateTVL(newEV);
         voi.expectedValue = newEV;
         setTokenPrice();
@@ -196,10 +216,12 @@ contract HousePoolWETH is ReentrancyGuard, AccessControl, EIP712 {
             "WETHHousePool: Check the Balance"
         );
         liquidity += amount * 10**PRECISION_DIFFERENCE;
-        tvl += int(amount * 10**PRECISION_DIFFERENCE);
+        tvl += int256(amount * 10**PRECISION_DIFFERENCE);
         deposits[msg.sender] += amount * 10**PRECISION_DIFFERENCE;
-        token.transferFrom(msg.sender, address(this), amount);
-        uint256 LPTokensToMint = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / lpTokenPrice;
+        token.safeTransferFrom(msg.sender, address(this), amount);
+        uint256 LPTokensToMint = (amount *
+            10**PRECISION_DIFFERENCE *
+            10**MAX_PRECISION) / lpTokenPrice;
         claimToken.mint(msg.sender, LPTokensToMint);
         setTokenPrice();
         setTokenWithdrawlPrice();
@@ -208,47 +230,22 @@ contract HousePoolWETH is ReentrancyGuard, AccessControl, EIP712 {
     function _withdraw(uint256 amount) internal nonReentrant {
         require(amount > 0, "WETHHousePool: Zero Amount");
         require(
-            amount * 10**PRECISION_DIFFERENCE <= (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) * lpTokenWithdrawlPrice  &&
-                int(amount) * int(10**PRECISION_DIFFERENCE) < int(liquidity) - voi.maxExposure,
-                "WETHHousePool : can't withdraw"
+            amount * 10**PRECISION_DIFFERENCE <=
+                (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) *
+                    lpTokenWithdrawlPrice &&
+                int256(amount) * int256(10**PRECISION_DIFFERENCE) <=
+                int256(liquidity) - voi.maxExposure,
+            "WETHHousePool : can't withdraw"
         );
-        uint256 LPTokensToBurn = (amount * 10**PRECISION_DIFFERENCE * 10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
+        uint256 LPTokensToBurn = (amount *
+            10**PRECISION_DIFFERENCE *
+            10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
         liquidity -= amount * 10**PRECISION_DIFFERENCE;
-        tvl -= int(amount) * int(10**PRECISION_DIFFERENCE);
+        tvl -= int256(amount) * int256(10**PRECISION_DIFFERENCE);
         deposits[msg.sender] -= amount * 10**PRECISION_DIFFERENCE;
-        token.transfer(msg.sender, amount);
+        token.safeTransfer(msg.sender, amount);
         claimToken.burn(msg.sender, LPTokensToBurn);
         setTokenWithdrawlPrice();
         setTokenPrice();
-    }
-
-// ********************************************  Functions to simulate the functionality **********************************
-
-    // TODO DELETE ONCE ORDER PLACEMENT IS BUILT
-    // Following methods are only for simulating end to end order placement functionality which has not been built yet
-    // Outcome provider method used to simulate outcome for a particular betting stake amount
-    // oucome = true represents a bet won by the user and the beAmount is the bet amount for the bet
-    // outcome = false represents a bet lost by the user and the betAmount is the bet amount for the bet
-    function simulateOutcome(bool outcome, uint256 betAmount) external {
-        if(outcome == false) {
-            treasuryAmount += betAmount/100;
-            liquidity += (betAmount/100) * 99;
-        } else {
-            treasuryAmount += bettingStakes/100;
-            bettingStakes -= betAmount;
-        }
-        voi.expectedValue = 0;
-        voi.maxExposure = 0;
-        tvl += int(treasuryAmount);
-        setTokenPrice();
-        setTokenWithdrawlPrice();
-    }
-
-    function setBettingStakes(uint256 bettingAmount) external {
-        bettingStakes = bettingAmount;
-    }
-
-    function getBettingStakes() external view returns (uint256) {
-        return bettingStakes;
     }
 }

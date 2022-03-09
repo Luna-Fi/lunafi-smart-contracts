@@ -6,5 +6,10 @@ typechain
 .vscode
 
 #Hardhat files
+hardhat
 cache
-flatten
+artifacts/build-info
+artifacts/@openzeppelin
+artifacts/contracts/*/*.dbg.json
+artifacts/contracts/*/*/*.dbg.json
+artifacts/contracts/*/*/*/*.dbg.json

@@ -64,17 +64,14 @@ contract LFIToken is
 
     uint256 public maxSupply;
 
-    uint8 internal constant DECIMAL_PLACES = 10;
+    uint8 internal constant DECIMAL_PLACES = 18;
 
     mapping(string => bytes32) internal roles;
 
-    constructor()
-        ERC20(TOKEN_NAME, TOKEN_SYMBOL)
-        ERC20Permit(TOKEN_NAME)
-    {
+    constructor() ERC20(TOKEN_NAME, TOKEN_SYMBOL) ERC20Permit(TOKEN_NAME) {
         maxSupply = 1000000000 * 10**DECIMAL_PLACES; // 1 Billion Tokens ^ 10 decimals
 
-        super._mint(msg.sender, 100000000 * 10**DECIMAL_PLACES);
+        super._mint(msg.sender, maxSupply);
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }

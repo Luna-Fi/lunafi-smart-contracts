@@ -2,14 +2,17 @@
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
-require("@nomiclabs/hardhat-waffle");
 require("hardhat-deploy");
 require('dotenv').config();
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
+require('@openzeppelin/hardhat-upgrades');
 
 const config = {
   solidity: "0.8.10",
+  mocha: {
+    timeout: 4000000
+  },
   networks : {
     localhost: {
       url: "http://127.0.0.1:8545/"
@@ -22,9 +25,25 @@ const config = {
       saveDeployments: true,
       accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
     },
+    rinkeby: {
+      url: `${process.env.NODE_URI_RINKEBY}`,
+      chainId: 4,
+      live: true,
+      tags: ["staging"],
+      saveDeployments: true,
+      accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
+    },
+    goerli: {
+      url: `${process.env.NODE_URI_GOERLI}`,
+      chainId: 5,
+      live: true,
+      tags: ["goerli"],
+      saveDeployments: true,
+      accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
+    },
     mainnet: {
       url: `${process.env.NODE_URI_MAINNET}`,
-      chainId: 3,
+      chainId: 1,
       live: true,
       tags: ["production"],
       saveDeployments: true,
@@ -72,7 +91,8 @@ const config = {
     }     
   },
   etherscan: {
-    apiKey: "6J8G9VC791WVYDIQK5FA2XUJXVGNP2YH4I"
+    //apiKey: "6J8G9VC791WVYDIQK5FA2XUJXVGNP2YH4I"
+    apiKey: "NT48PSDWUK7TGM27NPPGTRQBBHBSS29HZI"
   }
 };
 
