@@ -138,6 +138,8 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         return liquidity;
     }
 
+    /// @notice Function to set CooldownSeconds - Function can be called only by the Manager
+    /// @param coolDownSeconds Value of cooldown seconds e.g: 10days in seconds
     function setCooldownSeconds(uint256 coolDownSeconds)
         external
         onlyRole(MANAGER_ROLE)
@@ -145,6 +147,8 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         COOLDOWN_SECONDS = coolDownSeconds;
     }
 
+    /// @notice Function to set UnstakeWindow Time - Function can be called only by the Manager
+    /// @param unstakeWindow Value in seconds to allow the user to unstake e.g: 1 day in seconds 
     function setUnstakeWindowTime(uint256 unstakeWindow)
         external
         onlyRole(MANAGER_ROLE)
@@ -152,20 +156,27 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         UNSTAKE_WINDOW = unstakeWindow;
     }
 
+    /// @notice Function to get unstake Window time
+    /// @return return the untake window time in seconds
     function getUnstakeWindowTime() external view returns (uint256) {
         return UNSTAKE_WINDOW;
     }
 
-    function transferToTreasury(address to, uint256 treasuryWithdrawl)
+    /// @notice Function to transfer a part of liquidity amount to treasury - Function can be called only by the Manager
+    /// @param to address to which the liquidity should be transferred
+    /// @param treasuryWithdrawal amount to transfer to treasury
+    function transferToTreasury(address to, uint256 treasuryWithdrawal)
         external
         onlyRole(MANAGER_ROLE)
     {
         uint256 maxWithdrawalLiquidity = (liquidity *
             maxTreasuryWithdrawalPercentage) / 10000;
-        require(treasuryWithdrawl <= maxWithdrawalLiquidity);
-        ILFIToken(STAKED_TOKEN).transfer(to, treasuryWithdrawl);
+        require(treasuryWithdrawal <= maxWithdrawalLiquidity);
+        ILFIToken(STAKED_TOKEN).transfer(to, treasuryWithdrawal);
     }
 
+    /// @notice Function to set the Maximum percentage of liquidity that treasury can withdraw - Function can be called only by the Manager
+    /// @param percentage Percentage value should be passed as 4 digits. For eg 30 % should be passed as 3000
     function setMaxTreasuryWithdrawalPercentage(uint256 percentage)
         external
         onlyRole(MANAGER_ROLE)
@@ -173,6 +184,8 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         maxTreasuryWithdrawalPercentage = percentage;
     }
 
+    /// @notice Function to update Farm. This updates the farm with the current state
+    // Returns the farm with latest state
     function updateFarm() public returns (FarmInfo memory farm) {
         farm = farmInfo;
         if (farm.lastRewardTime < block.timestamp) {
@@ -189,6 +202,10 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         }
     }
 
+
+    /// @notice Function to return the current pending Rewards
+    /// @param benefitor address of the desired user to calculate the pending rewards.
+    /// @return pendingRewards return the pendingRewards
     function getRewards(address benefitor)
         public
         view
@@ -211,20 +228,30 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         );
     }
 
+    ///@notice Function to set the value of rewards issued per second - Function can be called only by the Manager
+    /// @param _rewardPerSecond value of the rewards per second, to be issues in base units (10**18)
     function setRewardPerSecond(uint256 _rewardPerSecond)
         public
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRole(MANAGER_ROLE)
     {
         rewardPerSecond = _rewardPerSecond;
     }
 
+    /// @notice Function to create a Farm - Function can be called only by the Manager
     function createFarm() public onlyRole(MANAGER_ROLE) {
         farmInfo = FarmInfo({
             accRewardsPerShare: 0,
             lastRewardTime: block.timestamp
         });
     }
-
+    /// @notice Function that allows the user to stake LFI by avoiding approval step
+    /// @param owner address of the owner that want to give approval
+    /// @param spender address of the contract that needs to spend the tokens
+    /// @param value value of the tokens to stake
+    /// @param deadline deadline value
+    /// @param v part of the signature
+    /// @param r part of the signature
+    /// @param s part of the signature
     function permitAndStake(
         address owner,
         address spender,
@@ -239,7 +266,9 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         ILFIToken(STAKED_TOKEN).permit(owner, spender, value, deadline, v, r, s); // Change required here
         this.stake(onBehalfOf, LFIamount);
     }
-
+    /// @notice Function that allows the user to stake the LFI
+    /// @param onBehalfOf address of the user to mint the VLFI tokens to
+    /// @param amount amount on the LFI tokens to stake in base units (10**18)
     function stake(address onBehalfOf, uint256 amount) external {
         require(amount != 0, "VLFI:INVALID_AMOUNT");
         uint256 balanceOfUser = balanceOf(onBehalfOf);
@@ -267,7 +296,9 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         );
         
     }
-
+    /// @notice Function that allows the user to unstake the LFI
+    /// @param to address to transfer the LFI tokens to
+    /// @param amount amount of LFI tokens to unstake
     function unStake(address to, uint256 amount) external {
         require(
             amount != 0 && amount <= STAKED_TOKEN.balanceOf(msg.sender),
@@ -301,6 +332,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         ILFIToken(STAKED_TOKEN).transfer(to, amount); 
     }
 
+    /// @notice Function users should execute to activate their cooldown period to unstake the LFI
     function activateCooldown() external {
         require(balanceOf(msg.sender) != 0, "VLFI:INVALID_BALANCE_ON_COOLDOWN");
         //solium-disable-next-line
@@ -351,7 +383,8 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         }
         super._transfer(from, to, amount);
     }
-
+    /// @notice Function that allows the user to claim the LFI rewards
+    /// @param to - Address to which the rewards should be transferred
     function claimRewards(address to) external {
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
