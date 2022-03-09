@@ -12,6 +12,14 @@ import "contracts/interfaces/IFundDistributor.sol";
 contract LFiFarms is AccessControl {
     using SafeERC20 for IERC20;
 
+    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
+    uint256 private constant ACC_REWARD_PRECISION = 1e18;
+    IERC20 public reward;
+    IFundDistributor public fund; 
+    uint256 public rewardPerSecond;
+    /// @dev Total allocation points. Must be the sum of all allocation points in all pools.
+    uint256 public totalAllocPoint = 0;
+    
     //Info for each LFi Farms user
     //`amount` LP Token amount the user has provided
     //`rewardDebt` The amount of LFI Tokens entitled to the user.
@@ -28,21 +36,11 @@ contract LFiFarms is AccessControl {
         uint256 lastRewardTime;
         uint256 allocPoint;
     }
-    //
-    IERC20 public reward; 
-    IFundDistributor public fund; 
+
     FarmInfo[] public farmInfo;
     IERC20[] public lpToken; 
-    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
-
     // Info of each user that stakes LP tokens.
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
-
-    /// @dev Total allocation points. Must be the sum of all allocation points in all pools.
-    uint256 public totalAllocPoint = 0;
-
-    uint256 public rewardPerSecond;
-    uint256 private constant ACC_REWARD_PRECISION = 1e18;
 
     event RewardPerSecondUpdated(uint256 newRewardPerSecond);
     event FarmCreated(
@@ -148,12 +146,14 @@ contract LFiFarms is AccessControl {
         emit RewardPerSecondUpdated(rewardPerEverySecond);
     }
 
-     
+    /// @notice Function to set reset Farm attributes
+    /// @param fid - The Farm ID, to which we are trying to set the attributes
+    /// @param allocPoint - Allocpoints to set for the farm
     function setFarm(
         uint256 fid,
         uint256 allocPoint,
         bool overwrite
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external onlyRole(MANAGER_ROLE) {
         totalAllocPoint =
             totalAllocPoint -
             farmInfo[fid].allocPoint +
@@ -186,8 +186,11 @@ contract LFiFarms is AccessControl {
         
     }
 
-
-     function withdraw(
+    /// @notice Function to withdraw the pool Tokens
+    /// @param fid - The Farm ID from which to withdraw the pool tokens
+    /// @param LPTokenAmount - Amount to withdraw
+    /// @param receiver - Receiver address to transfer the LpTokens
+    function withdraw(
         uint256 fid,
         uint256 LPTokenAmount,
         address receiver
@@ -204,7 +207,8 @@ contract LFiFarms is AccessControl {
         
     }
 
-
+    /// @notice Function to harvest rewards from all the farms
+    /// @param receiver Address of the receiver 
     function harvestAll(address receiver) external {
         uint256 farmCount = farmInfo.length;
         for (uint256 fid = 0; fid < farmCount; ++fid) {
@@ -213,7 +217,6 @@ contract LFiFarms is AccessControl {
             }
         }
     }
-
 
     /// @notice Withdraw LP Tokens from LFi Farms and harvest proceeds for transaction sender to "Receiver"
     /// @param fid The index of the farm. See `farmInfo`
@@ -284,8 +287,8 @@ contract LFiFarms is AccessControl {
         );
     }
 
-    
-
+    /// @notice Function to update the Farm information with latest state
+    /// @param fid - The farm ID on which the update should happen
     function updateFarm(uint256 fid) public returns (FarmInfo memory farm) {
         farm = farmInfo[fid];
         if (farm.lastRewardTime < block.timestamp) {
@@ -306,8 +309,8 @@ contract LFiFarms is AccessControl {
         }
     }
 
-
-
+    /// @notice Function to update all the farms at once
+    /// @param fids An array of farmsIDs
     function massUpdateFarms(uint256[] calldata fids) public {
         uint256 len = fids.length;
         for (uint256 i = 0; i < len; i++) {
@@ -332,12 +335,12 @@ contract LFiFarms is AccessControl {
         fund.distributeReward(receiver, _pendingReward);
     }
 
-
+    /// @notice Function to check if a farm exists for a particular LPToken
+    /// @param _token The address of the Pool token contract.
     function checkFarmDoesntExist(IERC20 _token) public view {
         for (uint256 index = 0; index < farmInfo.length; index++) {
             require(lpToken[index] != _token, "Farm exists already");
         }
     }
-
-    
+  
 }
