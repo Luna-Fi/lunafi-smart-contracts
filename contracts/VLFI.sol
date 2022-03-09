@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
 
-contract VLFI is ERC20, ERC20Permit, AccessControl {
-    using SafeERC20 for IERC20;
+contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradeable, ERC20VotesUpgradeable {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     struct FarmInfo {
         uint256 accRewardsPerShare;
@@ -26,7 +26,7 @@ contract VLFI is ERC20, ERC20Permit, AccessControl {
     uint256 constant MAX_PRECISION = 18;
     uint256 liquidity;
     uint256 lpTokenPrice = 1000 * 10**MAX_PRECISION;
-    IERC20 public immutable STAKED_TOKEN;
+    IERC20Upgradeable public  STAKED_TOKEN;
     uint256 COOLDOWN_SECONDS;
     uint256 UNSTAKE_WINDOW;
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
@@ -52,23 +52,17 @@ contract VLFI is ERC20, ERC20Permit, AccessControl {
         uint256 amount
     );
 
-    // RewardsAccumulated
-
-    // Natspec comments.
-
-    // Governance should be added.
-
-    // votes and upgradeable hardhat.
-
-    constructor(
+    function initialize (
         string memory name,
         string memory symbol,
-        IERC20 stakedToken,
+        IERC20Upgradeable stakedToken,
         uint256 cooldownSeconds,
         uint256 unstakeWindow,
         uint256 rewardsPerSecond,
         uint256 treasuryWithdrawlPercentage
-    ) ERC20(name, symbol) ERC20Permit(name) {
+    ) external  initializer {
+        __ERC20_init(name,symbol);
+        __ERC20Permit_init(name);
         STAKED_TOKEN = stakedToken;
         COOLDOWN_SECONDS = cooldownSeconds;
         UNSTAKE_WINDOW = unstakeWindow;
@@ -146,9 +140,9 @@ contract VLFI is ERC20, ERC20Permit, AccessControl {
         onlyRole(MANAGER_ROLE)
     {
         uint256 maxWithdrawalLiquidity = (liquidity *
-            maxTreasuryWithdrawalPercentage) / 100;
+            maxTreasuryWithdrawalPercentage) / 10000;
         require(treasuryWithdrawl <= maxWithdrawalLiquidity);
-        IERC20(STAKED_TOKEN).safeTransfer(to, treasuryWithdrawl);
+        IERC20Upgradeable(STAKED_TOKEN).safeTransfer(to, treasuryWithdrawl);
     }
 
     function setMaxTreasuryWithdrawalPercentage(uint256 percentage)
@@ -244,7 +238,7 @@ contract VLFI is ERC20, ERC20Permit, AccessControl {
             balanceOfUser
         );
         _mint(onBehalfOf, (amount * 10**18) / lpTokenPrice);
-        IERC20(STAKED_TOKEN).safeTransferFrom(
+        IERC20Upgradeable(STAKED_TOKEN).safeTransferFrom(
             msg.sender,
             address(this),
             amount
@@ -286,7 +280,7 @@ contract VLFI is ERC20, ERC20Permit, AccessControl {
         if (balanceOfMessageSender - ((amount * 10**18) / lpTokenPrice) == 0) {
             cooldownStartTimes[msg.sender] = 0;
         }
-        IERC20(STAKED_TOKEN).safeTransfer(to, amount); // LFI transfer to user
+        IERC20Upgradeable(STAKED_TOKEN).safeTransfer(to, amount); // LFI transfer to user
 
         emit UnStaked(msg.sender, msg.sender, amount);
     }
@@ -350,7 +344,7 @@ contract VLFI is ERC20, ERC20Permit, AccessControl {
         );
         uint256 _pendingReward = uint256(accumulatedReward - user.rewardDebt);
         user.rewardDebt = accumulatedReward;
-        IERC20(STAKED_TOKEN).safeTransfer(to, _pendingReward);
+        IERC20Upgradeable(STAKED_TOKEN).safeTransfer(to, _pendingReward);
         emit RewardsClaimed(msg.sender, to, _pendingReward);
     }
 
@@ -388,4 +382,26 @@ contract VLFI is ERC20, ERC20Permit, AccessControl {
         }
         return toCooldownTimestamp;
     }
+
+    function _afterTokenTransfer(address from, address to, uint256 amount)
+        internal
+        override(ERC20Upgradeable, ERC20VotesUpgradeable)
+    {
+        super._afterTokenTransfer(from, to, amount);
+    }
+
+    function _mint(address to, uint256 amount)
+        internal
+        override(ERC20Upgradeable, ERC20VotesUpgradeable)
+    {
+        super._mint(to, amount);
+    }
+
+    function _burn(address account, uint256 amount)
+        internal
+        override(ERC20Upgradeable, ERC20VotesUpgradeable)
+    {
+        super._burn(account, amount);
+    }
+
 }
