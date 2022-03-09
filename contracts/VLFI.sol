@@ -25,13 +25,13 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     uint256 private rewardPerSecond;
     uint256 constant MAX_PRECISION = 18;
     uint256 liquidity;
-    uint256 lpTokenPrice = 1000 * 10**MAX_PRECISION;
+    uint256 lpTokenPrice;
     IERC20Upgradeable public  STAKED_TOKEN;
     uint256 COOLDOWN_SECONDS;
     uint256 UNSTAKE_WINDOW;
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
     uint256 public maxTreasuryWithdrawalPercentage;
-    mapping(address => uint256) private stakerRewardsToClaim;
+
     mapping(address => uint256) private cooldownStartTimes;
     mapping(address => uint256) private userDeposits;
     mapping(address => UserInfo) private userInfo;
@@ -59,13 +59,15 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         uint256 cooldownSeconds,
         uint256 unstakeWindow,
         uint256 rewardsPerSecond,
-        uint256 treasuryWithdrawlPercentage
+        uint256 treasuryWithdrawlPercentage,
+        uint256 pooltokenPrice
     ) external  initializer {
         __ERC20_init(name,symbol);
         __ERC20Permit_init(name);
         STAKED_TOKEN = stakedToken;
         COOLDOWN_SECONDS = cooldownSeconds;
         UNSTAKE_WINDOW = unstakeWindow;
+        lpTokenPrice = pooltokenPrice;
         maxTreasuryWithdrawalPercentage = treasuryWithdrawlPercentage;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, msg.sender);
@@ -155,13 +157,13 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     function updateFarm() public returns (FarmInfo memory farm) {
         farm = farmInfo;
         if (farm.lastRewardTime < block.timestamp) {
-            uint256 totalSupply = totalSupply();
-            if (totalSupply > 0) {
+            uint256 supply = totalSupply();
+            if (supply > 0) {
                 uint256 time = block.timestamp - farm.lastRewardTime;
                 uint256 rewardAmount = time * rewardPerSecond;
                 farm.accRewardsPerShare +=
                     (rewardAmount * ACC_REWARD_PRECISION) /
-                    totalSupply;
+                    supply;
             }
             farm.lastRewardTime = block.timestamp;
             farmInfo = farm;
@@ -176,13 +178,13 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         FarmInfo memory farm = farmInfo;
         UserInfo storage user = userInfo[benefitor];
         uint256 accRewardPerShare = farm.accRewardsPerShare;
-        uint256 totalSupply = totalSupply();
-        if (block.timestamp > farm.lastRewardTime && totalSupply != 0) {
+        uint256 supply = totalSupply();
+        if (block.timestamp > farm.lastRewardTime && supply != 0) {
             uint256 time = block.timestamp - farm.lastRewardTime;
             uint256 rewardAmount = time * rewardPerSecond;
             accRewardPerShare +=
                 (rewardAmount * ACC_REWARD_PRECISION) /
-                totalSupply;
+                supply;
         }
         pendingRewards = uint256(
             int256((user.amount * accRewardPerShare) / ACC_REWARD_PRECISION) -
@@ -226,7 +228,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         UserInfo storage user = userInfo[msg.sender];
         user.amount += ((amount * 10**18) / lpTokenPrice);
         user.rewardDebt += int256(
-            (((amount * 10**18) / lpTokenPrice) * farm.accRewardsPerShare) /
+            ( (((amount * 10**18) * farm.accRewardsPerShare) / lpTokenPrice)) /
                 ACC_REWARD_PRECISION
         );
         userDeposits[msg.sender] += amount;
@@ -238,17 +240,13 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
             balanceOfUser
         );
         _mint(onBehalfOf, (amount * 10**18) / lpTokenPrice);
+        emit Staked(msg.sender, onBehalfOf, amount);
         IERC20Upgradeable(STAKED_TOKEN).safeTransferFrom(
             msg.sender,
             address(this),
             amount
         );
-        emit Staked(msg.sender, onBehalfOf, amount);
-    }
-
-    function updateRewardsToClaim() external {
-        uint256 rewards;
-        stakerRewardsToClaim[msg.sender] = rewards;
+        
     }
 
     function unStake(address to, uint256 amount) external {
@@ -270,19 +268,18 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
         user.rewardDebt -= int256(
-            (((amount * 10**18) / lpTokenPrice) * farm.accRewardsPerShare) /
+            ( (((amount * 10**18) * farm.accRewardsPerShare) / lpTokenPrice)) /
                 ACC_REWARD_PRECISION
         );
         user.amount -= (amount * 10**18) / lpTokenPrice;
         userDeposits[msg.sender] -= amount;
         liquidity -= amount;
-        _burn(msg.sender, (amount * 10**18) / lpTokenPrice); // VLFI
+        _burn(msg.sender, (amount * 10**18) / lpTokenPrice);
         if (balanceOfMessageSender - ((amount * 10**18) / lpTokenPrice) == 0) {
             cooldownStartTimes[msg.sender] = 0;
         }
-        IERC20Upgradeable(STAKED_TOKEN).safeTransfer(to, amount); // LFI transfer to user
-
         emit UnStaked(msg.sender, msg.sender, amount);
+        IERC20Upgradeable(STAKED_TOKEN).safeTransfer(to, amount); 
     }
 
     function activateCooldown() external {
@@ -344,8 +341,9 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         );
         uint256 _pendingReward = uint256(accumulatedReward - user.rewardDebt);
         user.rewardDebt = accumulatedReward;
-        IERC20Upgradeable(STAKED_TOKEN).safeTransfer(to, _pendingReward);
         emit RewardsClaimed(msg.sender, to, _pendingReward);
+        IERC20Upgradeable(STAKED_TOKEN).safeTransfer(to, _pendingReward);
+        
     }
 
     function getNextCooldownTimestamp(
