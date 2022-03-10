@@ -1,13 +1,9 @@
 const { BigNumber } = require("ethers");
-
-
+const returnBigNumber = (number) => {
+    number = number.toString(16)
+    return BigNumber.from("0x" + number);
+}
 async function main() {
-
-    const { BigNumber } = require("ethers");
-    const returnBigNumber = (number) => {
-        number = number.toString(16)
-        return BigNumber.from("0x" + number);
-    }
 
     const name = "VLFI"
     const symbol = "VLFI"

@@ -6,8 +6,11 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
 import "contracts/interfaces/ILFIToken.sol";
+import "hardhat/console.sol";
+
 
 contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradeable, ERC20VotesUpgradeable {
+    
     
     // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES BELOW
 
@@ -247,6 +250,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
             lastRewardTime: block.timestamp
         });
     }
+
     /// @notice Function that allows the user to stake LFI by avoiding approval step
     /// @param owner address of the owner that want to give approval
     /// @param spender address of the contract that needs to spend the tokens
@@ -266,20 +270,20 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         address onBehalfOf,
         uint256 LFIamount
     ) external {
-        ILFIToken(STAKED_TOKEN).permit(owner, spender, value, deadline, v, r, s); // Change required here
-        this.stake(onBehalfOf, LFIamount);
+        ILFIToken(STAKED_TOKEN).permit(owner,spender,value,deadline,v,r,s);
+        stake(onBehalfOf, LFIamount);
     }
     /// @notice Function that allows the user to stake the LFI
     /// @param onBehalfOf address of the user to mint the VLFI tokens to
     /// @param amount amount on the LFI tokens to stake in base units (10**18)
-    function stake(address onBehalfOf, uint256 amount) external {
+    function stake(address onBehalfOf, uint256 amount) public {
         require(amount != 0, "VLFI:INVALID_AMOUNT");
         uint256 balanceOfUser = balanceOf(onBehalfOf);
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
         user.amount += ((amount * 10**18) / lpTokenPrice);
         user.rewardDebt += int256(
-            ( (((amount * 10**18) * farm.accRewardsPerShare) / lpTokenPrice)) /
+            (((amount * 10**18) / lpTokenPrice) * farm.accRewardsPerShare) /
                 ACC_REWARD_PRECISION
         );
         userDeposits[msg.sender] += amount;
@@ -290,14 +294,13 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
             onBehalfOf,
             balanceOfUser
         );
-        _mint(onBehalfOf, (amount * 10**18) / lpTokenPrice);
-        emit Staked(msg.sender, onBehalfOf, amount);
+       _mint(onBehalfOf, (amount * 10**18) / lpTokenPrice);
+        
         ILFIToken(STAKED_TOKEN).transferFrom(
             msg.sender,
             address(this),
-            amount
-        );
-        
+            amount);
+        emit Staked(msg.sender, onBehalfOf, amount);   
     }
     /// @notice Function that allows the user to unstake the LFI
     /// @param to address to transfer the LFI tokens to
@@ -331,8 +334,8 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         if (balanceOfMessageSender - ((amount * 10**18) / lpTokenPrice) == 0) {
             cooldownStartTimes[msg.sender] = 0;
         }
-        emit UnStaked(msg.sender, msg.sender, amount);
         ILFIToken(STAKED_TOKEN).transfer(to, amount); 
+        emit UnStaked(msg.sender, msg.sender, amount);
     }
 
     /// @notice Function users should execute to activate their cooldown period to unstake the LFI

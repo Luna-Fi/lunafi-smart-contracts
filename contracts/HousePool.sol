@@ -8,9 +8,9 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "contracts/interfaces/IclaimToken.sol";
-import "hardhat/console.sol";
 
-contract HousePoolWETH is
+
+contract HousePool is
     ReentrancyGuardUpgradeable,
     AccessControl
 {
@@ -18,12 +18,12 @@ contract HousePoolWETH is
 
     using SafeERC20 for IERC20;
     
-    uint256 constant MAX_PRECISION = 18;
+    uint256 constant  MAX_PRECISION = 18;
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
-    uint256 constant PRECISION_DIFFERENCE = 0;
     IERC20 token;
     claimTokenInterface claimToken;
     uint256 liquidity;
+    uint256  public precisionDifference;
     uint256 lpTokenPrice;
     uint256 lpTokenWithdrawlPrice;
 
@@ -33,24 +33,28 @@ contract HousePoolWETH is
 
     // -- Init --
     function initialize(
-        address _usdc,
-        address _claimToken  
+        address _token,
+        address _claimToken,
+        uint256 poolTokenPrice,
+        uint256 poolTokenWithdrawalPrice,
+        uint8 precision
     ) external initializer {
-        token = IERC20(_usdc);
+        token = IERC20(_token);
         claimToken = claimTokenInterface(_claimToken);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, msg.sender);
-        lpTokenPrice = 1 * 10** (MAX_PRECISION - 1);
-        lpTokenWithdrawlPrice = 1 * 10** (MAX_PRECISION - 1);
+        lpTokenPrice = poolTokenPrice;
+        lpTokenWithdrawlPrice = poolTokenWithdrawalPrice;
+        precisionDifference = precision;
     }
 
     // -- External Functions
-    function deposit_(uint256 wethMicro) external {
-        _deposit(wethMicro);
+    function deposit_(uint256 amount) external {
+        _deposit(amount);
     }
 
-    function withdraw_(uint256 wethMicro) external {
-        _withdraw(wethMicro);
+    function withdraw_(uint256 amount) external {
+        _withdraw(amount);
     }
 
     // -- View Functions --
@@ -75,32 +79,32 @@ contract HousePoolWETH is
     function _deposit(uint256 amount) internal nonReentrant {
         require(
             amount > 0 && amount <= token.balanceOf(msg.sender),
-            "WETHHousePool: Check the Balance"
+            "HousePool: Check the Balance"
         );
-        liquidity += amount * 10**PRECISION_DIFFERENCE;
-        deposits[msg.sender] += amount * 10**PRECISION_DIFFERENCE;
+        liquidity += amount * 10**precisionDifference;
+        deposits[msg.sender] += amount * 10**precisionDifference;
         token.safeTransferFrom(msg.sender, address(this), amount);
         uint256 LPTokensToMint = (amount *
-            10**PRECISION_DIFFERENCE *
+            10**precisionDifference *
             10**MAX_PRECISION) / lpTokenPrice;
         claimToken.mint(msg.sender, LPTokensToMint);
     }
 
     function _withdraw(uint256 amount) internal nonReentrant {
-        require(amount > 0, "WETHHousePool: Zero Amount");
+        require(amount > 0, "HousePool: Zero Amount");
         require(
-            amount * 10**PRECISION_DIFFERENCE <=
+            amount * 10**precisionDifference <=
                 (claimToken.balanceOf(msg.sender) / 10**MAX_PRECISION) *
                     lpTokenWithdrawlPrice &&
-                int256(amount) * int256(10**PRECISION_DIFFERENCE) <=
+                int256(amount) * int256(10**precisionDifference) <=
                 int256(liquidity),
-            "WETHHousePool : can't withdraw"
+            "HousePool : can't withdraw"
         );
         uint256 LPTokensToBurn = (amount *
-            10**PRECISION_DIFFERENCE *
+            10**precisionDifference *
             10**MAX_PRECISION) / (lpTokenWithdrawlPrice);
-        liquidity -= amount * 10**PRECISION_DIFFERENCE;
-        deposits[msg.sender] -= amount * 10**PRECISION_DIFFERENCE;
+        liquidity -= amount * 10**precisionDifference;
+        deposits[msg.sender] -= amount * 10**precisionDifference;
         token.safeTransfer(msg.sender, amount);
         claimToken.burn(msg.sender, LPTokensToBurn);
     }

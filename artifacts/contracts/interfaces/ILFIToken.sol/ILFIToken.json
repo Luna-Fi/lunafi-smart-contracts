@@ -7,7 +7,7 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "tokenOwner",
+          "name": "owner",
           "type": "address"
         }
       ],
@@ -15,7 +15,7 @@
       "outputs": [
         {
           "internalType": "uint256",
-          "name": "getBalance",
+          "name": "",
           "type": "uint256"
         }
       ],
@@ -74,7 +74,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "tokens",
+          "name": "value",
           "type": "uint256"
         }
       ],
@@ -82,7 +82,7 @@
       "outputs": [
         {
           "internalType": "bool",
-          "name": "success",
+          "name": "",
           "type": "bool"
         }
       ],
@@ -103,7 +103,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "tokens",
+          "name": "value",
           "type": "uint256"
         }
       ],
@@ -111,7 +111,7 @@
       "outputs": [
         {
           "internalType": "bool",
-          "name": "success",
+          "name": "",
           "type": "bool"
         }
       ],

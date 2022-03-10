@@ -17,12 +17,13 @@ contract HousePoolWBTC is
     // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES BELOW
 
     using SafeERC20 for IERC20;
-    uint256 liquidity;
+    
+    uint256 constant MAX_PRECISION = 18;
+    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
+    uint256 constant PRECISION_DIFFERENCE = 0;
     IERC20 token;
     claimTokenInterface claimToken;
-
-    uint256 constant MAX_PRECISION = 18;
-    uint256 constant PRECISION_DIFFERENCE = 12;
+    uint256 liquidity;
     uint256 lpTokenPrice;
     uint256 lpTokenWithdrawlPrice;
 
@@ -32,18 +33,15 @@ contract HousePoolWBTC is
 
     // -- Init --
     function initialize(
-        address _owner,
         address _usdc,
         address _claimToken
-        //string memory _name,
-        //string memory _version
     ) external initializer {
-       // __EIP712_init(_name, _version);
         token = IERC20(_usdc);
         claimToken = claimTokenInterface(_claimToken);
-        _setupRole(DEFAULT_ADMIN_ROLE, _owner);
-        lpTokenPrice = 100 * 10**MAX_PRECISION;
-        lpTokenWithdrawlPrice = 100 * 10**MAX_PRECISION;
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(MANAGER_ROLE, msg.sender);
+        lpTokenPrice = 1 * 10** (MAX_PRECISION - 2);
+        lpTokenWithdrawlPrice = 1 * 10** (MAX_PRECISION - 2);
     }
 
     // -- External Functions
