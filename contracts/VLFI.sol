@@ -9,6 +9,8 @@ import "contracts/interfaces/ILFIToken.sol";
 
 contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradeable, ERC20VotesUpgradeable {
     
+    // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES BELOW
+
     uint256 constant MAX_PRECISION = 18;
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
     uint256 private constant ACC_REWARD_PRECISION = 1e18;
@@ -35,6 +37,8 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     mapping(address => uint256) private cooldownStartTimes;
     mapping(address => uint256) private userDeposits;
     mapping(address => UserInfo) private userInfo;
+
+    // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES ABOVE
     
     event Staked(
         address indexed from,
@@ -57,15 +61,14 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         uint256 cooldownSeconds,
         uint256 unstakeWindow,
         uint256 rewardsPerSecond,
-        uint256 treasuryWithdrawlPercentage,
-        uint256 pooltokenPrice
+        uint256 treasuryWithdrawlPercentage
     ) external  initializer {
         __ERC20_init(name,symbol);
         __ERC20Permit_init(name);
         STAKED_TOKEN = stakedToken;
         COOLDOWN_SECONDS = cooldownSeconds;
         UNSTAKE_WINDOW = unstakeWindow;
-        lpTokenPrice = pooltokenPrice;
+        lpTokenPrice = 1000 * 10**MAX_PRECISION;
         maxTreasuryWithdrawalPercentage = treasuryWithdrawlPercentage;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, msg.sender);

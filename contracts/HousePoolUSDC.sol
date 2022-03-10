@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "contracts/interfaces/IclaimToken.sol";
-import "hardhat/console.sol";
+
 
 contract HousePoolUSDC is
     ReentrancyGuardUpgradeable,
@@ -34,11 +34,11 @@ contract HousePoolUSDC is
     function initialize(
         address _owner,
         address _usdc,
-        address _claimToken,
-        string memory _name,
-        string memory _version
+        address _claimToken
+        //string memory _name,
+        //string memory _version
     ) external initializer {
-        __EIP712_init(_name, _version);
+       // __EIP712_init(_name, _version);
         token = IERC20(_usdc);
         claimToken = claimTokenInterface(_claimToken);
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);

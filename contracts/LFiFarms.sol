@@ -1,24 +1,26 @@
 // SPDX-License-Identifier:  MIT
 pragma solidity 0.8.10;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "contracts/interfaces/IFundDistributor.sol";
 
 ///@title LunaFi Farm Contract
 ///@author LunaFi DevTeam
 ///@notice Farm Contract to yield Rewards in LFI
-contract LFiFarms is AccessControl {
-    using SafeERC20 for IERC20;
+contract LFiFarms is AccessControlUpgradeable {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+
+     // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES BELOW
 
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
     uint256 private constant ACC_REWARD_PRECISION = 1e18;
-    IERC20 public reward;
+    IERC20Upgradeable public reward;
     IFundDistributor public fund; 
     uint256 public rewardPerSecond;
     /// @dev Total allocation points. Must be the sum of all allocation points in all pools.
-    uint256 public totalAllocPoint = 0;
+    uint256 public totalAllocPoint ;
     
     //Info for each LFi Farms user
     //`amount` LP Token amount the user has provided
@@ -38,15 +40,17 @@ contract LFiFarms is AccessControl {
     }
 
     FarmInfo[] public farmInfo;
-    IERC20[] public lpToken; 
+    IERC20Upgradeable[] public lpToken; 
     // Info of each user that stakes LP tokens.
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
+
+    // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES ABOVE
 
     event RewardPerSecondUpdated(uint256 newRewardPerSecond);
     event FarmCreated(
         uint256 indexed fid,
         uint256 allocatedPoints,
-        IERC20 indexed lpToken
+        IERC20Upgradeable indexed lpToken
     );
     event FarmDeposit(
         address indexed depositor,
@@ -81,17 +85,18 @@ contract LFiFarms is AccessControl {
     event LogSetPool(uint256 indexed fid, uint256 allocPoint, bool overwrite);
     event FarmFundChanged(address indexed fund);
 
-    /// @dev Constructor function to consturct the LFI Farm contract
+    /// @dev Intialize function to consturct the LFI Farm contract
     /// @param admin Address of the manager who can do admin activities on the contract
     /// @param rewardToken Address of the LFI Token contract address
     /// @param fundContract Fund contract address to set at the deployment
-    constructor(
+    function intialize(
         address admin,
-        IERC20 rewardToken,
-        IFundDistributor fundContract
-    ) {
+        IERC20Upgradeable rewardToken,
+        IFundDistributor fundContract   
+    ) external initializer{
         reward = rewardToken;
         fund = fundContract;
+        totalAllocPoint = 0;
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(MANAGER_ROLE, admin);
     }
@@ -116,7 +121,7 @@ contract LFiFarms is AccessControl {
     /// @notice Function to create a Farm. Only can be called by the Manager of the contract
     /// @param allocPoint The number of allocation points assiged to the farm. Total allocatio points of all farms should be 100.
     /// @param poolToken The address of the pool token contract.
-    function createFarm(uint256 allocPoint, IERC20 poolToken)
+    function createFarm(uint256 allocPoint, IERC20Upgradeable poolToken)
         external
         onlyRole(MANAGER_ROLE)
     {
@@ -337,7 +342,7 @@ contract LFiFarms is AccessControl {
 
     /// @notice Function to check if a farm exists for a particular LPToken
     /// @param _token The address of the Pool token contract.
-    function checkFarmDoesntExist(IERC20 _token) public view {
+    function checkFarmDoesntExist(IERC20Upgradeable _token) public view {
         for (uint256 index = 0; index < farmInfo.length; index++) {
             require(lpToken[index] != _token, "Farm exists already");
         }
