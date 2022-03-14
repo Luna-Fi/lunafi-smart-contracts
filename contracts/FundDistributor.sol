@@ -14,7 +14,6 @@ interface IRewardToken is IERC20,IFundDistributor {
         returns (bool);
 }
 
-
 contract FundDistributor is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IRewardToken;

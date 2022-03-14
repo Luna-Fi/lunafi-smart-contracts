@@ -3,16 +3,7 @@
 pragma solidity 0.8.10;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-//--------------------------------------
-//   WBTC claim Token Contract
-//
-// Symbol      : WBTCCT
-// Name        : WBTCClaimToken
-// Total supply: 0
-// Decimals    : 18
-//--------------------------------------
-
-contract WBTCclaimToken is IERC20 {
+contract claimToken is IERC20 {
     uint8 public decimals;
     address public owner;
     uint256 public _totalSupply;
@@ -34,14 +25,14 @@ contract WBTCclaimToken is IERC20 {
         _;
     }
 
-    constructor() {
-        name = "LFWBTCLP";
-        symbol = "LFWBTCLP";
+    constructor(string memory tokenName, string memory tokenSymbol) {
+        name = tokenName;
+        symbol = tokenSymbol;
         decimals = 18;
         _totalSupply = 0;
         initialSupply = _totalSupply;
-        balances[msg.sender] = _totalSupply;
         owner = msg.sender;
+        balances[msg.sender] = _totalSupply;
         emit Transfer(address(0), msg.sender, _totalSupply);
     }
 
@@ -96,7 +87,7 @@ contract WBTCclaimToken is IERC20 {
     {
         require(
             to != address(0),
-            "WBTCclaimToken: Address should not be a zero"
+            "USDCclaimToken: Address should not be a zero"
         );
         balances[msg.sender] = balances[msg.sender] - tokens;
         balances[to] = balances[to] + tokens;
@@ -111,7 +102,7 @@ contract WBTCclaimToken is IERC20 {
     ) external override returns (bool success) {
         require(
             to != address(0),
-            "WBTCclaimToken: Address should not be a zero"
+            "USDCclaimToken: Address should not be a zero"
         );
         balances[from] = balances[from] - tokens;
         allowed[from][msg.sender] = allowed[from][msg.sender] - tokens;
@@ -123,12 +114,12 @@ contract WBTCclaimToken is IERC20 {
     function burn(address account, uint256 tokens) external onlyAdmin {
         require(
             account != address(0),
-            "WBTCclaimToken: Burn from a zero address"
+            "USDCclaimToken: Burn from a zero address"
         );
         uint256 accountBalance = balances[account];
         require(
             accountBalance >= tokens,
-            "WBTCclaimToken: Burn amount exceeds Balance"
+            "USDCclaimToken: Burn amount exceeds Balance"
         );
         balances[account] = accountBalance - tokens;
         _totalSupply = _totalSupply - tokens;
@@ -138,7 +129,7 @@ contract WBTCclaimToken is IERC20 {
     function mint(address account, uint256 tokens) external onlyAdmin {
         require(
             account != address(0),
-            "WBTCclaimToken: Mint from a zero address"
+            "USDCclaimToken: Mint from a zero address"
         );
         balances[account] = balances[account] + tokens;
         _totalSupply = _totalSupply + tokens;
