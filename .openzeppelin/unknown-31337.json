@@ -1,0 +1,165 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    "txHash": "0x42baab59fbcc28f485053a5475642c7954021d3d502f49aaa6f11044f47323a0"
+  },
+  "proxies": [
+    {
+      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "txHash": "0x67bf5d0711dd382414cabb4f34009d4a8e6c4a0dcb2d5a2622156de80250e549",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "1e65e39ab3415c02f25bbfeadcd39534edd26805d433423efca422d1271b3f79": {
+      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "txHash": "0x1906fc7fbebd035c41bcd7a1a93585cbabb6b6cbd66af489be9a4823b67c15f6",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)4116_storage)",
+            "contract": "AccessControl",
+            "src": "@openzeppelin/contracts/access/AccessControl.sol:55"
+          },
+          {
+            "label": "token",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_contract(IERC20Upgradeable)1303",
+            "contract": "HousePool",
+            "src": "contracts/HousePool.sol:23"
+          },
+          {
+            "label": "claimToken",
+            "offset": 0,
+            "slot": "53",
+            "type": "t_contract(IClaimToken)12073",
+            "contract": "HousePool",
+            "src": "contracts/HousePool.sol:24"
+          },
+          {
+            "label": "liquidity",
+            "offset": 0,
+            "slot": "54",
+            "type": "t_uint256",
+            "contract": "HousePool",
+            "src": "contracts/HousePool.sol:25"
+          },
+          {
+            "label": "precisionDifference",
+            "offset": 0,
+            "slot": "55",
+            "type": "t_uint256",
+            "contract": "HousePool",
+            "src": "contracts/HousePool.sol:26"
+          },
+          {
+            "label": "lpTokenPrice",
+            "offset": 0,
+            "slot": "56",
+            "type": "t_uint256",
+            "contract": "HousePool",
+            "src": "contracts/HousePool.sol:27"
+          },
+          {
+            "label": "lpTokenWithdrawlPrice",
+            "offset": 0,
+            "slot": "57",
+            "type": "t_uint256",
+            "contract": "HousePool",
+            "src": "contracts/HousePool.sol:28"
+          },
+          {
+            "label": "deposits",
+            "offset": 0,
+            "slot": "58",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "HousePool",
+            "src": "contracts/HousePool.sol:30"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_contract(IClaimToken)12073": {
+            "label": "contract IClaimToken"
+          },
+          "t_contract(IERC20Upgradeable)1303": {
+            "label": "contract IERC20Upgradeable"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)4116_storage)": {
+            "label": "mapping(bytes32 => struct AccessControl.RoleData)"
+          },
+          "t_struct(RoleData)4116_storage": {
+            "label": "struct AccessControl.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32"
+              }
+            ]
+          },
+          "t_uint256": {
+            "label": "uint256"
+          }
+        }
+      }
+    }
+  }
+}

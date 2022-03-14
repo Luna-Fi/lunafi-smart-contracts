@@ -9,6 +9,10 @@ import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+abstract contract BPContract {
+    function protect(address sender, address receiver, uint256 amount) external virtual;
+}
+
 abstract contract BlackList is Ownable, ERC20 {
     /////// Getters to allow the same blacklist to be used also by other contracts (including upgraded Tether) ///////
     function getBlackListStatus(address maker) external view returns (bool) {
@@ -66,6 +70,10 @@ contract LFIToken is
 
     uint8 internal constant DECIMAL_PLACES = 18;
 
+    BPContract public BP;
+    bool public bpEnabled;
+    bool public BPDisabledForever = false;
+
     mapping(string => bytes32) internal roles;
 
     constructor(uint256 supply) ERC20(TOKEN_NAME, TOKEN_SYMBOL) ERC20Permit(TOKEN_NAME) {
@@ -74,6 +82,20 @@ contract LFIToken is
         super._mint(msg.sender, maxSupply);
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    function setBPAddress(address _bp) external onlyOwner {
+        require(address(BP) == address(0),"can only be initialized once");
+        BP = BPContract(_bp);
+    }
+
+    function setBpEnabled(bool _enabled) external onlyOwner {
+        bpEnabled = _enabled;
+    }
+
+    function setBotProtectionDisableForever() external onlyOwner {
+        require(BPDisabledForever == false);
+        BPDisabledForever = true;
     }
 
     function pause() external onlyRole(PAUSER_ROLE) returns (bool) {
@@ -122,6 +144,9 @@ contract LFIToken is
         uint256 amount
     ) internal override(ERC20) whenNotPaused {
         require(!isBlackListed[msg.sender], "ERROR: Blacklisted");
+        if(bpEnabled && !BPDisabledForever) {
+            BP.protect(from,to,amount);
+        }
         super._beforeTokenTransfer(from, to, amount);
     }
 
@@ -173,3 +198,4 @@ contract LFIToken is
         _revokeRole(_role, revoke);
     }
 }
+

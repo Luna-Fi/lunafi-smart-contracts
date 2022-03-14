@@ -1,7 +1,7 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "claimTokenInterface",
-  "sourceName": "contracts/interfaces/IclaimToken.sol",
+  "contractName": "IClaimToken",
+  "sourceName": "contracts/interfaces/IClaimToken.sol",
   "abi": [
     {
       "inputs": [

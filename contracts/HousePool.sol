@@ -1,13 +1,13 @@
 // SPDX-License-Identifier:  MIT
 pragma solidity 0.8.10;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "contracts/interfaces/IclaimToken.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "contracts/interfaces/IClaimToken.sol";
 
 
 contract HousePool is
@@ -16,12 +16,12 @@ contract HousePool is
 {
     // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES BELOW
 
-    using SafeERC20 for IERC20;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
     
     uint256 constant  MAX_PRECISION = 18;
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
-    IERC20 token;
-    claimTokenInterface claimToken;
+    IERC20Upgradeable token;
+    IClaimToken claimToken;
     uint256 liquidity;
     uint256  public precisionDifference;
     uint256 lpTokenPrice;
@@ -39,8 +39,8 @@ contract HousePool is
         uint256 poolTokenWithdrawalPrice,
         uint8 precision
     ) external initializer {
-        token = IERC20(_token);
-        claimToken = claimTokenInterface(_claimToken);
+        token = IERC20Upgradeable(_token);
+        claimToken = IClaimToken(_claimToken);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, msg.sender);
         lpTokenPrice = poolTokenPrice;
