@@ -70,8 +70,8 @@ contract HousePool is
         return liquidity;
     }
 
-    function getMyLiquidity(address _user) external view returns (uint256) {
-        return (claimToken.balanceOf(_user) * lpTokenPrice) / 10**MAX_PRECISION;
+    function getMyLiquidity(address user) external view returns (uint256) {
+        return (claimToken.balanceOf(user) * lpTokenPrice) / 10**MAX_PRECISION;
     }
 
     // -- Internal Functions --

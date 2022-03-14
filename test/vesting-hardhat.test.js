@@ -30,7 +30,7 @@ function sleep(milliseconds) {
 }
 
 
-contract("vesting", (accounts) => {
+describe("vesting", (accounts) => {
    let token, dec;
    let MINUTES_IN_DAY = 1;
 

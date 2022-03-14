@@ -89,7 +89,7 @@ contract LFiFarms is AccessControlUpgradeable {
     /// @param admin Address of the manager who can do admin activities on the contract
     /// @param rewardToken Address of the LFI Token contract address
     /// @param fundContract Fund contract address to set at the deployment
-    function intialize(
+    function initialize(
         address admin,
         IERC20Upgradeable rewardToken,
         IFundDistributor fundContract   
