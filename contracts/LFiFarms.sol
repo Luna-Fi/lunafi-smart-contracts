@@ -39,10 +39,10 @@ contract LFiFarms is AccessControlUpgradeable {
         uint256 allocPoint;
     }
 
-    FarmInfo[] public farmInfo;
+    FarmInfo[]  farmInfo;
     IERC20Upgradeable[] public lpToken; 
     // Info of each user that stakes LP tokens.
-    mapping(uint256 => mapping(address => UserInfo)) public userInfo;
+    mapping(uint256 => mapping(address => UserInfo)) userInfo;
 
     // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES ABOVE
 
@@ -99,6 +99,17 @@ contract LFiFarms is AccessControlUpgradeable {
         totalAllocPoint = 0;
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(MANAGER_ROLE, admin);
+    }
+
+    /// @notice Returns the amount of the user
+    /// @return amount of the user 
+    function getUserAmount(address user, uint256 farmID) external view returns(uint256) {
+        return userInfo[farmID][user].amount;
+    }
+    /// @notice Returns the rewardDebt of the user
+    /// @return amount of the user 
+    function getUserRewardDebt(address user, uint256 farmID) external view returns(int256) {
+        return userInfo[farmID][user].rewardDebt;
     }
 
     /// @notice Returns the number LFIFarms
@@ -264,8 +275,7 @@ contract LFiFarms is AccessControlUpgradeable {
 
         // Note: transfer can fail or succeed if `amount` is zero.
         emit EmergencyWithdraw(msg.sender, fid, amount, receiver);
-        lpToken[fid].safeTransfer(receiver, amount);
-        
+        lpToken[fid].safeTransfer(receiver, amount);   
     }
 
     /// @notice View function to see pending reward on frontend.
@@ -322,7 +332,6 @@ contract LFiFarms is AccessControlUpgradeable {
             updateFarm(fids[i]);
         }
     }
-
 
     /// @notice Harvest proceeds for transaction sender to `receiver`.
     /// @param fid The index of the pool. See `farmInfo`.

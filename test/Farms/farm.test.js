@@ -22,5 +22,7 @@ describe("LFI Farms", async() => {
         const [owner, user1, user2, user3] = await ethers.getSigners()
         const approvalAmount = ethers.utils.formatUnits(returnBigNumber(10000000 * 10**18),0)
         const rewardTokensPerSecond = ethers.utils.formatUnits(returnBigNumber(10 * 10**18),0)
+
+        
     })
 })
