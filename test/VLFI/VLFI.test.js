@@ -61,8 +61,6 @@ describe("VLFI TOKEN", () => {
             value
         ) 
 
-        console.log("Result is : ",result);
-
         const OldAllowance = await lfi.allowance(owner.address,vlfi.address);
         console.log("Old Value is",OldAllowance.toString())
 
@@ -94,18 +92,18 @@ describe("VLFI TOKEN", () => {
         await vlfi.stake(owner.address,amount);
 
         // Farm  details :
-        const farmAccRewardsperShare = ethers.utils.formatUnits(await vlfi.getFarmAccRewardPerShare(), 0)
-        const farmLastRewardTime = ethers.utils.formatUnits(await vlfi.getFarmLastRewardTime(), 0)
+        const farmAccRewardsperShare = ethers.utils.formatUnits(await vlfi.getAccRewardPerShare(), 0)
+        const farmLastRewardTime = ethers.utils.formatUnits(await vlfi.getLastRewardTime(), 0)
 
          // User1 details :
          const user1VLFIBalance = ethers.utils.formatUnits(await vlfi.balanceOf(user1.address), 0)
-         const user1Amount = ethers.utils.formatUnits(await vlfi.getUserAmount(user1.address), 0)
+         const user1Amount = ethers.utils.formatUnits(await vlfi.getUserVLFIAmount(user1.address), 0)
          const user1RewardDebt = ethers.utils.formatUnits(await vlfi.getUserRewardDebt(user1.address), 0)
 
          
          // Owner details :
         const ownerVLFIBalance = ethers.utils.formatUnits(await vlfi.balanceOf(owner.address), 0)
-        const ownerAmount = ethers.utils.formatUnits(await vlfi.getUserAmount(owner.address), 0)
+        const ownerAmount = ethers.utils.formatUnits(await vlfi.getUserVLFIAmount(owner.address), 0)
         const ownerRewardDebt = ethers.utils.formatUnits(await vlfi.getUserRewardDebt(owner.address), 0) 
 
          // Log Farm Details after second deposit 
@@ -127,8 +125,8 @@ describe("VLFI TOKEN", () => {
 
     it("Should allow the users to get their pending rewards", async() => {
         const [owner,user1] = await ethers.getSigners()
-        const ownerPendingRewards = ethers.utils.formatUnits(await vlfi.pendingReward(owner.address), 0)
-        const user1PendingRewards = ethers.utils.formatUnits(await vlfi.pendingReward(user1.address), 0)
+        const ownerPendingRewards = ethers.utils.formatUnits(await vlfi.getRewards(owner.address), 0)
+        const user1PendingRewards = ethers.utils.formatUnits(await vlfi.getRewards(user1.address), 0)
 
         console.log("Owner Pending Rewards = ", ownerPendingRewards)
         console.log("User1 Pending Rewards = ", user1PendingRewards)
@@ -137,8 +135,8 @@ describe("VLFI TOKEN", () => {
 
     it("Should allow the users to get their pending rewards", async() => {
         const [owner,user1] = await ethers.getSigners()
-        const ownerPendingRewards = ethers.utils.formatUnits(await vlfi.pendingReward(owner.address), 0)
-        const user1PendingRewards = ethers.utils.formatUnits(await vlfi.pendingReward(user1.address), 0)
+        const ownerPendingRewards = ethers.utils.formatUnits(await vlfi.getRewards(owner.address), 0)
+        const user1PendingRewards = ethers.utils.formatUnits(await vlfi.getRewards(user1.address), 0)
 
         console.log("Owner Pending Rewards = ", ownerPendingRewards)
         console.log("User1 Pending Rewards = ", user1PendingRewards)
