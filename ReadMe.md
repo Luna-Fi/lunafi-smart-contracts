@@ -1,7 +1,6 @@
 Note: To enable preview of designs add Markdown Preview Mermaid extension to VS Code.
 ### Please refer to docs folder for more information
 
-
 # LunaFI smart contracts :
 
 In LunaFi, we have a variety of products, from ERC20 Tokens, Yield Farms and HousePools.
