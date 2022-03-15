@@ -3,6 +3,7 @@
 pragma solidity 0.8.10;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+/// @notice claimToken contract. ERC20 contract for LunaFi's LP Tokens
 contract claimToken is IERC20 {
     uint8 public decimals;
     address public owner;
