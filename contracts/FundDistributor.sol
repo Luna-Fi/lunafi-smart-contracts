@@ -1,22 +1,22 @@
 // SPDX-License-Identifier:  MIT
 pragma solidity 0.8.10;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "contracts/interfaces/IFundDistributor.sol";
 
-interface IRewardToken is IERC20Upgradeable,IFundDistributor {
+interface IRewardToken is IERC20,IFundDistributor {
     function transfer(address _recipient, uint256 _amount)
         external
         returns (bool);
 }
 
-contract FundDistributor is OwnableUpgradeable {
-    using SafeMathUpgradeable for uint256;
-    using SafeERC20Upgradeable for IRewardToken;
+contract FundDistributor is Ownable {
+    using SafeMath for uint256;
+    using SafeERC20 for IRewardToken;
 
     IRewardToken public rewardToken;
     uint256 public missingDecimals;
@@ -29,11 +29,10 @@ contract FundDistributor is OwnableUpgradeable {
         _;
     }
 
-    function initialize(
-        address reward
-    ) external initializer{
+    constructor(address reward)
+    {
         rewardToken = IRewardToken(reward);
-        missingDecimals = 18 - ERC20Upgradeable(reward).decimals();
+        missingDecimals = 18 - ERC20(reward).decimals();
     }
     
     function distributeReward(address _receiver, uint256 _amount)

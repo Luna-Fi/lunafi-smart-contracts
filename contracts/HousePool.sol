@@ -4,7 +4,7 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "contracts/interfaces/IClaimToken.sol";
@@ -12,7 +12,7 @@ import "contracts/interfaces/IClaimToken.sol";
 /// @notice LunaFi's HousePool contract.
 contract HousePool is
     ReentrancyGuardUpgradeable,
-    AccessControl
+    AccessControlUpgradeable
 {
     // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES BELOW
 

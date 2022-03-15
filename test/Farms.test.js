@@ -162,6 +162,7 @@ describe("Testing LFI Farms", () => {
         mockUSDC.transfer(user1.address,10000000000)
         mockWBTC.transfer(user2.address,1000000000000)
         mockWETH.transfer(user3.address,ethers.utils.formatUnits(returnBigNumber(10000* 10 **18),0))
+        await fund.addRequester(farm.address)
     })
     it(`Should allow the owner to create Farms and set RewardsPerSecond`, async () => {
         const [owner] = await ethers.getSigners()
@@ -260,8 +261,6 @@ describe("Testing LFI Farms", () => {
         const LPBeforeBalanceUser1 = await usdcClaimToken.balanceOf(user1.address)
         const LPBeforeBalanceUser2 = await wbtcClaimToken.balanceOf(user2.address)
         const LPBeforeBalanceUser3 = await wethClaimToken.balanceOf(user3.address)
-
-        await fund.addRequester(farm.address)
 
         const totalSupply = await lfiToken.totalSupply()
         await lfiToken.transfer(fund.address,totalSupply)

@@ -20,10 +20,10 @@ describe("HousePool", () => {
         const PoolWithdrawalPrice =  ethers.utils.formatUnits(returnBigNumber(100 * 10**18),0)
         MockToken = await  ethers.getContractFactory("mockUSDCToken")
         HousePool = await ethers.getContractFactory("HousePool")
-        ClaimToken = await ethers.getContractFactory("USDCclaimToken")
+        ClaimToken = await ethers.getContractFactory("claimToken")
         
         mockToken = await MockToken.deploy()
-        claimToken = await ClaimToken.deploy()
+        claimToken = await ClaimToken.deploy("USDCCLIAM","USDCLP")
         housePool = await upgrades.deployProxy(HousePool,[mockToken.address,claimToken.address,PoolTokenPrice,PoolWithdrawalPrice,12],{initializer: 'initialize'});
 
         console.log(" The Address of Mock Token is ", mockToken.address)
