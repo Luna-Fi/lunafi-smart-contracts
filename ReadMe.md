@@ -5,7 +5,7 @@ Note: To enable preview of designs add Markdown Preview Mermaid extension to VS 
 
 ## LunaFi
 
-Smart Contracts for [LunaFi](#) available built for various EVM-compatible blockchains and will initially be launched on Polygon.
+Smart Contracts for [LunaFi](#) built for EVM-compatible blockchains and will initially be launched on Polygon.
 
 In LunaFi, we have a variety of products, from ERC20 Tokens, Yield Farms and Liquidity Pools(HousePools).
 
