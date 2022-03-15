@@ -9,6 +9,12 @@ const {BigNumber} = require("ethers");
 
 const managerRole = ethers.utils.id("MANAGER_ROLE");
 
+const returnBigNumber = (number) => {
+   number = number.toString(16)
+   return BigNumber.from("0x" + number);
+}
+
+
 const getNumberFromBN = (bn, d) => {
    return BigNumber.from(bn).div(BigNumber.from(10).pow(d)).toNumber();
 }
@@ -37,8 +43,9 @@ describe("vesting", (accounts) => {
    before(async () => {
 
       [owner, ...accounts] = await ethers.getSigners();
+      const supply = ethers.utils.formatUnits(returnBigNumber(1000000000 * 10 **18),0);
       Erc20 = await hre.ethers.getContractFactory("LFIToken");
-      token = await Erc20.deploy();
+      token = await Erc20.deploy(supply);
       dec = await token.decimals();
 
       await token.deployed();
