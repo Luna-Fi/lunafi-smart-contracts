@@ -1,6 +1,13 @@
 pragma solidity 0.8.10;
-import "contracts/interfaces/IHousePool.sol";
+
 import "@openzeppelin/contracts/access/AccessControl.sol";
+
+interface IHousePool {
+    function getTokenPrice() external view returns (uint256);
+    function getTokenWithdrawlPrice() external view returns (uint256);
+    function getLiquidityStatus() external view returns (uint256);
+    function getMyLiquidity(address _user) external view returns (uint256);
+}
 
 contract FrontendHelper is AccessControl {
 
@@ -26,16 +33,15 @@ contract FrontendHelper is AccessControl {
         _housePools = housePools;
     }
 
-    function getPoolInformation() public view returns (HousePoolLiquidity[] memory housePoolLiquidity)
-    {
-        HousePoolLiquidity[] memory liquidityObj;
-        uint i = 0;
-        for (i = 0; i < _housePools.length; i++) {  
-            liquidityObj[i] = HousePoolLiquidity({housePool: _housePools[i], liquidity: IHousePool(_housePools[i]).getLiquidityStatus()});
-        }
 
-        return liquidityObj;
-    }
+function getPoolInformation() public view returns (HousePoolLiquidity[] memory){
+    uint numberOfPools = _housePools.length;
+      HousePoolLiquidity[]    memory liquidityObj = new HousePoolLiquidity[](numberOfPools);
+      for (uint i = 0; i < numberOfPools; i++) {
+          HousePoolLiquidity memory liquidity = HousePoolLiquidity({housePool: _housePools[i], liquidity: IHousePool(_housePools[i]).getLiquidityStatus()});
+          liquidityObj[i] = liquidity;
+      }
+      return liquidityObj;
+  }
 }
-
 
