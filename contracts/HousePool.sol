@@ -4,15 +4,15 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "contracts/interfaces/IClaimToken.sol";
 
-
+/// @notice LunaFi's HousePool contract.
 contract HousePool is
     ReentrancyGuardUpgradeable,
-    AccessControl
+    AccessControlUpgradeable
 {
     // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES BELOW
 
@@ -49,33 +49,43 @@ contract HousePool is
     }
 
     // -- External Functions
+
+    /// @notice deposit function allows user to deposit the approved tokens and mint proportionate amout of LP Tokens
+    /// @param amount the amount in base units for the approved tokens
     function deposit_(uint256 amount) external {
         _deposit(amount);
     }
 
+    /// @notice withdraw function allows user to withdraw the deposited amount and burn the proportionate amount of LP Tokens
+    /// @param amount the amount in base units to be withdrawn
     function withdraw_(uint256 amount) external {
         _withdraw(amount);
     }
 
     // -- View Functions --
+
+    /// @notice function returns the LP Token price
     function getTokenPrice() external view returns (uint256) {
         return lpTokenPrice;
     }
 
-    function getTokenWithdrawlPrice() external view returns (uint256) {
+    /// @notice function returns the LP Token withdrawal price
+    function getTokenWithdrawalPrice() external view returns (uint256) {
         return lpTokenWithdrawlPrice;
     }
-
+    /// @notice function returns the liquidity of the contract
     function getLiquidityStatus() external view returns (uint256) {
         return liquidity;
     }
-
-    function getMyLiquidity(address _user) external view returns (uint256) {
-        return (claimToken.balanceOf(_user) * lpTokenPrice) / 10**MAX_PRECISION;
+    /// @notice function returns the Liqudity provided by a specific user
+    /// @param user address of the specific user to get the liquidity for
+    function getMyLiquidity(address user) external view returns (uint256) {
+        return (claimToken.balanceOf(user) * lpTokenPrice) / 10**MAX_PRECISION;
     }
 
     // -- Internal Functions --
 
+    /// @notice internal deposit function used by deposit_
     function _deposit(uint256 amount) internal nonReentrant {
         require(
             amount > 0 && amount <= token.balanceOf(msg.sender),
@@ -89,7 +99,7 @@ contract HousePool is
             10**MAX_PRECISION) / lpTokenPrice;
         claimToken.mint(msg.sender, LPTokensToMint);
     }
-
+    /// @notice internal withdraw function used by withdraw_
     function _withdraw(uint256 amount) internal nonReentrant {
         require(amount > 0, "HousePool: Zero Amount");
         require(

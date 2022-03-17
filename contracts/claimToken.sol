@@ -3,6 +3,7 @@
 pragma solidity 0.8.10;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+/// @notice claimToken contract. ERC20 contract for LunaFi's LP Tokens
 contract claimToken is IERC20 {
     uint8 public decimals;
     address public owner;
@@ -25,6 +26,9 @@ contract claimToken is IERC20 {
         _;
     }
 
+    /// @notice constructor to construct the contract with the initial values
+    /// @param tokenName The name of the token
+    /// @param tokenSymbol The symbol of the token
     constructor(string memory tokenName, string memory tokenSymbol) {
         name = tokenName;
         symbol = tokenSymbol;
@@ -36,22 +40,31 @@ contract claimToken is IERC20 {
         emit Transfer(address(0), msg.sender, _totalSupply);
     }
 
+    /// @notice addAdmin function is used to add an admin. Only this admin can call mint or burn the tokens
+    /// @param account the EOA address to be added as an admin.
     function addAdmin(address account) public onlyOwner {
         admins[account] = true;
     }
 
+    /// @notice removeAadmin function is used to remove an admin. 
+    /// @param account the EOA address to be removed as an admin
     function removeAdmin(address account) public onlyOwner {
         admins[account] = false;
     }
 
+    /// @notice isAdmin function is used to query if the provided address is an admin or not
+    /// @param account the EOA address to query if that address is an admin or not
     function isAdmin(address account) public view onlyOwner returns (bool) {
         return admins[account];
     }
 
+    /// @notice totalSupply function returns the total number of tokens
     function totalSupply() external view override returns (uint256) {
         return _totalSupply - balances[address(0)];
     }
 
+    /// @notice balanceOf function returns the balance of a particular user
+    /// @param tokenOwner the address to which the token balance is returned
     function balanceOf(address tokenOwner)
         external
         view
@@ -61,6 +74,7 @@ contract claimToken is IERC20 {
         return balances[tokenOwner];
     }
 
+    /// @notice allowance function that returns the allowance
     function allowance(address tokenOwner, address spender)
         external
         view
@@ -111,6 +125,7 @@ contract claimToken is IERC20 {
         return true;
     }
 
+    /// @notice burn function burns the tokens of the token holder, Token holder should be an admin
     function burn(address account, uint256 tokens) external onlyAdmin {
         require(
             account != address(0),
@@ -126,6 +141,7 @@ contract claimToken is IERC20 {
         emit Transfer(account, address(0), tokens);
     }
 
+    /// @notice burn function mints the tokens of the token holder, Token holder should be an admin
     function mint(address account, uint256 tokens) external onlyAdmin {
         require(
             account != address(0),

@@ -29,11 +29,12 @@ contract FundDistributor is Ownable {
         _;
     }
 
-    constructor(address _reward) {
-        rewardToken = IRewardToken(_reward);
-        missingDecimals = 18 - ERC20(_reward).decimals();
+    constructor(address reward)
+    {
+        rewardToken = IRewardToken(reward);
+        missingDecimals = 18 - ERC20(reward).decimals();
     }
-
+    
     function distributeReward(address _receiver, uint256 _amount)
         public
         onlyRequester

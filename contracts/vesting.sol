@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /**
  * @title vesting
  */
-contract vesting is Ownable, ReentrancyGuard, AccessControl {
+contract Vesting is Ownable, ReentrancyGuard, AccessControl {
     using SafeERC20 for IERC20;
 
     struct VestingSchedule {
@@ -78,7 +78,6 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
         MINUTES_IN_DAY = 1; // 24 * 60 for mainnet, 1 for testnet
 
         uint8 decimals = 18;
-
         // Team
         createVestingSchedule(
             address(0x27106C0f5c450ED30B4547681992709808964600),
@@ -301,7 +300,8 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
     /**
      * @notice Creates a new vesting schedule for an account.
      * @param _recipient address of recipient
-     * @param _vestingPeriod duration in seconds of the period in which the tokens will vest
+     * @param _vestingPeriod duration in days of the period in which the tokens will vest
+     * @param _cliffPeriod duration in days of the period in which vesting is locked
      * @param _amount total amount of tokens to be released at the end of the vesting
      */
     function createVestingSchedule(
