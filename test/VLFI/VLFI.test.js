@@ -7,7 +7,9 @@ const returnBigNumber = (number) => {
     number = number.toString(16)
     return BigNumber.from("0x" + number);
 }
+const formatFromBaseUnit = (amount, decimals) => Number(ethers.utils.formatUnits(ethers.BigNumber.from(amount), decimals))
 const formatToNumber = (n) => ethers.BigNumber.from(n).toNumber()
+
 
 describe("VLFI TOKEN", () => {
 
@@ -126,7 +128,29 @@ describe("VLFI TOKEN", () => {
 
     })
 
-    it("Should allow the users to start cooldown window and unstake", async() => {
+    it("Should allow the users to start cooldown window and unstake variable amounr", async() => {
+        const [owner,user1] = await ethers.getSigners()
+
+        const transferLFIAmount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
+        const amount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
+        
+        const originalBalance = await lfi.balanceOf(owner.address)
+        await vlfi.connect(owner).activateCooldown();
+        const cooldownInSeconds = formatToNumber(await vlfi.getCooldownSeconds())
+
+        const timeout = cooldownInSeconds * 1000 + 1500
+        await sleep(timeout);
+
+        await vlfi.connect(owner).unStake(owner.address, 1);
+
+        const amountDeposited = await vlfi.getUserLFIDeposits(owner.address);
+
+        const newBalance = await lfi.balanceOf(owner.address)
+        expect(newBalance).to.not.equal(originalBalance)
+
+    })
+
+    it("Should allow the users to start cooldown window and unstake max amount", async() => {
         const [owner,user1] = await ethers.getSigners()
 
         const transferLFIAmount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
@@ -140,11 +164,11 @@ describe("VLFI TOKEN", () => {
         const timeout = cooldownInSeconds * 1000 + 1500
         await sleep(timeout);
 
-        await vlfi.connect(owner).unStake();
+        await vlfi.connect(owner).unStakeMax(owner.address);
 
         const amountDeposited = await vlfi.getUserLFIDeposits(owner.address);
 
-        expect(amountDeposited).to.equal
+        expect(amountDeposited).to.equal(0)
 
     })
      

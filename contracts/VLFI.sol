@@ -303,11 +303,12 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         emit Staked(msg.sender, onBehalfOf, amount);   
     }
     /// @notice Function that allows the user to unstake the LFI
-    function unStake() external {
-        uint256 amount = userDeposits[msg.sender];
+    /// @param to address to transfer the LFI tokens to
+    /// @param amount amount of LFI tokens to unstake
+    function unStake(address to, uint256 amount) public {
         require(
-            amount != 0,
-            "NO STAKED TOKENS"
+            amount != 0 && amount <= STAKED_TOKEN.balanceOf(msg.sender),
+            "VLFI:INVALID_AMOUNT"
         );
         uint256 cooldownStartTimestamp = cooldownStartTimes[msg.sender];
         require(
@@ -319,7 +320,6 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
                 UNSTAKE_WINDOW,
             "VLFI:UNSTAKE_WINDOW_FINISHED"
         );
-
         uint256 balanceOfMessageSender = balanceOf(msg.sender);
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
@@ -334,8 +334,15 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         if (balanceOfMessageSender - ((amount * 10**18) / lpTokenPrice) == 0) {
             cooldownStartTimes[msg.sender] = 0;
         }
-        ILFIToken(STAKED_TOKEN).transfer(msg.sender, amount); 
+        ILFIToken(STAKED_TOKEN).transfer(to, amount); 
         emit UnStaked(msg.sender, msg.sender, amount);
+    }
+
+    /// @notice Function that allows the user to unstake the LFI
+    /// @param to address to transfer the LFI tokens to
+    function unStakeMax(address to) external {
+        uint256 amount = userDeposits[to];
+        unStake(to, amount);
     }
 
     /// @notice Function users should execute to activate their cooldown period to unstake the LFI
