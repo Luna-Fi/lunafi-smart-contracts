@@ -20,6 +20,7 @@ contract HousePool is
     
     uint256 constant  MAX_PRECISION = 18;
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
+    string poolName;
     IERC20Upgradeable token;
     IClaimToken claimToken;
     uint256 liquidity;
@@ -33,12 +34,14 @@ contract HousePool is
 
     // -- Init --
     function initialize(
+        string memory name,
         address _token,
         address _claimToken,
         uint256 poolTokenPrice,
         uint256 poolTokenWithdrawalPrice,
         uint8 precision
     ) external initializer {
+        poolName = name;
         token = IERC20Upgradeable(_token);
         claimToken = IClaimToken(_claimToken);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
