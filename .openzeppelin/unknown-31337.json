@@ -57,7 +57,7 @@
     },
     {
       "address": "0xFD471836031dc5108809D173A067e8486B9047A3",
-      "txHash": "0x3accb4d87691a114fad8cbeafaf5287260a04cc016e659e6cafd0b8511595aea",
+      "txHash": "0x9432fa31267730f3fb83e0a21b98930b2b7a3ab6e7e4aca916b42afb5599938b",
       "kind": "transparent"
     }
   ],
@@ -222,7 +222,7 @@
             "label": "fund",
             "offset": 0,
             "slot": "152",
-            "type": "t_contract(IFundDistributor)12087",
+            "type": "t_contract(IFundDistributor)12083",
             "contract": "LFiFarms",
             "src": "contracts/LFiFarms.sol:20"
           },
@@ -292,7 +292,7 @@
           "t_contract(IERC20Upgradeable)1303": {
             "label": "contract IERC20Upgradeable"
           },
-          "t_contract(IFundDistributor)12087": {
+          "t_contract(IFundDistributor)12083": {
             "label": "contract IFundDistributor"
           },
           "t_int256": {
@@ -440,7 +440,7 @@
             "label": "claimToken",
             "offset": 0,
             "slot": "202",
-            "type": "t_contract(IClaimToken)12077",
+            "type": "t_contract(IClaimToken)12073",
             "contract": "HousePool",
             "src": "contracts/HousePool.sol:24"
           },
@@ -501,7 +501,7 @@
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(IClaimToken)12077": {
+          "t_contract(IClaimToken)12073": {
             "label": "contract IClaimToken"
           },
           "t_contract(IERC20Upgradeable)1303": {
@@ -535,9 +535,9 @@
         }
       }
     },
-    "de835f715a3a6538aa169260fbe1931decf065b2ab8e196a21563de88e85d5b4": {
+    "bd4e93b2fda07483bedd6e07ca074cc80c7c3da3e5ce1c44d84fe695940c09fe": {
       "address": "0xc351628EB244ec633d5f21fBD6621e1a683B1181",
-      "txHash": "0x75bd70339eace7d4cf6c4fe6b1c8e8aef6ba2880261e5212a6458c3dc56dd83e",
+      "txHash": "0x4021e443577d175374f2d5cbb29469e823a3e9c100727c4cca389f48e017b6a5",
       "layout": {
         "storage": [
           {
@@ -720,7 +720,7 @@
             "label": "STAKED_TOKEN",
             "offset": 0,
             "slot": "354",
-            "type": "t_contract(ILFIToken)12134",
+            "type": "t_contract(ILFIToken)12130",
             "contract": "VLFI",
             "src": "contracts/VLFI.sol:20"
           },
@@ -830,7 +830,7 @@
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(ILFIToken)12134": {
+          "t_contract(ILFIToken)12130": {
             "label": "contract ILFIToken"
           },
           "t_int256": {
