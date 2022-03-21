@@ -9,7 +9,7 @@ import "contracts/interfaces/ILFIToken.sol";
 import "hardhat/console.sol";
 
 
-contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradeable, ERC20VotesUpgradeable {
+contract VLFIT2 is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradeable, ERC20VotesUpgradeable {
     
     
     // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES BELOW
@@ -305,7 +305,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     /// @notice Function that allows the user to unstake the LFI
     /// @param to address to transfer the LFI tokens to
     /// @param amount amount of LFI tokens to unstake
-    function unStake(address to, uint256 amount) external {
+    function unStake(address to, uint256 amount) public {
         require(
             amount != 0 && amount <= STAKED_TOKEN.balanceOf(msg.sender),
             "VLFI:INVALID_AMOUNT"
@@ -336,6 +336,13 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         }
         ILFIToken(STAKED_TOKEN).transfer(to, amount); 
         emit UnStaked(msg.sender, msg.sender, amount);
+    }
+
+    /// @notice Function that allows the user to unstake the LFI
+    /// @param to address to transfer the LFI tokens to
+    function unStakeMax(address to) external {
+        uint256 amount = userDeposits[to];
+        unStake(to, amount);
     }
 
     /// @notice Function users should execute to activate their cooldown period to unstake the LFI
