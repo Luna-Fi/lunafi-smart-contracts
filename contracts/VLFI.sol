@@ -239,7 +239,8 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     function setRewardPerSecond(uint256 _rewardPerSecond)
         public
         onlyRole(MANAGER_ROLE)
-    {
+    {   
+        updateFarm();
         rewardPerSecond = _rewardPerSecond;
     }
 
