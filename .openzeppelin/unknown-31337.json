@@ -2,7 +2,7 @@
   "manifestVersion": "3.2",
   "admin": {
     "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
-    "txHash": "0xcbd4c734cf367ae887806e6be310185eecd59ba234b8d0c54c3f8f09724e4350"
+    "txHash": "0x1f281f62019ac605fc76ec6831fb4eec9cc3c15be99e87c4dc9ca918622a1fd7"
   },
   "proxies": [
     {
@@ -31,33 +31,43 @@
       "kind": "transparent"
     },
     {
+      "address": "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f",
+      "txHash": "0xba194a5e6ccb416db32b24ff51950b65a07a6d23096a9390e3f3c9bbec1b1887",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xCD8a1C3ba11CF5ECfa6267617243239504a98d90",
+      "txHash": "0xa8f818c349bfb333565be8a909c4efc074f6ab9bfdc8561d46a5a8908c56f18f",
+      "kind": "transparent"
+    },
+    {
       "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
-      "txHash": "0x180f4e69dff61e2bb3f5eac11f4cc6e02d6139f5c0bbd4d27f2e738dc51c1d7e",
+      "txHash": "0xddbeb7de3a652602fceaccb277ed07e0f466b6379295aa22d7c7b913637b3b19",
       "kind": "transparent"
     },
     {
       "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
-      "txHash": "0xd00213b503a66b4ce91c82fd20ea9c58384a3ac429e32e6cc57d52cb3181c5b4",
+      "txHash": "0xe7c957c71557e76e222e27a6f1f502e3013930b1fc70d613755488bdcbc45fa9",
       "kind": "transparent"
     },
     {
       "address": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
-      "txHash": "0x81d19f1c197258e131328a316f832b61d5068f27882647c62f3d0638538f289d",
+      "txHash": "0x113d75c62a278bd84a20cc4e7f6ef7168f3b3f3f61ed6823cf7157284f97465e",
       "kind": "transparent"
     },
     {
       "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
-      "txHash": "0x3a0c3ad6bcf554c3549ef98f6c769f3da7dd821aed8ea80ef4563af27e801e9f",
+      "txHash": "0x8bea6914c98c7d14d8c3efe9dc856883ee3fab10f3423e375f36e6877f566743",
       "kind": "transparent"
     },
     {
       "address": "0x998abeb3E57409262aE5b751f60747921B33613E",
-      "txHash": "0x2aafa3d0b8d2e34fd9bd65a8db8437c89ef3ee39401ecd0be95de6d5094c1a35",
+      "txHash": "0x1c7ad31e8d3647aabfc14f0e1de1ded4423ce6f507a5640fdadc01720d2914b9",
       "kind": "transparent"
     },
     {
       "address": "0xFD471836031dc5108809D173A067e8486B9047A3",
-      "txHash": "0x3accb4d87691a114fad8cbeafaf5287260a04cc016e659e6cafd0b8511595aea",
+      "txHash": "0x8967d7428fa2b4f4eb500f4cac54d86b461b3a2caa927eb66eda992493974e91",
       "kind": "transparent"
     }
   ],
@@ -159,7 +169,7 @@
     },
     "4bfbe9ebeca4e9d24247eafae6e2fa5e022fd1d3561e5379319a771da44f244a": {
       "address": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
-      "txHash": "0x4369dce2551fef581be4e9e1c6b910d8728b06d472cdcb3b93e712f0c33b9356",
+      "txHash": "0x02a5b6eba3b29fa5153c3f7e2a17a7d4b5c582ddc1e63aa7ea0fdc5a7c386de2",
       "layout": {
         "storage": [
           {
@@ -222,7 +232,7 @@
             "label": "fund",
             "offset": 0,
             "slot": "152",
-            "type": "t_contract(IFundDistributor)12105",
+            "type": "t_contract(IFundDistributor)12116",
             "contract": "LFiFarms",
             "src": "contracts/LFiFarms.sol:20"
           },
@@ -246,7 +256,7 @@
             "label": "farmInfo",
             "offset": 0,
             "slot": "155",
-            "type": "t_array(t_struct(FarmInfo)8554_storage)dyn_storage",
+            "type": "t_array(t_struct(FarmInfo)8562_storage)dyn_storage",
             "contract": "LFiFarms",
             "src": "contracts/LFiFarms.sol:42"
           },
@@ -262,7 +272,7 @@
             "label": "userInfo",
             "offset": 0,
             "slot": "157",
-            "type": "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)8547_storage))",
+            "type": "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)8555_storage))",
             "contract": "LFiFarms",
             "src": "contracts/LFiFarms.sol:45"
           }
@@ -274,7 +284,7 @@
           "t_array(t_contract(IERC20Upgradeable)1303)dyn_storage": {
             "label": "contract IERC20Upgradeable[]"
           },
-          "t_array(t_struct(FarmInfo)8554_storage)dyn_storage": {
+          "t_array(t_struct(FarmInfo)8562_storage)dyn_storage": {
             "label": "struct LFiFarms.FarmInfo[]"
           },
           "t_array(t_uint256)49_storage": {
@@ -292,7 +302,7 @@
           "t_contract(IERC20Upgradeable)1303": {
             "label": "contract IERC20Upgradeable"
           },
-          "t_contract(IFundDistributor)12105": {
+          "t_contract(IFundDistributor)12116": {
             "label": "contract IFundDistributor"
           },
           "t_int256": {
@@ -301,16 +311,16 @@
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
           },
-          "t_mapping(t_address,t_struct(UserInfo)8547_storage)": {
+          "t_mapping(t_address,t_struct(UserInfo)8555_storage)": {
             "label": "mapping(address => struct LFiFarms.UserInfo)"
           },
           "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
             "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
           },
-          "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)8547_storage))": {
+          "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)8555_storage))": {
             "label": "mapping(uint256 => mapping(address => struct LFiFarms.UserInfo))"
           },
-          "t_struct(FarmInfo)8554_storage": {
+          "t_struct(FarmInfo)8562_storage": {
             "label": "struct LFiFarms.FarmInfo",
             "members": [
               {
@@ -340,7 +350,7 @@
               }
             ]
           },
-          "t_struct(UserInfo)8547_storage": {
+          "t_struct(UserInfo)8555_storage": {
             "label": "struct LFiFarms.UserInfo",
             "members": [
               {
@@ -359,9 +369,9 @@
         }
       }
     },
-    "4cef5d553ce2c781b3abbe88f653db3cb73d1c27939a2d8220ecfd1be51e73a9": {
+    "89999a2d26f09c91f8fb018619f984b9d27c579b8935f172e1983a92dc49f592": {
       "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
-      "txHash": "0xcaae9ed0d6cac5d69846ad85097543ef2a8ccd0c1864d7158de736bd69cac311",
+      "txHash": "0x9c189e7a25de1e3f723a2fb4e9cc33920b0600b5f140f78c2e1b99e81444df73",
       "layout": {
         "storage": [
           {
@@ -429,31 +439,31 @@
             "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:235"
           },
           {
-            "label": "token",
+            "label": "poolName",
             "offset": 0,
             "slot": "201",
-            "type": "t_contract(IERC20Upgradeable)1303",
+            "type": "t_string_storage",
             "contract": "HousePool",
             "src": "contracts/HousePool.sol:23"
           },
           {
-            "label": "claimToken",
+            "label": "token",
             "offset": 0,
             "slot": "202",
-            "type": "t_contract(IClaimToken)12095",
+            "type": "t_contract(IERC20Upgradeable)1303",
             "contract": "HousePool",
             "src": "contracts/HousePool.sol:24"
           },
           {
-            "label": "liquidity",
+            "label": "claimToken",
             "offset": 0,
             "slot": "203",
-            "type": "t_uint256",
+            "type": "t_contract(IClaimToken)12106",
             "contract": "HousePool",
             "src": "contracts/HousePool.sol:25"
           },
           {
-            "label": "precisionDifference",
+            "label": "liquidity",
             "offset": 0,
             "slot": "204",
             "type": "t_uint256",
@@ -461,7 +471,7 @@
             "src": "contracts/HousePool.sol:26"
           },
           {
-            "label": "lpTokenPrice",
+            "label": "precisionDifference",
             "offset": 0,
             "slot": "205",
             "type": "t_uint256",
@@ -469,7 +479,7 @@
             "src": "contracts/HousePool.sol:27"
           },
           {
-            "label": "lpTokenWithdrawlPrice",
+            "label": "lpTokenPrice",
             "offset": 0,
             "slot": "206",
             "type": "t_uint256",
@@ -477,12 +487,20 @@
             "src": "contracts/HousePool.sol:28"
           },
           {
-            "label": "deposits",
+            "label": "lpTokenWithdrawlPrice",
             "offset": 0,
             "slot": "207",
+            "type": "t_uint256",
+            "contract": "HousePool",
+            "src": "contracts/HousePool.sol:29"
+          },
+          {
+            "label": "deposits",
+            "offset": 0,
+            "slot": "208",
             "type": "t_mapping(t_address,t_uint256)",
             "contract": "HousePool",
-            "src": "contracts/HousePool.sol:30"
+            "src": "contracts/HousePool.sol:31"
           }
         ],
         "types": {
@@ -501,7 +519,7 @@
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(IClaimToken)12095": {
+          "t_contract(IClaimToken)12106": {
             "label": "contract IClaimToken"
           },
           "t_contract(IERC20Upgradeable)1303": {
@@ -515,6 +533,9 @@
           },
           "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
             "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
+          },
+          "t_string_storage": {
+            "label": "string"
           },
           "t_struct(RoleData)34_storage": {
             "label": "struct AccessControlUpgradeable.RoleData",
@@ -535,9 +556,9 @@
         }
       }
     },
-    "024dfd18edb52d3eb8448ad3d5465a0b6389f9ef3292259fee7aa15016b84441": {
+    "c7469ec07718eee7a2109606c428b9051c1cb733877b9ccf00687229549ab072": {
       "address": "0xc351628EB244ec633d5f21fBD6621e1a683B1181",
-      "txHash": "0xf70590b63c0391ff466735a52b5bd23885bdd7c33f44f38ccc99e09c270255da",
+      "txHash": "0x75687d283f7a2217cc06856bf387faecb4271e9381efb58b31ec4a6e582402b0",
       "layout": {
         "storage": [
           {
@@ -720,8 +741,8 @@
             "label": "STAKED_TOKEN",
             "offset": 0,
             "slot": "354",
-            "type": "t_contract(ILFIToken)12152",
-            "contract": "VLFI",
+            "type": "t_contract(ILFIToken)12163",
+            "contract": "VLFIT2",
             "src": "contracts/VLFI.sol:20"
           },
           {
@@ -729,7 +750,7 @@
             "offset": 0,
             "slot": "355",
             "type": "t_uint256",
-            "contract": "VLFI",
+            "contract": "VLFIT2",
             "src": "contracts/VLFI.sol:21"
           },
           {
@@ -737,7 +758,7 @@
             "offset": 0,
             "slot": "356",
             "type": "t_uint256",
-            "contract": "VLFI",
+            "contract": "VLFIT2",
             "src": "contracts/VLFI.sol:22"
           },
           {
@@ -745,7 +766,7 @@
             "offset": 0,
             "slot": "357",
             "type": "t_uint256",
-            "contract": "VLFI",
+            "contract": "VLFIT2",
             "src": "contracts/VLFI.sol:23"
           },
           {
@@ -753,7 +774,7 @@
             "offset": 0,
             "slot": "358",
             "type": "t_uint256",
-            "contract": "VLFI",
+            "contract": "VLFIT2",
             "src": "contracts/VLFI.sol:24"
           },
           {
@@ -761,7 +782,7 @@
             "offset": 0,
             "slot": "359",
             "type": "t_uint256",
-            "contract": "VLFI",
+            "contract": "VLFIT2",
             "src": "contracts/VLFI.sol:25"
           },
           {
@@ -769,15 +790,15 @@
             "offset": 0,
             "slot": "360",
             "type": "t_uint256",
-            "contract": "VLFI",
+            "contract": "VLFIT2",
             "src": "contracts/VLFI.sol:26"
           },
           {
             "label": "farmInfo",
             "offset": 0,
             "slot": "361",
-            "type": "t_struct(FarmInfo)9570_storage",
-            "contract": "VLFI",
+            "type": "t_struct(FarmInfo)9578_storage",
+            "contract": "VLFIT2",
             "src": "contracts/VLFI.sol:38"
           },
           {
@@ -785,7 +806,7 @@
             "offset": 0,
             "slot": "363",
             "type": "t_mapping(t_address,t_uint256)",
-            "contract": "VLFI",
+            "contract": "VLFIT2",
             "src": "contracts/VLFI.sol:40"
           },
           {
@@ -793,15 +814,15 @@
             "offset": 0,
             "slot": "364",
             "type": "t_mapping(t_address,t_uint256)",
-            "contract": "VLFI",
+            "contract": "VLFIT2",
             "src": "contracts/VLFI.sol:41"
           },
           {
             "label": "userInfo",
             "offset": 0,
             "slot": "365",
-            "type": "t_mapping(t_address,t_struct(UserInfo)9575_storage)",
-            "contract": "VLFI",
+            "type": "t_mapping(t_address,t_struct(UserInfo)9583_storage)",
+            "contract": "VLFIT2",
             "src": "contracts/VLFI.sol:42"
           }
         ],
@@ -830,7 +851,7 @@
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(ILFIToken)12152": {
+          "t_contract(ILFIToken)12163": {
             "label": "contract ILFIToken"
           },
           "t_int256": {
@@ -851,8 +872,8 @@
           "t_mapping(t_address,t_struct(Counter)2731_storage)": {
             "label": "mapping(address => struct CountersUpgradeable.Counter)"
           },
-          "t_mapping(t_address,t_struct(UserInfo)9575_storage)": {
-            "label": "mapping(address => struct VLFI.UserInfo)"
+          "t_mapping(t_address,t_struct(UserInfo)9583_storage)": {
+            "label": "mapping(address => struct VLFIT2.UserInfo)"
           },
           "t_mapping(t_address,t_uint256)": {
             "label": "mapping(address => uint256)"
@@ -885,8 +906,8 @@
               }
             ]
           },
-          "t_struct(FarmInfo)9570_storage": {
-            "label": "struct VLFI.FarmInfo",
+          "t_struct(FarmInfo)9578_storage": {
+            "label": "struct VLFIT2.FarmInfo",
             "members": [
               {
                 "label": "accRewardsPerShare",
@@ -911,8 +932,8 @@
               }
             ]
           },
-          "t_struct(UserInfo)9575_storage": {
-            "label": "struct VLFI.UserInfo",
+          "t_struct(UserInfo)9583_storage": {
+            "label": "struct VLFIT2.UserInfo",
             "members": [
               {
                 "label": "amount",

@@ -24,7 +24,7 @@ describe("HousePool", () => {
         
         mockToken = await MockToken.deploy()
         claimToken = await ClaimToken.deploy("USDCCLIAM","USDCLP")
-        housePool = await upgrades.deployProxy(HousePool,[mockToken.address,claimToken.address,PoolTokenPrice,PoolWithdrawalPrice,12],{initializer: 'initialize'});
+        housePool = await upgrades.deployProxy(HousePool,["USDCPOOL",mockToken.address,claimToken.address,PoolTokenPrice,PoolWithdrawalPrice,12],{initializer: 'initialize'});
 
         console.log(" The Address of Mock Token is ", mockToken.address)
         console.log(" The Address of Claim Token is ", claimToken.address)

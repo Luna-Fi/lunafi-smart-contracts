@@ -60,9 +60,9 @@ describe("LFI Farms", async() => {
         WbtcHousePool = await ethers.getContractFactory("HousePool")
         WethHousePool = await ethers.getContractFactory("HousePool")
 
-        usdcHousePool = await upgrades.deployProxy(UsdcHousePool,[mockUSDCToken.address,usdcClaimToken.address,usdcLpTokenPrice,usdcLpWithDrawTokenPrice,usdcPrecision],{initializer: 'initialize'})
-        wbtcHousePool = await upgrades.deployProxy(WbtcHousePool,[mockWBTCToken.address,wbtcClaimToken.address,wbtcLpTokenPrice,wbtcLpWithdrawTokenPrice,wbtcPrecision],{initializer: 'initialize'})
-        wethHousePool = await upgrades.deployProxy(WethHousePool,[mockWETHToken.address,wethClaimToken.address,wethLpTokenPrice,wethLpWithdrawTokenPrice,wethPrecision],{initializer: 'initialize'})
+        usdcHousePool = await upgrades.deployProxy(UsdcHousePool,["USDCPOOL",mockUSDCToken.address,usdcClaimToken.address,usdcLpTokenPrice,usdcLpWithDrawTokenPrice,usdcPrecision],{initializer: 'initialize'})
+        wbtcHousePool = await upgrades.deployProxy(WbtcHousePool,["WBTCPOOL",mockWBTCToken.address,wbtcClaimToken.address,wbtcLpTokenPrice,wbtcLpWithdrawTokenPrice,wbtcPrecision],{initializer: 'initialize'})
+        wethHousePool = await upgrades.deployProxy(WethHousePool,["WETHPOOL",mockWETHToken.address,wethClaimToken.address,wethLpTokenPrice,wethLpWithdrawTokenPrice,wethPrecision],{initializer: 'initialize'})
 
         LFIToken = await ethers.getContractFactory("LFIToken")
         lfiToken = await LFIToken.deploy(supply)
