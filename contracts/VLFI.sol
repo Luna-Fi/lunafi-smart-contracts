@@ -9,7 +9,7 @@ import "contracts/interfaces/ILFIToken.sol";
 import "hardhat/console.sol";
 
 
-contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradeable, ERC20VotesUpgradeable {
+contract VLFIT2 is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradeable, ERC20VotesUpgradeable {
     
     
     // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES BELOW
