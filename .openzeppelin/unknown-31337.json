@@ -558,7 +558,7 @@
     },
     "18456ef18b8b90b4880fde5980f6cdfffcdb5770621d01c9186b67e717de4fc0": {
       "address": "0xc351628EB244ec633d5f21fBD6621e1a683B1181",
-      "txHash": "0x25086d9b41f87bd08dee2923526029b8a303f0c61fb173a23c068206f5d06abb",
+      "txHash": "0xd5bdd657f9aa1df87fa98113999315d36410e69b2bbb1c9b146f57a72d43a713",
       "layout": {
         "storage": [
           {
@@ -669,7 +669,7 @@
             "label": "_nonces",
             "offset": 0,
             "slot": "203",
-            "type": "t_mapping(t_address,t_struct(Counter)2731_storage)",
+            "type": "t_mapping(t_address,t_struct(Counter)2448_storage)",
             "contract": "ERC20PermitUpgradeable",
             "src": "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol:26"
           },
@@ -717,7 +717,7 @@
             "label": "_checkpoints",
             "offset": 0,
             "slot": "305",
-            "type": "t_mapping(t_address,t_array(t_struct(Checkpoint)1335_storage)dyn_storage)",
+            "type": "t_mapping(t_address,t_array(t_struct(Checkpoint)1276_storage)dyn_storage)",
             "contract": "ERC20VotesUpgradeable",
             "src": "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol:43"
           },
@@ -725,7 +725,7 @@
             "label": "_totalSupplyCheckpoints",
             "offset": 0,
             "slot": "306",
-            "type": "t_array(t_struct(Checkpoint)1335_storage)dyn_storage",
+            "type": "t_array(t_struct(Checkpoint)1276_storage)dyn_storage",
             "contract": "ERC20VotesUpgradeable",
             "src": "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol:44"
           },
@@ -741,8 +741,8 @@
             "label": "STAKED_TOKEN",
             "offset": 0,
             "slot": "354",
-            "type": "t_contract(ILFIToken)12161",
-            "contract": "VLFIT3",
+            "type": "t_contract(ILFIToken)5134",
+            "contract": "VLFIT4",
             "src": "contracts/VLFI.sol:20"
           },
           {
@@ -750,7 +750,7 @@
             "offset": 0,
             "slot": "355",
             "type": "t_uint256",
-            "contract": "VLFIT3",
+            "contract": "VLFIT4",
             "src": "contracts/VLFI.sol:21"
           },
           {
@@ -758,7 +758,7 @@
             "offset": 0,
             "slot": "356",
             "type": "t_uint256",
-            "contract": "VLFIT3",
+            "contract": "VLFIT4",
             "src": "contracts/VLFI.sol:22"
           },
           {
@@ -766,7 +766,7 @@
             "offset": 0,
             "slot": "357",
             "type": "t_uint256",
-            "contract": "VLFIT3",
+            "contract": "VLFIT4",
             "src": "contracts/VLFI.sol:23"
           },
           {
@@ -774,7 +774,7 @@
             "offset": 0,
             "slot": "358",
             "type": "t_uint256",
-            "contract": "VLFIT3",
+            "contract": "VLFIT4",
             "src": "contracts/VLFI.sol:24"
           },
           {
@@ -782,7 +782,7 @@
             "offset": 0,
             "slot": "359",
             "type": "t_uint256",
-            "contract": "VLFIT3",
+            "contract": "VLFIT4",
             "src": "contracts/VLFI.sol:25"
           },
           {
@@ -790,15 +790,15 @@
             "offset": 0,
             "slot": "360",
             "type": "t_uint256",
-            "contract": "VLFIT3",
+            "contract": "VLFIT4",
             "src": "contracts/VLFI.sol:26"
           },
           {
             "label": "farmInfo",
             "offset": 0,
             "slot": "361",
-            "type": "t_struct(FarmInfo)9578_storage",
-            "contract": "VLFIT3",
+            "type": "t_struct(FarmInfo)3860_storage",
+            "contract": "VLFIT4",
             "src": "contracts/VLFI.sol:38"
           },
           {
@@ -806,7 +806,7 @@
             "offset": 0,
             "slot": "363",
             "type": "t_mapping(t_address,t_uint256)",
-            "contract": "VLFIT3",
+            "contract": "VLFIT4",
             "src": "contracts/VLFI.sol:40"
           },
           {
@@ -814,15 +814,15 @@
             "offset": 0,
             "slot": "364",
             "type": "t_mapping(t_address,t_uint256)",
-            "contract": "VLFIT3",
+            "contract": "VLFIT4",
             "src": "contracts/VLFI.sol:41"
           },
           {
             "label": "userInfo",
             "offset": 0,
             "slot": "365",
-            "type": "t_mapping(t_address,t_struct(UserInfo)9583_storage)",
-            "contract": "VLFIT3",
+            "type": "t_mapping(t_address,t_struct(UserInfo)3865_storage)",
+            "contract": "VLFIT4",
             "src": "contracts/VLFI.sol:42"
           }
         ],
@@ -830,7 +830,7 @@
           "t_address": {
             "label": "address"
           },
-          "t_array(t_struct(Checkpoint)1335_storage)dyn_storage": {
+          "t_array(t_struct(Checkpoint)1276_storage)dyn_storage": {
             "label": "struct ERC20VotesUpgradeable.Checkpoint[]"
           },
           "t_array(t_uint256)45_storage": {
@@ -851,7 +851,7 @@
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(ILFIToken)12161": {
+          "t_contract(ILFIToken)5134": {
             "label": "contract ILFIToken"
           },
           "t_int256": {
@@ -860,7 +860,7 @@
           "t_mapping(t_address,t_address)": {
             "label": "mapping(address => address)"
           },
-          "t_mapping(t_address,t_array(t_struct(Checkpoint)1335_storage)dyn_storage)": {
+          "t_mapping(t_address,t_array(t_struct(Checkpoint)1276_storage)dyn_storage)": {
             "label": "mapping(address => struct ERC20VotesUpgradeable.Checkpoint[])"
           },
           "t_mapping(t_address,t_bool)": {
@@ -869,11 +869,11 @@
           "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
             "label": "mapping(address => mapping(address => uint256))"
           },
-          "t_mapping(t_address,t_struct(Counter)2731_storage)": {
+          "t_mapping(t_address,t_struct(Counter)2448_storage)": {
             "label": "mapping(address => struct CountersUpgradeable.Counter)"
           },
-          "t_mapping(t_address,t_struct(UserInfo)9583_storage)": {
-            "label": "mapping(address => struct VLFIT3.UserInfo)"
+          "t_mapping(t_address,t_struct(UserInfo)3865_storage)": {
+            "label": "mapping(address => struct VLFIT4.UserInfo)"
           },
           "t_mapping(t_address,t_uint256)": {
             "label": "mapping(address => uint256)"
@@ -884,7 +884,7 @@
           "t_string_storage": {
             "label": "string"
           },
-          "t_struct(Checkpoint)1335_storage": {
+          "t_struct(Checkpoint)1276_storage": {
             "label": "struct ERC20VotesUpgradeable.Checkpoint",
             "members": [
               {
@@ -897,7 +897,7 @@
               }
             ]
           },
-          "t_struct(Counter)2731_storage": {
+          "t_struct(Counter)2448_storage": {
             "label": "struct CountersUpgradeable.Counter",
             "members": [
               {
@@ -906,8 +906,8 @@
               }
             ]
           },
-          "t_struct(FarmInfo)9578_storage": {
-            "label": "struct VLFIT3.FarmInfo",
+          "t_struct(FarmInfo)3860_storage": {
+            "label": "struct VLFIT4.FarmInfo",
             "members": [
               {
                 "label": "accRewardsPerShare",
@@ -932,8 +932,8 @@
               }
             ]
           },
-          "t_struct(UserInfo)9583_storage": {
-            "label": "struct VLFIT3.UserInfo",
+          "t_struct(UserInfo)3865_storage": {
+            "label": "struct VLFIT4.UserInfo",
             "members": [
               {
                 "label": "amount",

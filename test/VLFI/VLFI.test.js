@@ -71,6 +71,8 @@ describe("VLFI TOKEN", () => {
             amount
         );
         //await vlfi.stake(owner.address, amount)
+
+
         const newAllowance = await lfi.allowance(owner.address,vlfi.address);
         console.log("New Value is ", newAllowance.toString())
         const vlfiBalanceOfOwner = await vlfi.balanceOf(owner.address)
@@ -172,6 +174,21 @@ describe("VLFI TOKEN", () => {
 
     })
      
+
+    it("Should allow the users to start claim", async() => {
+        const [owner,user1] = await ethers.getSigners()
+    
+        const originalRewards = formatFromBaseUnit(await vlfi.getRewards(owner.address))
+
+
+        await vlfi.connect(owner).claimRewards(owner.address);
+    
+        const newRewards = formatFromBaseUnit(await vlfi.getRewards(owner.address))
+
+        expect(originalRewards).to.not.equal(newRewards)
+        expect(newRewards).to.equal(0)
+
+    })
 })
 
 const sleep = (milliseconds) => {
