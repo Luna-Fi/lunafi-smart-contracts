@@ -232,7 +232,7 @@
             "label": "fund",
             "offset": 0,
             "slot": "152",
-            "type": "t_contract(IFundDistributor)12116",
+            "type": "t_contract(IFundDistributor)12114",
             "contract": "LFiFarms",
             "src": "contracts/LFiFarms.sol:20"
           },
@@ -302,7 +302,7 @@
           "t_contract(IERC20Upgradeable)1303": {
             "label": "contract IERC20Upgradeable"
           },
-          "t_contract(IFundDistributor)12116": {
+          "t_contract(IFundDistributor)12114": {
             "label": "contract IFundDistributor"
           },
           "t_int256": {
@@ -458,7 +458,7 @@
             "label": "claimToken",
             "offset": 0,
             "slot": "203",
-            "type": "t_contract(IClaimToken)12106",
+            "type": "t_contract(IClaimToken)12104",
             "contract": "HousePool",
             "src": "contracts/HousePool.sol:25"
           },
@@ -519,7 +519,7 @@
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(IClaimToken)12106": {
+          "t_contract(IClaimToken)12104": {
             "label": "contract IClaimToken"
           },
           "t_contract(IERC20Upgradeable)1303": {
@@ -556,9 +556,9 @@
         }
       }
     },
-    "c7469ec07718eee7a2109606c428b9051c1cb733877b9ccf00687229549ab072": {
+    "18456ef18b8b90b4880fde5980f6cdfffcdb5770621d01c9186b67e717de4fc0": {
       "address": "0xc351628EB244ec633d5f21fBD6621e1a683B1181",
-      "txHash": "0x75687d283f7a2217cc06856bf387faecb4271e9381efb58b31ec4a6e582402b0",
+      "txHash": "0x25086d9b41f87bd08dee2923526029b8a303f0c61fb173a23c068206f5d06abb",
       "layout": {
         "storage": [
           {
@@ -741,8 +741,8 @@
             "label": "STAKED_TOKEN",
             "offset": 0,
             "slot": "354",
-            "type": "t_contract(ILFIToken)12163",
-            "contract": "VLFIT2",
+            "type": "t_contract(ILFIToken)12161",
+            "contract": "VLFIT3",
             "src": "contracts/VLFI.sol:20"
           },
           {
@@ -750,7 +750,7 @@
             "offset": 0,
             "slot": "355",
             "type": "t_uint256",
-            "contract": "VLFIT2",
+            "contract": "VLFIT3",
             "src": "contracts/VLFI.sol:21"
           },
           {
@@ -758,7 +758,7 @@
             "offset": 0,
             "slot": "356",
             "type": "t_uint256",
-            "contract": "VLFIT2",
+            "contract": "VLFIT3",
             "src": "contracts/VLFI.sol:22"
           },
           {
@@ -766,7 +766,7 @@
             "offset": 0,
             "slot": "357",
             "type": "t_uint256",
-            "contract": "VLFIT2",
+            "contract": "VLFIT3",
             "src": "contracts/VLFI.sol:23"
           },
           {
@@ -774,7 +774,7 @@
             "offset": 0,
             "slot": "358",
             "type": "t_uint256",
-            "contract": "VLFIT2",
+            "contract": "VLFIT3",
             "src": "contracts/VLFI.sol:24"
           },
           {
@@ -782,7 +782,7 @@
             "offset": 0,
             "slot": "359",
             "type": "t_uint256",
-            "contract": "VLFIT2",
+            "contract": "VLFIT3",
             "src": "contracts/VLFI.sol:25"
           },
           {
@@ -790,7 +790,7 @@
             "offset": 0,
             "slot": "360",
             "type": "t_uint256",
-            "contract": "VLFIT2",
+            "contract": "VLFIT3",
             "src": "contracts/VLFI.sol:26"
           },
           {
@@ -798,7 +798,7 @@
             "offset": 0,
             "slot": "361",
             "type": "t_struct(FarmInfo)9578_storage",
-            "contract": "VLFIT2",
+            "contract": "VLFIT3",
             "src": "contracts/VLFI.sol:38"
           },
           {
@@ -806,7 +806,7 @@
             "offset": 0,
             "slot": "363",
             "type": "t_mapping(t_address,t_uint256)",
-            "contract": "VLFIT2",
+            "contract": "VLFIT3",
             "src": "contracts/VLFI.sol:40"
           },
           {
@@ -814,7 +814,7 @@
             "offset": 0,
             "slot": "364",
             "type": "t_mapping(t_address,t_uint256)",
-            "contract": "VLFIT2",
+            "contract": "VLFIT3",
             "src": "contracts/VLFI.sol:41"
           },
           {
@@ -822,7 +822,7 @@
             "offset": 0,
             "slot": "365",
             "type": "t_mapping(t_address,t_struct(UserInfo)9583_storage)",
-            "contract": "VLFIT2",
+            "contract": "VLFIT3",
             "src": "contracts/VLFI.sol:42"
           }
         ],
@@ -851,7 +851,7 @@
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(ILFIToken)12163": {
+          "t_contract(ILFIToken)12161": {
             "label": "contract ILFIToken"
           },
           "t_int256": {
@@ -873,7 +873,7 @@
             "label": "mapping(address => struct CountersUpgradeable.Counter)"
           },
           "t_mapping(t_address,t_struct(UserInfo)9583_storage)": {
-            "label": "mapping(address => struct VLFIT2.UserInfo)"
+            "label": "mapping(address => struct VLFIT3.UserInfo)"
           },
           "t_mapping(t_address,t_uint256)": {
             "label": "mapping(address => uint256)"
@@ -907,7 +907,7 @@
             ]
           },
           "t_struct(FarmInfo)9578_storage": {
-            "label": "struct VLFIT2.FarmInfo",
+            "label": "struct VLFIT3.FarmInfo",
             "members": [
               {
                 "label": "accRewardsPerShare",
@@ -933,7 +933,7 @@
             ]
           },
           "t_struct(UserInfo)9583_storage": {
-            "label": "struct VLFIT2.UserInfo",
+            "label": "struct VLFIT3.UserInfo",
             "members": [
               {
                 "label": "amount",

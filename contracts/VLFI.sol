@@ -9,7 +9,7 @@ import "contracts/interfaces/ILFIToken.sol";
 import "hardhat/console.sol";
 
 
-contract VLFIT2 is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradeable, ERC20VotesUpgradeable {
+contract VLFIT4 is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradeable, ERC20VotesUpgradeable {
     
     
     // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES BELOW
@@ -308,7 +308,7 @@ contract VLFIT2 is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgrad
     /// @param amount amount of LFI tokens to unstake
     function unStake(address to, uint256 amount) public {
         require(
-            amount != 0 && amount <= STAKED_TOKEN.balanceOf(msg.sender),
+            amount != 0 && amount <= userDeposits[to],
             "VLFI:INVALID_AMOUNT"
         );
         uint256 cooldownStartTimestamp = cooldownStartTimes[msg.sender];

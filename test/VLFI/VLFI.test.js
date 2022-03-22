@@ -33,7 +33,7 @@ describe("VLFI TOKEN", () => {
         const unstakeWindow = 60
         const rewardsPerSecond = ethers.utils.formatUnits(returnBigNumber(1 * 10 **18),0);
        
-        VLFI = await ethers.getContractFactory("VLFIT2")
+        VLFI = await ethers.getContractFactory("VLFIT4")
         vlfi = await upgrades.deployProxy(VLFI,[name,symbol,lfi.address,120,60,rewardsPerSecond,3000],{initializer: 'initialize'});
         await vlfi.deployed()
         console.log("VLFI Address:",vlfi.address)
