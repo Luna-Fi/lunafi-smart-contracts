@@ -7,9 +7,14 @@ const returnBigNumber = (number) => {
     number = number.toString(16)
     return BigNumber.from("0x" + number);
 }
-const formatFromBaseUnit = (amount, decimals) => Number(ethers.utils.formatUnits(ethers.BigNumber.from(amount), decimals))
-const formatToNumber = (n) => ethers.BigNumber.from(n).toNumber()
 
+const sleep = (milliseconds) => {
+    const date =  Date.now();
+    let currentDate = null;
+    do {
+        currentDate = Date.now()
+    } while (currentDate - date < milliseconds)
+}
 
 describe("VLFI TOKEN", () => {
 
@@ -20,7 +25,7 @@ describe("VLFI TOKEN", () => {
 
     before(async () => {
         const[owner,user1] = await ethers.getSigners()
-        const supply = ethers.utils.formatUnits(returnBigNumber(1000000000),0);
+        const supply = ethers.utils.formatUnits(returnBigNumber(1000000000 * 10 **18),0);
         LFI = await ethers.getContractFactory("LFIToken")
         lfi = await LFI.deploy(supply)
         await lfi.deployed()
@@ -128,52 +133,15 @@ describe("VLFI TOKEN", () => {
 
     })
 
-    it("Should allow the users to start cooldown window and unstake variable amounr", async() => {
+    it("Should allow the users to get their pending rewards", async() => {
         const [owner,user1] = await ethers.getSigners()
+        const ownerPendingRewards = ethers.utils.formatUnits(await vlfi.getRewards(owner.address), 0)
+        const user1PendingRewards = ethers.utils.formatUnits(await vlfi.getRewards(user1.address), 0)
 
-        const transferLFIAmount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
-        const amount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
-        
-        const originalBalance = await lfi.balanceOf(owner.address)
-        await vlfi.connect(owner).activateCooldown();
-        const cooldownInSeconds = formatToNumber(await vlfi.getCooldownSeconds())
-
-        const timeout = cooldownInSeconds * 1000 + 1500
-        await sleep(timeout);
-
-        await vlfi.connect(owner).unStake(owner.address, 1);
-
-        const amountDeposited = await vlfi.getUserLFIDeposits(owner.address);
-
-        const newBalance = await lfi.balanceOf(owner.address)
-        expect(newBalance).to.not.equal(originalBalance)
-
+        console.log("Owner Pending Rewards = ", ownerPendingRewards)
+        console.log("User1 Pending Rewards = ", user1PendingRewards)
     })
 
-    it("Should allow the users to start cooldown window and unstake max amount", async() => {
-        const [owner,user1] = await ethers.getSigners()
 
-        const transferLFIAmount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
-        const amount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
-
-        await vlfi.connect(owner).activateCooldown();
-        const cooldownStartTimeStamp = formatToNumber(await vlfi.getCooldown(owner.address))
-        const cooldownInSeconds = formatToNumber(await vlfi.getCooldownSeconds())
-        const cooldownEndTimeStamp = Math.floor(new Date(cooldownStartTimeStamp * 1000).getTime()) + (cooldownInSeconds * 1000)
-
-        const timeout = cooldownInSeconds * 1000 + 1500
-        await sleep(timeout);
-
-        await vlfi.connect(owner).unStakeMax(owner.address);
-
-        const amountDeposited = await vlfi.getUserLFIDeposits(owner.address);
-
-        expect(amountDeposited).to.equal(0)
-
-    })
      
 })
-
-const sleep = (milliseconds) => {
-    return new Promise(resolve => setTimeout(resolve, milliseconds))
-  }

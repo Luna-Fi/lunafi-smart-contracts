@@ -222,7 +222,7 @@
             "label": "fund",
             "offset": 0,
             "slot": "152",
-            "type": "t_contract(IFundDistributor)12105",
+            "type": "t_contract(IFundDistributor)12087",
             "contract": "LFiFarms",
             "src": "contracts/LFiFarms.sol:20"
           },
@@ -292,7 +292,7 @@
           "t_contract(IERC20Upgradeable)1303": {
             "label": "contract IERC20Upgradeable"
           },
-          "t_contract(IFundDistributor)12105": {
+          "t_contract(IFundDistributor)12087": {
             "label": "contract IFundDistributor"
           },
           "t_int256": {
@@ -440,7 +440,7 @@
             "label": "claimToken",
             "offset": 0,
             "slot": "202",
-            "type": "t_contract(IClaimToken)12095",
+            "type": "t_contract(IClaimToken)12077",
             "contract": "HousePool",
             "src": "contracts/HousePool.sol:24"
           },
@@ -501,7 +501,7 @@
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(IClaimToken)12095": {
+          "t_contract(IClaimToken)12077": {
             "label": "contract IClaimToken"
           },
           "t_contract(IERC20Upgradeable)1303": {
@@ -535,9 +535,9 @@
         }
       }
     },
-    "024dfd18edb52d3eb8448ad3d5465a0b6389f9ef3292259fee7aa15016b84441": {
+    "de835f715a3a6538aa169260fbe1931decf065b2ab8e196a21563de88e85d5b4": {
       "address": "0xc351628EB244ec633d5f21fBD6621e1a683B1181",
-      "txHash": "0xf70590b63c0391ff466735a52b5bd23885bdd7c33f44f38ccc99e09c270255da",
+      "txHash": "0x75bd70339eace7d4cf6c4fe6b1c8e8aef6ba2880261e5212a6458c3dc56dd83e",
       "layout": {
         "storage": [
           {
@@ -720,7 +720,7 @@
             "label": "STAKED_TOKEN",
             "offset": 0,
             "slot": "354",
-            "type": "t_contract(ILFIToken)12152",
+            "type": "t_contract(ILFIToken)12134",
             "contract": "VLFI",
             "src": "contracts/VLFI.sol:20"
           },
@@ -830,7 +830,7 @@
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(ILFIToken)12152": {
+          "t_contract(ILFIToken)12134": {
             "label": "contract ILFIToken"
           },
           "t_int256": {
