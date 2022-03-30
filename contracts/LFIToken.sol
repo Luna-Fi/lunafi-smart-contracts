@@ -6,35 +6,37 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+//import "@openzeppelin/contracts/access/Ownable.sol";
 
 abstract contract BPContract {
     function protect(address sender, address receiver, uint256 amount) external virtual;
 }
 
-abstract contract BlackList is Ownable, ERC20 {
+abstract contract BlackList is AccessControl, ERC20 {
+
+    bytes32 public constant MANAGER_ROLE = keccak256("Manager_Role");
     /////// Getters to allow the same blacklist to be used also by other contracts (including upgraded Tether) ///////
     function getBlackListStatus(address maker) external view returns (bool) {
         return isBlackListed[maker];
     }
 
-    function getOwner() external view returns (address) {
-        return owner();
-    }
+    // function getOwner() external view returns (address) {
+    //     return owner();
+    // }
 
     mapping(address => bool) public isBlackListed;
 
-    function addBlackList(address evilUser) public onlyOwner {
+    function addBlackList(address evilUser) public onlyRole(MANAGER_ROLE) {
         isBlackListed[evilUser] = true;
         emit AddedBlackList(evilUser);
     }
 
-    function removeBlackList(address clearedUser) public onlyOwner {
+    function removeBlackList(address clearedUser) public onlyRole(MANAGER_ROLE) {
         isBlackListed[clearedUser] = false;
         emit RemovedBlackList(clearedUser);
     }
 
-    function destroyBlackFunds(address blackListedUser) public onlyOwner {
+    function destroyBlackFunds(address blackListedUser) public onlyRole(MANAGER_ROLE) {
         require(isBlackListed[blackListedUser], "ERROR: Not Black listed");
         uint256 dirtyFunds = balanceOf(blackListedUser);
         _burn(blackListedUser, dirtyFunds);
@@ -53,7 +55,6 @@ contract LFIToken is
     BlackList,
     ERC20Burnable,
     Pausable,
-    AccessControl,
     ERC20Permit
 {
     string constant TOKEN_NAME = "LFIToken";
@@ -81,16 +82,16 @@ contract LFIToken is
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function setBPAddress(address _bp) external onlyOwner {
+    function setBPAddress(address _bp) external onlyRole(MANAGER_ROLE){
         require(address(BP) == address(0),"can only be initialized once");
         BP = BPContract(_bp);
     }
 
-    function setBpEnabled(bool _enabled) external onlyOwner {
+    function setBpEnabled(bool _enabled) external onlyRole(MANAGER_ROLE) {
         bpEnabled = _enabled;
     }
 
-    function setBotProtectionDisableForever() external onlyOwner {
+    function setBotProtectionDisableForever() external onlyRole(MANAGER_ROLE) {
         require(BPDisabledForever == false);
         BPDisabledForever = true;
     }
