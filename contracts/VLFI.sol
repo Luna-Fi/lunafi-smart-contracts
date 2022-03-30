@@ -23,8 +23,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     uint256 COOLDOWN_SECONDS;
     uint256 UNSTAKE_WINDOW;
     uint256 private rewardPerSecond;
-    uint256 public maxTreasuryWithdrawalPercentage;
-
+    
     struct FarmInfo {
         uint256 accRewardsPerShare;
         uint256 lastRewardTime;
@@ -63,8 +62,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         ILFIToken stakedToken,
         uint256 cooldownSeconds,
         uint256 unstakeWindow,
-        uint256 rewardsPerSecond,
-        uint256 treasuryWithdrawlPercentage
+        uint256 rewardsPerSecond
     ) external  initializer {
         __ERC20_init(name,symbol);
         __ERC20Permit_init(name);
@@ -72,7 +70,6 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         COOLDOWN_SECONDS = cooldownSeconds;
         UNSTAKE_WINDOW = unstakeWindow;
         lpTokenPrice = 1000 * 10**MAX_PRECISION;
-        maxTreasuryWithdrawalPercentage = treasuryWithdrawlPercentage;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, msg.sender);
         setRewardPerSecond(rewardsPerSecond);
@@ -168,28 +165,6 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         return UNSTAKE_WINDOW;
     }
 
-    /// @notice Function to transfer a part of liquidity amount to treasury - Function can be called only by the Manager
-    /// @param to address to which the liquidity should be transferred
-    /// @param treasuryWithdrawal amount to transfer to treasury
-    function transferToTreasury(address to, uint256 treasuryWithdrawal)
-        external
-        onlyRole(MANAGER_ROLE)
-    {
-        uint256 maxWithdrawalLiquidity = (liquidity *
-            maxTreasuryWithdrawalPercentage) / 10000;
-        require(treasuryWithdrawal <= maxWithdrawalLiquidity);
-        ILFIToken(STAKED_TOKEN).transfer(to, treasuryWithdrawal);
-    }
-
-    /// @notice Function to set the Maximum percentage of liquidity that treasury can withdraw - Function can be called only by the Manager
-    /// @param percentage Percentage value should be passed as 4 digits. For eg 30 % should be passed as 3000
-    function setMaxTreasuryWithdrawalPercentage(uint256 percentage)
-        external
-        onlyRole(MANAGER_ROLE)
-    {
-        maxTreasuryWithdrawalPercentage = percentage;
-    }
-
     /// @notice Function to update Farm. This updates the farm with the current state
     // Returns the farm with latest state
     function updateFarm() public returns (FarmInfo memory farm) {
@@ -254,7 +229,6 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     /// @notice Function that allows the user to stake LFI by avoiding approval step
     /// @param owner address of the owner that want to give approval
     /// @param spender address of the contract that needs to spend the tokens
-    /// @param value value of the tokens to stake
     /// @param deadline deadline value
     /// @param v part of the signature
     /// @param r part of the signature
@@ -262,7 +236,6 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     function permitAndStake(
         address owner,
         address spender,
-        uint256 value,
         uint256 deadline,
         uint8 v,
         bytes32 r,
@@ -270,7 +243,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         address onBehalfOf,
         uint256 LFIamount
     ) external {
-        ILFIToken(STAKED_TOKEN).permit(owner,spender,value,deadline,v,r,s);
+        ILFIToken(STAKED_TOKEN).permit(owner,spender,LFIamount,deadline,v,r,s);
         stake(onBehalfOf, LFIamount);
     }
     /// @notice Function that allows the user to stake the LFI
@@ -307,7 +280,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     /// @param amount amount of LFI tokens to unstake
     function unStake(address to, uint256 amount) external {
         require(
-            amount != 0 && amount <= STAKED_TOKEN.balanceOf(msg.sender),
+            amount != 0 && amount <= userDeposits[to],
             "VLFI:INVALID_AMOUNT"
         );
         uint256 cooldownStartTimestamp = cooldownStartTimes[msg.sender];
