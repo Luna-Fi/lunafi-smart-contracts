@@ -19,14 +19,12 @@ const getNumberFromStrBN = (str_bn, dec) => {
    }
    return val;
 };
- 
-const getNumberFromBN = (bn, d, flag) => {
+
+const getNumberFromBN = (bn, d) => {
    const num1 = BigNumber.from(bn)
    const num2 = BigNumber.from(10).pow(d);
    const num3 = num1.mod(num2);
    const num4 = num1.sub(num3).div(num2);
-   if (flag) console.log(num4.toNumber());
-   if (flag) console.log(getNumberFromStrBN(num3.toString(), d));
    return num4.toNumber() + getNumberFromStrBN(num3.toString(), d);
 }
 
@@ -34,13 +32,11 @@ const getBNFromNumber = (num, d) => {
    return BigNumber.from(10).pow(d).mul(num);
 }
 
-const formatNumberFromBN = (bn, d, flag) => {
-   const aa = getNumberFromBN(bn, d, flag)
-   if (flag) console.log(aa)
-   const str = (aa).toString().replace(/\.0+$/, '');
+const formatNumberFromBN = (bn, d) => {
+   const str = (getNumberFromBN(bn, d)).toString().replace(/\.0+$/, '');
    const str1 = str.split(".")[0];
    const str2 = str.split(".")[1] ? "." + str.split(".")[1] : '';
-   return str1.split("").reverse().reduce(function(acc, num, i, orig) {return num + (num !== "-" && i && !(i % 3) ? "," : "") + acc;}, "") + str2;
+   return str1.split("").reverse().reduce(function (acc, num, i, orig) { return num + (num !== "-" && i && !(i % 3) ? "," : "") + acc; }, "") + str2;
 }
 
 function sleep(milliseconds) {
@@ -51,20 +47,14 @@ function sleep(milliseconds) {
    } while (currentDate - date < milliseconds)
 }
 
-const returnBigNumber = (number) => {
-   number = number.toString(16)
-   return BigNumber.from("0x" + number);
-}
 
-
-describe("Vesting", (accounts) => {
-   let token, dec, vestingScheduleCounter;
+contract("vesting", (accounts) => {
+   let token, dec, SimpleVesting, Vesting, vestingScheduleCounter;
    let MINUTES_IN_DAY = 1;
 
    before(async () => {
 
-      [owner] = await ethers.getSigners();
-      const supply = ethers.utils.formatUnits(returnBigNumber(1000000000 * 10 **18),0);
+      [owner, account35, account36, account37] = await ethers.getSigners();
       accounts = [
          '0x27106C0f5c450ED30B4547681992709808964600',
          '0xFdA31099FcB1Fc146B7bd93dd99dD7F6c081c560',
@@ -101,18 +91,23 @@ describe("Vesting", (accounts) => {
          '0x1fcd4F6046FE53F914d7E7379CeE359790b0e9ff',
          '0x09A855d54C987D8e437A975f92A4E4F10bAB235c',
          '0x16F700f8713Ca47c6693DbDD814126f7a1704f87',
+         account35.address.toString(),
+         account36.address.toString()
       ];
-      Erc20 = await ethers.getContractFactory("LFIToken");
-      token = await Erc20.deploy(supply);
+      Erc20 = await hre.ethers.getContractFactory("LFIToken");
+      token = await Erc20.deploy();
       dec = await token.decimals();
 
       await token.deployed();
       console.log("LFIToken deployed to:", token.address);
 
-      const timenow = parseInt((new Date()).getTime() / 1000);
+      const blockNumber = await ethers.provider.getBlockNumber();
+      const block = await ethers.provider.getBlock(blockNumber);
+      const timenow = block.timestamp;
+
       const startTime = timenow + 5 * MINUTES_IN_DAY * 60;
 
-      SimpleVesting = await ethers.getContractFactory("Vesting");
+      SimpleVesting = await hre.ethers.getContractFactory("vesting");
       Vesting = await SimpleVesting.deploy(token.address, startTime);
 
       await Vesting.deployed();
@@ -120,25 +115,30 @@ describe("Vesting", (accounts) => {
    });
 
    it('Check Manager Role', async () => {
+      console.log("\n");
+      console.log("\n");
       expect(await Vesting.hasRole(managerRole, owner.address)).to.equal(true);
       console.log("Owner " + owner.address + " is Manager");
    });
 
    it('Check balance of owner before vesting', async () => {
+      console.log("\n");
       const ownerBalance = await token.balanceOf(owner.address);
-      console.log("Owner balance before vesting : " + ethers.utils.formatUnits(ownerBalance,0));
+      console.log("Owner balance before vesting : " + formatNumberFromBN(ownerBalance, dec));
+
       await token.approve(Vesting.address, ownerBalance);
    });
 
    it('Check vesting status', async () => {
+      console.log("\n");
       const startTime = await Vesting.getStartTime();
       console.log("Vesting start time : " + startTime.toNumber());
 
       vestingScheduleCounter = await Vesting.getVestingAccountsCount();
       console.log("Vesting counts : " + vestingScheduleCounter.toNumber());
 
-      const vestingTotalAmount = await Vesting.getVestingTotalAmount();
-      console.log("Vesting total amount : " + formatNumberFromBN(vestingTotalAmount, dec, true));
+      const vestingTotalAmount = await Vesting.getTotalVestingAmount();
+      console.log("Vesting total amount : " + formatNumberFromBN(vestingTotalAmount, dec));
 
       console.log("\n");
       for (let i = 0; i < vestingScheduleCounter; i++) {
@@ -146,7 +146,7 @@ describe("Vesting", (accounts) => {
          if (i === 9) console.log("\t- Seed");
          if (i === 21) console.log("\t- Strategic");
          if (i === 33) console.log("\t- Advisory");
-         const vestingSchedule = await Vesting.getVestingScheduleById(i);
+         const vestingSchedule = await Vesting.getVestingScheduleById(i + 1);
 
          console.log("\tVesting ID: ", vestingSchedule.vestingId.toNumber());
          console.log("\tRecipient: ", vestingSchedule.recipient.toString());
@@ -157,6 +157,7 @@ describe("Vesting", (accounts) => {
    });
 
    it('Check Account Balances Before Vesting', async () => {
+      console.log("\n");
       for (let i = 0; i < vestingScheduleCounter; i++) {
          if (i === 0) console.log("- Team");
          if (i === 9) console.log("- Seed");
@@ -169,12 +170,17 @@ describe("Vesting", (accounts) => {
       }
    });
 
-   it("Should fail to run transferVestedTokens before vesting has started", async () => {
-      await time.increase(2 * MINUTES_IN_DAY * 60);
+   it("Time increased", async () => {
+      console.log("\n");
+      await time.increase(1 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 1 days -----------------------------");
+   });
 
+   it("Should fail to run transferVestedTokens before vesting has started", async () => {
+      console.log("\n");
       await expect(Vesting.transferVestedTokens()).to.be.reverted;
 
-      console.log("Balance of accounts after 2 day");
+      console.log("Balance of accounts");
       for (let i = 0; i < vestingScheduleCounter; i++) {
          if (i === 0) console.log("- Team");
          if (i === 9) console.log("- Seed");
@@ -187,30 +193,54 @@ describe("Vesting", (accounts) => {
       }
    });
 
-
-   it("Deposit token from manager to contract after 14 days", async () => {
+   it("Time increased", async () => {
+      console.log("\n");
       await time.increase(14 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 14 days -----------------------------");
+   });
 
+   it("Deposit token from manager to contract", async () => {
+      console.log("\n");
       console.log("Balance of owner and contract");
       console.log("Before deposit: ")
       let ownerBalance = await token.balanceOf(owner.address);
       let contractBalance = await token.balanceOf(Vesting.address);
-      console.log("Owner balance before vesting : " + ethers.utils.formatUnits(ownerBalance,0));
-      console.log("Owner balance before vesting : " + ethers.utils.formatUnits(contractBalance,0));
-      
-      await expect(Vesting.connect(owner).depositVestingAmount(getBNFromNumber(2755199999985, dec - 4))).to.be.not.reverted;
-      console.log(`Deposit 275,519,999.9985 tokens to vesting contract`);
+      console.log("owner : " + formatNumberFromBN(ownerBalance, dec));
+      console.log("contract : " + formatNumberFromBN(contractBalance, dec));
+
+      await expect(Vesting.connect(owner).depositVestingAmount(getBNFromNumber(3055199999985, dec - 4))).to.be.not.reverted;
+      console.log(`Deposit 305,519,999.9985 tokens to vesting contract`);
 
       console.log("After deposit")
       ownerBalance = await token.balanceOf(owner.address);
       contractBalance = await token.balanceOf(Vesting.address);
-      console.log("Owner balance before vesting : " + ethers.utils.formatUnits(ownerBalance,0));
-      console.log("Owner balance before vesting : " + ethers.utils.formatUnits(contractBalance,0));
+      console.log("owner : " + formatNumberFromBN(ownerBalance, dec));
+      console.log("contract : " + formatNumberFromBN(contractBalance, dec));
    });
 
-   it("Should successfully transfer after 20 days", async () => {
+   it("Time increased", async () => {
+      console.log("\n");
       await time.increase(20 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 20 days -----------------------------");
+   });
 
+   it("Account 35 should fail to claim before cliff", async () => {
+      console.log("\n");
+      let balanceOfAccount = await token.balanceOf(account35.address);
+      console.log(`Before claiming, account35 : ` + formatNumberFromBN(balanceOfAccount, dec));
+      let contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
+
+      await expect(Vesting.connect(account35).claim()).to.be.reverted;
+
+      balanceOfAccount = await token.balanceOf(account35.address);
+      console.log(`After claiming, account35 : ` + formatNumberFromBN(balanceOfAccount, dec));
+      contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
+   });
+
+   it("Owner should successfully transfer", async () => {
+      console.log("\n");
       await expect(Vesting.transferVestedTokens()).to.be.not.reverted;
 
       for (let i = 0; i < vestingScheduleCounter; i++) {
@@ -228,109 +258,273 @@ describe("Vesting", (accounts) => {
       console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
    });
 
-   it("Should successfully transfer vested tokens after 61 days", async () => {
-      await time.increase(61 * MINUTES_IN_DAY * 60);
-
-      await expect(Vesting.transferVestedTokens()).to.be.not.reverted;
-
-      for (let i = 0; i < vestingScheduleCounter; i++) {
-         if (i === 0) console.log("- Team");
-         if (i === 9) console.log("- Seed");
-         if (i === 21) console.log("- Strategic");
-         if (i === 33) console.log("- Advisory");
-
-         const balanceOfAccount = await token.balanceOf(accounts[i]);
-
-         console.log(`account${i} : ` + formatNumberFromBN(balanceOfAccount, dec));
-      }
-
-      const contractBalance = await token.balanceOf(Vesting.address);
-      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
+   it("Time increased", async () => {
+      console.log("\n");
+      await time.increase(1 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 1 days -----------------------------");
    });
 
-   it("Should successfully transfer after 91 days", async () => {
-      await time.increase(91 * MINUTES_IN_DAY * 60);
+   it("Account 36 should successfully claim just after cliff", async () => {
+      console.log("\n");
+      let balanceOfAccount = await token.balanceOf(account36.address);
+      console.log(`Before claiming, account36 : ` + formatNumberFromBN(balanceOfAccount, dec));
+      let contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
+      let claimableAmount = await Vesting.getClaimable(account36.address);
+      console.log("Claimable Amount : " + formatNumberFromBN(claimableAmount, dec));
 
-      await expect(Vesting.transferVestedTokens()).to.be.not.reverted;
+      await expect(Vesting.connect(account36).claim()).to.be.not.reverted;
 
-      for (let i = 0; i < vestingScheduleCounter; i++) {
-         if (i === 0) console.log("- Team");
-         if (i === 9) console.log("- Seed");
-         if (i === 21) console.log("- Strategic");
-         if (i === 33) console.log("- Advisory");
-
-         const balanceOfAccount = await token.balanceOf(accounts[i]);
-
-         console.log(`account${i} : ` + formatNumberFromBN(balanceOfAccount, dec));
-      }
-
-      const contractBalance = await token.balanceOf(Vesting.address);
-      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
+      balanceOfAccount = await token.balanceOf(account36.address);
+      console.log(`After claiming, account36 : ` + formatNumberFromBN(balanceOfAccount, dec));
+      contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
    });
 
-   it("Should successfully transfer vested tokens after 183 days", async () => {
-      await time.increase(183 * MINUTES_IN_DAY * 60);
-
-      await expect(Vesting.transferVestedTokens()).to.be.not.reverted;
-
-      for (let i = 0; i < vestingScheduleCounter; i++) {
-         if (i === 0) console.log("- Team");
-         if (i === 9) console.log("- Seed");
-         if (i === 21) console.log("- Strategic");
-         if (i === 33) console.log("- Advisory");
-
-         const balanceOfAccount = await token.balanceOf(accounts[i]);
-
-         console.log(`account${i} : ` + formatNumberFromBN(balanceOfAccount, dec));
-      }
-
-      const contractBalance = await token.balanceOf(Vesting.address);
-      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
+   it("Time increased", async () => {
+      console.log("\n");
+      await time.increase(4 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 4 days -----------------------------");
    });
 
-   it("Should successfully transfer vested tokens after 365 days", async () => {
-      await time.increase(365 * MINUTES_IN_DAY * 60);
+   it("Account 36 should successfully claim", async () => {
+      console.log("\n");
+      let balanceOfAccount = await token.balanceOf(account36.address);
+      console.log(`Before claiming, account36 : ` + formatNumberFromBN(balanceOfAccount, dec));
+      let contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
+      let claimableAmount = await Vesting.getClaimable(account36.address);
+      console.log("Claimable Amount : " + formatNumberFromBN(claimableAmount, dec));
 
-      await expect(Vesting.transferVestedTokens()).to.be.not.reverted;
+      await expect(Vesting.connect(account36).claim()).to.be.not.reverted;
 
-      for (let i = 0; i < vestingScheduleCounter; i++) {
-         if (i === 0) console.log("- Team");
-         if (i === 9) console.log("- Seed");
-         if (i === 21) console.log("- Strategic");
-         if (i === 33) console.log("- Advisory");
-
-         const balanceOfAccount = await token.balanceOf(accounts[i]);
-
-         console.log(`account${i} : ` + formatNumberFromBN(balanceOfAccount, dec));
-      }
-
-      const contractBalance = await token.balanceOf(Vesting.address);
-      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
+      balanceOfAccount = await token.balanceOf(account36.address);
+      console.log(`After claiming, account36 : ` + formatNumberFromBN(balanceOfAccount, dec));
+      contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
    });
 
-   it("Should successfully transfer vested tokens after 365 days", async () => {
-      await time.increase(365 * MINUTES_IN_DAY * 60);
-
-      await expect(Vesting.transferVestedTokens()).to.be.not.reverted;
-
-      for (let i = 0; i < vestingScheduleCounter; i++) {
-         if (i === 0) console.log("- Team");
-         if (i === 9) console.log("- Seed");
-         if (i === 21) console.log("- Strategic");
-         if (i === 33) console.log("- Advisory");
-
-         const balanceOfAccount = await token.balanceOf(accounts[i]);
-
-         console.log(`account${i} : ` + formatNumberFromBN(balanceOfAccount, dec));
-      }
-
-      const contractBalance = await token.balanceOf(Vesting.address);
-      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
-   });
-
-   it("Should successfully transfer vested tokens after 10 days", async () => {
+   it("Time increased", async () => {
+      console.log("\n");
       await time.increase(10 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 10 days -----------------------------");
+   });
 
+   it("Account 36 should successfully claim", async () => {
+      console.log("\n");
+      let balanceOfAccount = await token.balanceOf(account36.address);
+      console.log(`Before claiming, account36 : ` + formatNumberFromBN(balanceOfAccount, dec));
+      let contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
+      let claimableAmount = await Vesting.getClaimable(account36.address);
+      console.log("Claimable Amount : " + formatNumberFromBN(claimableAmount, dec));
+
+      await expect(Vesting.connect(account36).claim()).to.be.not.reverted;
+
+      balanceOfAccount = await token.balanceOf(account36.address);
+      console.log(`After claiming, account36 : ` + formatNumberFromBN(balanceOfAccount, dec));
+      contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
+   });
+
+   it("Time increased", async () => {
+      console.log("\n");
+      await time.increase(20 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 20 days -----------------------------");
+   });
+
+   it("Account 36 should successfully claim and redirect the transfer", async () => {
+      console.log("\n");
+      let balanceOfAccount36 = await token.balanceOf(account36.address);
+      console.log(`Before claiming, account36 : ` + formatNumberFromBN(balanceOfAccount36, dec));
+      let balanceOfAccount35 = await token.balanceOf(account35.address);
+      console.log(`Before claiming, account35 : ` + formatNumberFromBN(balanceOfAccount35, dec));
+      let contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
+      let claimableAmount = await Vesting.getClaimable(account36.address);
+      console.log("Claimable Amount : " + formatNumberFromBN(claimableAmount, dec));
+
+      await expect(Vesting.connect(account36).claimTo(account35.address)).to.be.not.reverted;
+
+      balanceOfAccount36 = await token.balanceOf(account36.address);
+      console.log(`After claiming, account36 : ` + formatNumberFromBN(balanceOfAccount36, dec));
+      balanceOfAccount35 = await token.balanceOf(account35.address);
+      console.log(`After claiming, account35 : ` + formatNumberFromBN(balanceOfAccount35, dec));
+      contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
+   });
+
+   it("Time increased", async () => {
+      console.log("\n");
+      await time.increase(26 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 26 days -----------------------------");
+   });
+
+   it("Should successfully transfer vested tokens", async () => {
+      console.log("\n");
+      await expect(Vesting.transferVestedTokens()).to.be.not.reverted;
+
+      for (let i = 0; i < vestingScheduleCounter; i++) {
+         if (i === 0) console.log("- Team");
+         if (i === 9) console.log("- Seed");
+         if (i === 21) console.log("- Strategic");
+         if (i === 33) console.log("- Advisory");
+
+         const balanceOfAccount = await token.balanceOf(accounts[i]);
+
+         console.log(`account${i} : ` + formatNumberFromBN(balanceOfAccount, dec));
+      }
+
+      const contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
+   });
+
+   it("Time increased", async () => {
+      console.log("\n");
+      await time.increase(91 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 91 days -----------------------------");
+   });
+
+   it("Should successfully transfer", async () => {
+      console.log("\n");
+      await expect(Vesting.transferVestedTokens()).to.be.not.reverted;
+
+      for (let i = 0; i < vestingScheduleCounter; i++) {
+         if (i === 0) console.log("- Team");
+         if (i === 9) console.log("- Seed");
+         if (i === 21) console.log("- Strategic");
+         if (i === 33) console.log("- Advisory");
+
+         const balanceOfAccount = await token.balanceOf(accounts[i]);
+
+         console.log(`account${i} : ` + formatNumberFromBN(balanceOfAccount, dec));
+      }
+
+      const contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
+   });
+
+   it("Time increased", async () => {
+      console.log("\n");
+      await time.increase(183 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 183 days -----------------------------");
+   });
+
+   it("Should successfully transfer vested tokens", async () => {
+      console.log("\n");
+      await expect(Vesting.transferVestedTokens()).to.be.not.reverted;
+
+      for (let i = 0; i < vestingScheduleCounter; i++) {
+         if (i === 0) console.log("- Team");
+         if (i === 9) console.log("- Seed");
+         if (i === 21) console.log("- Strategic");
+         if (i === 33) console.log("- Advisory");
+
+         const balanceOfAccount = await token.balanceOf(accounts[i]);
+
+         console.log(`account${i} : ` + formatNumberFromBN(balanceOfAccount, dec));
+      }
+
+      const contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
+   });
+
+   it("Time increased", async () => {
+      console.log("\n");
+      await time.increase(183 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 183 days -----------------------------");
+   });
+
+   it("Account 37 should fail to claim", async () => {
+      console.log("\n");
+      let balanceOfAccount = await token.balanceOf(account37.address);
+      console.log(`Before claiming, account37 : ` + formatNumberFromBN(balanceOfAccount, dec));
+      let contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
+
+      await expect(Vesting.connect(account37).claim()).to.be.reverted;
+
+      balanceOfAccount = await token.balanceOf(account37.address);
+      console.log(`After claiming, account37 : ` + formatNumberFromBN(balanceOfAccount, dec));
+      contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
+   });
+
+   it("Account 35 should success to claim", async () => {
+      console.log("\n");
+      let balanceOfAccount = await token.balanceOf(account35.address);
+      console.log(`Before claiming, account35 : ` + formatNumberFromBN(balanceOfAccount, dec));
+      let contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
+      let claimableAmount = await Vesting.getClaimable(account36.address);
+      console.log("Claimable Amount : " + formatNumberFromBN(claimableAmount, dec));
+
+      await expect(Vesting.connect(account35).claim()).to.be.not.reverted;
+
+      balanceOfAccount = await token.balanceOf(account35.address);
+      console.log(`After claiming, account35 : ` + formatNumberFromBN(balanceOfAccount, dec));
+      contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance : " + formatNumberFromBN(contractBalance, dec));
+   });
+
+   it("Time increased", async () => {
+      console.log("\n");
+      await time.increase(182 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 182 days -----------------------------");
+   });
+
+   it("Should successfully transfer vested tokens", async () => {
+      console.log("\n");
+      await expect(Vesting.transferVestedTokens()).to.be.not.reverted;
+
+      for (let i = 0; i < vestingScheduleCounter; i++) {
+         if (i === 0) console.log("- Team");
+         if (i === 9) console.log("- Seed");
+         if (i === 21) console.log("- Strategic");
+         if (i === 33) console.log("- Advisory");
+
+         const balanceOfAccount = await token.balanceOf(accounts[i]);
+
+         console.log(`account${i} : ` + formatNumberFromBN(balanceOfAccount, dec));
+      }
+
+      const contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
+   });
+
+   it("Time increased", async () => {
+      console.log("\n");
+      await time.increase(365 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 365 days -----------------------------");
+   });
+
+   it("Should successfully transfer vested tokens", async () => {
+      console.log("\n");
+      await expect(Vesting.transferVestedTokens()).to.be.not.reverted;
+
+      for (let i = 0; i < vestingScheduleCounter; i++) {
+         if (i === 0) console.log("- Team");
+         if (i === 9) console.log("- Seed");
+         if (i === 21) console.log("- Strategic");
+         if (i === 33) console.log("- Advisory");
+
+         const balanceOfAccount = await token.balanceOf(accounts[i]);
+
+         console.log(`account${i} : ` + formatNumberFromBN(balanceOfAccount, dec));
+      }
+
+      const contractBalance = await token.balanceOf(Vesting.address);
+      console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
+   });
+
+   it("Time increased", async () => {
+      console.log("\n");
+      await time.increase(10 * MINUTES_IN_DAY * 60);
+      console.log("----------------------------- 10 days -----------------------------");
+   });
+
+   it("Should successfully transfer vested tokens", async () => {
+      console.log("\n");
       await expect(Vesting.transferVestedTokens()).to.be.reverted;
 
       for (let i = 0; i < vestingScheduleCounter; i++) {
@@ -348,4 +542,22 @@ describe("Vesting", (accounts) => {
       console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
    });
 
+   it("Withdraw token from contract", async () => {
+      console.log("\n");
+      console.log("Balance of owner and contract");
+      console.log("Before Withdraw: ")
+      let ownerBalance = await token.balanceOf(owner.address);
+      let contractBalance = await token.balanceOf(Vesting.address);
+      console.log("owner : " + formatNumberFromBN(ownerBalance, dec));
+      console.log("contract : " + formatNumberFromBN(contractBalance, dec));
+
+      await expect(Vesting.connect(owner).withdraw(getBNFromNumber(10000000, dec))).to.be.not.reverted;
+      console.log(`Withdraw 10,000,000 tokens from vesting contract`);
+
+      console.log("After Withdraw")
+      ownerBalance = await token.balanceOf(owner.address);
+      contractBalance = await token.balanceOf(Vesting.address);
+      console.log("owner : " + formatNumberFromBN(ownerBalance, dec));
+      console.log("contract : " + formatNumberFromBN(contractBalance, dec));
+   });
 })
