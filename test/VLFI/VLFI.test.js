@@ -99,6 +99,24 @@ describe("VLFI TOKEN", () => {
         console.log(userVLFIDeposits.toString())
     })
 
+    it("Should get user's reward Debt", async() => {
+        const [owner] = await ethers.getSigners();
+        const userRewardDebt = await vlfi.getUserRewardDebt(owner.address);
+        console.log(userRewardDebt.toString())
+    })
+
+    it("Should get Farm's acc Reward per Share", async() => {
+        const AccReward = await vlfi.getAccRewardPerShare();
+        console.log(AccReward.toString())
+    })
+
+    it("Should return the liquidity of the contract",async() => {
+        const liqidity = await vlfi.getLiquidityStatus()
+        console.log(liqidity);
+    })
+
+
+
     // it("Should allow another user to deposit LFI and get VLFI", async () => {
     //     const [owner,user1] = await ethers.getSigners();
     //     const transferLFIAmount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);

@@ -125,12 +125,20 @@ describe("Claim Token", () => {
 
     it("Should allow the user2 to spend user1s tokens", async() => {
         const [owner,user1,user2] = await ethers.getSigners();
-        const tokensToUse = ethers.utils.formatUnits(returnBigNumber(40 * 10**18),0)
+        const tokensToUse = ethers.utils.formatUnits(returnBigNumber(50 * 10**18),0)
+        const tokensToSend = ethers.utils.formatUnits(returnBigNumber(40 * 10**18),0)
+        
         await claimToken.addAdmin(owner.address)
         await claimToken.mint(user1.address,tokensToUse)
         await claimToken.connect(user1).approve(user2.address,tokensToUse);
-        await claimToken.connect(user2).transferFrom(user1.address,user2.address,tokensToUse)
+        await claimToken.connect(user2).transferFrom(user1.address,user2.address,tokensToSend)
         const balanceOfUser2 = await claimToken.balanceOf(user2.address);
         expect(balanceOfUser2).to.equal(ethers.utils.formatUnits(returnBigNumber(50 * 10**18),0));
+    })
+
+    it("Should allow the user to get the allowance", async() => {
+        const [owner,user1,user2] = await ethers.getSigners();
+        const allowance = await claimToken.allowance(user1.address,user2.address);
+        expect(allowance).to.equal(ethers.utils.formatUnits(returnBigNumber(10 * 10**18),0));
     })
 })
