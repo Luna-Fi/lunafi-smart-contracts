@@ -6,56 +6,17 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
-//import "@openzeppelin/contracts/access/Ownable.sol";
 
 abstract contract BPContract {
     function protect(address sender, address receiver, uint256 amount) external virtual;
 }
 
-abstract contract BlackList is AccessControl, ERC20 {
-
-    bytes32 public constant MANAGER_ROLE = keccak256("Manager_Role");
-    /////// Getters to allow the same blacklist to be used also by other contracts (including upgraded Tether) ///////
-    function getBlackListStatus(address maker) external view returns (bool) {
-        return isBlackListed[maker];
-    }
-
-    // function getOwner() external view returns (address) {
-    //     return owner();
-    // }
-
-    mapping(address => bool) public isBlackListed;
-
-    function addBlackList(address evilUser) public onlyRole(MANAGER_ROLE) {
-        isBlackListed[evilUser] = true;
-        emit AddedBlackList(evilUser);
-    }
-
-    function removeBlackList(address clearedUser) public onlyRole(MANAGER_ROLE) {
-        isBlackListed[clearedUser] = false;
-        emit RemovedBlackList(clearedUser);
-    }
-
-    function destroyBlackFunds(address blackListedUser) public onlyRole(MANAGER_ROLE) {
-        require(isBlackListed[blackListedUser], "ERROR: Not Black listed");
-        uint256 dirtyFunds = balanceOf(blackListedUser);
-        _burn(blackListedUser, dirtyFunds);
-        emit DestroyedBlackFunds(blackListedUser, dirtyFunds);
-    }
-
-    event DestroyedBlackFunds(address blackListedUser, uint256 balance);
-
-    event AddedBlackList(address user);
-
-    event RemovedBlackList(address user);
-}
-
 contract LFIToken is
     ERC20,
-    BlackList,
     ERC20Burnable,
     Pausable,
-    ERC20Permit
+    ERC20Permit,
+    AccessControl
 {
     string constant TOKEN_NAME = "LFIToken";
     string constant TOKEN_SYMBOL = "LFI";
@@ -63,6 +24,7 @@ contract LFIToken is
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
 
     uint256 public maxSupply;
 
@@ -80,6 +42,7 @@ contract LFIToken is
         super._mint(msg.sender, maxSupply);
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(MANAGER_ROLE, msg.sender);
     }
 
     function setBPAddress(address _bp) external onlyRole(MANAGER_ROLE){
@@ -141,7 +104,6 @@ contract LFIToken is
         address to,
         uint256 amount
     ) internal override(ERC20) whenNotPaused {
-        require(!isBlackListed[msg.sender], "ERROR: Blacklisted");
         if(bpEnabled && !BPDisabledForever) {
             BP.protect(from,to,amount);
         }
