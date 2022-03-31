@@ -18,7 +18,7 @@ Details of the contracts are in the table below.
 | VLFI            | contracts/VLFI.sol               | This is the LFI Staking Pool. this issues vLFI LP tokens in exchange for LFI tokens deposited. VLFI contract is ERC20 tokens with some additional functionality. Users can deposit LFI and can mint proportionate amount of VLFI Tokens. "VLFI" immediately starts earning rewards in LFI tokens which are proportionally distributed to all the users in the pool.  there is a cooldown period and an unstake windowi f users wants to unstake or withdraw the staked LFI |
 | vesting         | contracts/vesting.sol            | Lunabets vesting contract. Tokens are released to stake holders based on the vesting schedule. This will transfer vested tokens directly to the beneficiaries wallet every month. |
 
-## P.S:
+## NOTE:
 
 claim tokens are part of Phase 2 functionality and the remaining phase 2 functionality will be built with house pools and audited again.
 
