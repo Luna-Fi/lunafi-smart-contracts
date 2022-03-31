@@ -215,6 +215,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         public
         onlyRole(MANAGER_ROLE)
     {
+        updateFarm();
         rewardPerSecond = _rewardPerSecond;
     }
 
@@ -236,15 +237,15 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     function permitAndStake(
         address owner,
         address spender,
+        uint256 value,
         uint256 deadline,
         uint8 v,
         bytes32 r,
         bytes32 s,
-        address onBehalfOf,
-        uint256 LFIamount
+        address onBehalfOf
     ) external {
-        ILFIToken(STAKED_TOKEN).permit(owner,spender,LFIamount,deadline,v,r,s);
-        stake(onBehalfOf, LFIamount);
+        ILFIToken(STAKED_TOKEN).permit(owner,spender,value,deadline,v,r,s);
+        stake(onBehalfOf, value);
     }
     /// @notice Function that allows the user to stake the LFI
     /// @param onBehalfOf address of the user to mint the VLFI tokens to
