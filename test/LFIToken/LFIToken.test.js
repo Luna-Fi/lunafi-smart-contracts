@@ -43,4 +43,5 @@ describe("LFI Token", () => {
         expect(ownerBalance).to.equal("1000000000000000000000000000");
     })
     
+    
 })

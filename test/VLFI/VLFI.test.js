@@ -52,7 +52,7 @@ describe("VLFI TOKEN", () => {
     it("Should allow the owner to deposit 10000 LFI and get a proportionate amount on VLFI", async () => {
         const [owner] = await ethers.getSigners();
         const amount = ethers.utils.formatUnits(returnBigNumber(1000 * 10 **18),0);
-        const value = ethers.utils.formatUnits(returnBigNumber(10000000 * 10 **18),0);
+        const value  = ethers.utils.formatUnits(returnBigNumber(1000000000 * 10 **18),0);
         const result = await signERC2612Permit(
             owner,
             lfi.address,
@@ -60,9 +60,6 @@ describe("VLFI TOKEN", () => {
             vlfi.address,
             value
         ) 
-
-        const OldAllowance = await lfi.allowance(owner.address,vlfi.address);
-        console.log("Old Value is",OldAllowance.toString())
 
         await vlfi.permitAndStake(
             owner.address,
@@ -74,12 +71,20 @@ describe("VLFI TOKEN", () => {
             result.s,
             owner.address,
         );
-        //await vlfi.stake(owner.address, amount)
-        const newAllowance = await lfi.allowance(owner.address,vlfi.address);
-        console.log("New Value is ", newAllowance.toString())
-        const vlfiBalanceOfOwner = await vlfi.balanceOf(owner.address)
-        console.log("Owner VLFI", vlfiBalanceOfOwner.toString())
+
+        console.log(value);
+        console.log(amount);
+        
     })
+
+    it("Should allow the manager to set Rewards PerSecond", async() => {
+        const rps = ethers.utils.formatUnits(returnBigNumber(1 * 10 **16),0);
+        await vlfi.setRewardPerSecond(rps)
+    })
+    it("Should allow the manager to get rewards per second", async () => {
+        const rps = await vlfi.getRewardPerSecond()
+        expect(rps).to.equal(ethers.utils.formatUnits(returnBigNumber(1 * 10 **16),0))
+    })  
 
     it("Should return the coolDown period of the staker", async() => {
         const [owner] = await ethers.getSigners();
@@ -87,34 +92,13 @@ describe("VLFI TOKEN", () => {
         expect(cool).to.equal(ethers.utils.formatUnits(returnBigNumber(0),0));
     })
 
-    it("Should get user LFIDeposits", async() => {
-        const [owner] = await ethers.getSigners();
-        const userDeposits = await vlfi.getUserLFIDeposits(owner.address);
-        console.log(userDeposits.toString())
+    it("Should allow the user to get their LFI Deposit value", async() => {
+        const [owner] = await ethers.getSigners()
+        const LFIDeposit = await vlfi.getUserLFIDeposits(owner.address);
+        console.log(LFIDeposit);
     })
 
-    it("Should get user's VLFI deposits", async () => {
-        const [owner] = await ethers.getSigners();
-        const userVLFIDeposits = await vlfi.getUserVLFIAmount(owner.address);
-        console.log(userVLFIDeposits.toString())
-    })
-
-    it("Should get user's reward Debt", async() => {
-        const [owner] = await ethers.getSigners();
-        const userRewardDebt = await vlfi.getUserRewardDebt(owner.address);
-        console.log(userRewardDebt.toString())
-    })
-
-    it("Should get Farm's acc Reward per Share", async() => {
-        const AccReward = await vlfi.getAccRewardPerShare();
-        console.log(AccReward.toString())
-    })
-
-    it("Should return the liquidity of the contract",async() => {
-        const liqidity = await vlfi.getLiquidityStatus()
-        console.log(liqidity);
-    })
-
+    
 
 
     // it("Should allow another user to deposit LFI and get VLFI", async () => {
