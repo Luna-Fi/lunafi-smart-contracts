@@ -2,7 +2,6 @@
 pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
@@ -13,7 +12,6 @@ abstract contract BPContract {
 
 contract LFIToken is
     ERC20,
-    ERC20Burnable,
     Pausable,
     ERC20Permit,
     AccessControl
@@ -21,9 +19,8 @@ contract LFIToken is
     string constant TOKEN_NAME = "LFIToken";
     string constant TOKEN_SYMBOL = "LFI";
 
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
 
     uint256 public maxSupply;
@@ -67,18 +64,6 @@ contract LFIToken is
     function unpause() external onlyRole(PAUSER_ROLE) returns (bool) {
         _unpause();
         return true;
-    }
-
-    function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
-        _mint(to, amount);
-    }
-
-    function burnToken(address account, uint256 amount)
-        external
-        onlyRole(BURNER_ROLE)
-    {
-        //super.burn(account, amount);
-        _burn(account, amount);
     }
 
     function decimals() public pure override returns (uint8) {
