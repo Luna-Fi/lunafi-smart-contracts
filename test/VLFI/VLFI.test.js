@@ -8,6 +8,9 @@ const returnBigNumber = (number) => {
     return BigNumber.from("0x" + number);
 }
 
+const formatFromBaseUnit = (amount, decimals) => Number(ethers.utils.formatUnits(ethers.BigNumber.from(amount), decimals))
+const formatToNumber = (n) => ethers.BigNumber.from(n).toNumber()
+
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
   }
@@ -141,71 +144,28 @@ describe("VLFI TOKEN", () => {
         const balanceAfter = await lfi.balanceOf(owner.address);
         expect(balanceAfter.toString()).to.equal("9999999999999999583119726833120000000000000000");
     })
+
+    it("Should allow the users to start cooldown window and unstake variable amounr", async() => {
+        const [owner,user1] = await ethers.getSigners()
+
+        const transferLFIAmount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
+        const amount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
+        
+        const originalBalance = await lfi.balanceOf(owner.address)
+        await vlfi.connect(owner).activateCooldown();
+        const cooldownInSeconds = formatToNumber(await vlfi.getCooldownSeconds())
+
+        const timeout = cooldownInSeconds * 1000 + 1500
+        await sleep(timeout);
+
+        await vlfi.connect(owner).unStake(owner.address, 1);
+
+        const amountDeposited = await vlfi.getUserLFIDeposits(owner.address);
+
+        const newBalance = await lfi.balanceOf(owner.address)
+        expect(newBalance).to.not.equal(originalBalance)
+
+    })
     
-    
-
-    // it("Should allow another user to deposit LFI and get VLFI", async () => {
-    //     const [owner,user1] = await ethers.getSigners();
-    //     const transferLFIAmount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
-    //     const amount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
-    //     await lfi.connect(user1).approve(vlfi.address,transferLFIAmount)
-    //     await lfi.transfer(user1.address,transferLFIAmount)
-    //     await vlfi.connect(user1).stake(user1.address,amount);
-    //     await vlfi.stake(owner.address,amount);
-
-    //     // Farm  details :
-    //     const farmAccRewardsperShare = ethers.utils.formatUnits(await vlfi.getAccRewardPerShare(), 0)
-    //     const farmLastRewardTime = ethers.utils.formatUnits(await vlfi.getLastRewardTime(), 0)
-
-    //      // User1 details :
-    //      const user1VLFIBalance = ethers.utils.formatUnits(await vlfi.balanceOf(user1.address), 0)
-    //      const user1Amount = ethers.utils.formatUnits(await vlfi.getUserVLFIAmount(user1.address), 0)
-    //      const user1RewardDebt = ethers.utils.formatUnits(await vlfi.getUserRewardDebt(user1.address), 0)
-
-         
-    //      // Owner details :
-    //     const ownerVLFIBalance = ethers.utils.formatUnits(await vlfi.balanceOf(owner.address), 0)
-    //     const ownerAmount = ethers.utils.formatUnits(await vlfi.getUserVLFIAmount(owner.address), 0)
-    //     const ownerRewardDebt = ethers.utils.formatUnits(await vlfi.getUserRewardDebt(owner.address), 0) 
-
-    //      // Log Farm Details after second deposit 
-    //     console.log("Acc Reward per Share in the Farm = ", farmAccRewardsperShare.toString())
-    //     console.log("Last Reward Time = ", farmLastRewardTime.toString())
-
-    //     // Log user Details for second deposit
-    //     console.log("User1 VLFI Balance = ", user1VLFIBalance.toString())
-    //     console.log("User1 Amount = ", user1Amount.toString())
-    //     console.log("User1 Reward Debt = ", user1RewardDebt.toString())
-    //     console.log("*********************************************************")
-
-    //     // Log user Details for first deposit
-    //     console.log("owner VLFI Balance = ", ownerVLFIBalance.toString())
-    //     console.log("Owner Amount = ", ownerAmount.toString())
-    //     console.log("Owner Reward Debt = ", ownerRewardDebt.toString())
-
-    // })
-
-    // it("Should allow the users to get their pending rewards", async() => {
-    //     const [owner,user1] = await ethers.getSigners()
-    //     const ownerPendingRewards = ethers.utils.formatUnits(await vlfi.getRewards(owner.address), 0)
-    //     const user1PendingRewards = ethers.utils.formatUnits(await vlfi.getRewards(user1.address), 0)
-
-    //     console.log("Owner Pending Rewards = ", ownerPendingRewards)
-    //     console.log("User1 Pending Rewards = ", user1PendingRewards)
-
-    // })
-
-    // it("Should allow the users to get their pending rewards", async() => {
-    //     const [owner,user1] = await ethers.getSigners()
-    //     const ownerPendingRewards = ethers.utils.formatUnits(await vlfi.getRewards(owner.address), 0)
-    //     const user1PendingRewards = ethers.utils.formatUnits(await vlfi.getRewards(user1.address), 0)
-
-    //     console.log("Owner Pending Rewards = ", ownerPendingRewards)
-    //     console.log("User1 Pending Rewards = ", user1PendingRewards)
-    // })
-
-    
-
-
      
 })
