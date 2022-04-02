@@ -9,7 +9,7 @@ const { BigNumber } = require("ethers");
 
 const managerRole = ethers.utils.id("MANAGER_ROLE");
 
-const { formatNumberFromBN, getBNFromNumber, sleep } = require('../utils/helper');
+const { formatNumberFromBN, getBNFromNumber, sleep } = require('../../utils/helper');
 
 contract("vesting", (accounts) => {
    let token, dec, SimpleVesting, Vesting, vestingScheduleCounter, vestingScheduleData;
