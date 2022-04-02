@@ -97,11 +97,12 @@ contract("vesting", (accounts) => {
          ["0x70997970C51812dc3A010C7d01b50e0d17dc79C8", 1095, 182, 10000000],
          ["0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", 1095, 31, 10000000],
       ];
+      const supply = getBNFromNumber(1000000000, 0);
+      LFI = await ethers.getContractFactory("LFIToken")
+      token = await LFI.deploy(supply)
 
-      Erc20 = await hre.ethers.getContractFactory("LFIToken");
-      token = await Erc20.deploy();
       dec = await token.decimals();
-
+      console.log('***->', { dec })
       await token.deployed();
       console.log("LFIToken deployed to:", token.address);
 
@@ -128,6 +129,7 @@ contract("vesting", (accounts) => {
    it('Check balance of owner before vesting', async () => {
       console.log("\n");
       const ownerBalance = await token.balanceOf(owner.address);
+      console.log({ ownerBalance })
       console.log("Owner balance before vesting : " + formatNumberFromBN(ownerBalance, dec));
 
       await token.approve(Vesting.address, ownerBalance);
@@ -160,7 +162,7 @@ contract("vesting", (accounts) => {
       let contractBalance = await token.balanceOf(Vesting.address);
       console.log("owner : " + formatNumberFromBN(ownerBalance, dec));
       console.log("contract : " + formatNumberFromBN(contractBalance, dec));
-
+      console.log("Adding Vesting Schedules...")
       let i = 0;
       while (i < vestingScheduleData.length) {
          await Vesting.createVestingSchedule(
@@ -589,24 +591,5 @@ contract("vesting", (accounts) => {
 
       const contractBalance = await token.balanceOf(Vesting.address);
       console.log("Contract balance after vesting : " + formatNumberFromBN(contractBalance, dec));
-   });
-
-   it("Withdraw token from contract", async () => {
-      console.log("\n");
-      console.log("Balance of owner and contract");
-      console.log("Before Withdraw: ")
-      let ownerBalance = await token.balanceOf(owner.address);
-      let contractBalance = await token.balanceOf(Vesting.address);
-      console.log("owner : " + formatNumberFromBN(ownerBalance, dec));
-      console.log("contract : " + formatNumberFromBN(contractBalance, dec));
-
-      await expect(Vesting.connect(owner).withdraw(getBNFromNumber(10000000, dec))).to.be.not.reverted;
-      console.log(`Withdraw 10,000,000 tokens from vesting contract`);
-
-      console.log("After Withdraw")
-      ownerBalance = await token.balanceOf(owner.address);
-      contractBalance = await token.balanceOf(Vesting.address);
-      console.log("owner : " + formatNumberFromBN(ownerBalance, dec));
-      console.log("contract : " + formatNumberFromBN(contractBalance, dec));
    });
 })

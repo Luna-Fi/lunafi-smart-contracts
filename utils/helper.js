@@ -10,7 +10,7 @@ const getNumberFromStrBN = (str_bn, dec) => {
     }
     return val;
 };
- 
+
 const getNumberFromBN = (bn, d) => {
     const num1 = BigNumber.from(bn)
     const num2 = BigNumber.from(10).pow(d);
