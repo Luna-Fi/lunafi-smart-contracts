@@ -9,13 +9,8 @@ const returnBigNumber = (number) => {
 }
 
 const sleep = (milliseconds) => {
-    const date =  Date.now();
-    let currentDate = null;
-    do {
-        currentDate = Date.now()
-    } while (currentDate - date < milliseconds)
-}
-
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+  }
 describe("VLFI TOKEN", () => {
 
         let LFI;
@@ -100,7 +95,52 @@ describe("VLFI TOKEN", () => {
         const VLFIDeposit = await vlfi.getUserVLFIAmount(owner.address);
         expect(VLFIDeposit).to.equal(ethers.utils.formatUnits(returnBigNumber(10 * 10 **18),0));
     })
+    it("Should get the liquidity of the pool", async() => {
+        const liquidity = await vlfi.getLiquidityStatus();
+        expect(liquidity).to.equal(ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0));
+    })
 
+    it("Should allow the manager to set Cooldown Seconds", async() => {
+        const cooldownSeconds = 500;
+        await vlfi.setCooldownSeconds(cooldownSeconds);
+        const cooldown = await vlfi.getCooldownSeconds();
+        expect(cooldown).to.equal(cooldownSeconds)
+    })
+
+    it("Should get the cooldown Seconds", async() => {
+        const cooldownSeconds = 500;
+        const cooldown = await vlfi.getCooldownSeconds();
+        expect(cooldown).to.equal(cooldownSeconds)
+    })
+
+    it("Should allow the admin to set unstake window time", async() => {
+        const unstakeTime = 150;
+        await vlfi.setUnstakeWindowTime(unstakeTime);
+        const unstake = await vlfi.getUnstakeWindowTime();
+        expect(unstake).to.equal(unstakeTime);
+    })
+
+    it("Should allow the user to  get the unstake window time", async() => {
+        const unstakeTime = 150;
+        const unstake = await vlfi.getUnstakeWindowTime();
+        expect(unstake).to.equal(unstakeTime);
+    })
+
+    it("Should allow the user to get the rewards earned", async() => {
+        const [owner] = await ethers.getSigners()
+        await sleep(10000)
+        const rewards = await vlfi.getRewards(owner.address)
+        expect(rewards).to.equal(ethers.utils.formatUnits(returnBigNumber(102 * 10 **16),0));
+    })
+
+    it("Should allow the user to claimRewards", async() => {
+        const [owner] = await ethers.getSigners()
+        const rewards = await vlfi.getRewards(owner.address)
+        const balancebefore = await lfi.balanceOf(owner.address);
+        await vlfi.claimRewards(owner.address)
+        const balanceAfter = await lfi.balanceOf(owner.address);
+        expect(balanceAfter.toString()).to.equal("9999999999999999583119726833120000000000000000");
+    })
     
     
 
