@@ -2,7 +2,7 @@
   "manifestVersion": "3.2",
   "admin": {
     "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-    "txHash": "0xcd7f504453ba67b3731469359db4b5798c55eb89f5e9cbf7a8757dcff0694574"
+    "txHash": "0x0d5345d2714ee31bf2dc86a6705c212d5a128e1576f0f5465c25e8969bd5962c"
   },
   "proxies": [
     {
@@ -62,7 +62,7 @@
     },
     {
       "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
-      "txHash": "0x72a474a1e4849f6347ce8e97a184edbb4ba28ae18137f983432818eb985e3012",
+      "txHash": "0x5796de74710bcf1fe67731e963fec7e1eca88a022b31303ac3111b10eb3c4ad5",
       "kind": "transparent"
     }
   ],
@@ -941,9 +941,9 @@
         }
       }
     },
-    "ed725b069eabc047147869d018ed3c501a8b32b2440412c7e918fdeac3ce7316": {
+    "395037a82a1c264a2da52053e1ec423d9965a8296dadd1f2089e6d44681072eb": {
       "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-      "txHash": "0x778f88c85dd72deb7aed3941f6121f96fe66de87e145cbb6259dfbfc49bc130d",
+      "txHash": "0x9d4c968a7f0577546130f3e162646b99b575d18d8d78d7dd607d2824edcf871f",
       "layout": {
         "storage": [
           {
@@ -1126,7 +1126,7 @@
             "label": "STAKED_TOKEN",
             "offset": 0,
             "slot": "354",
-            "type": "t_contract(ILFIToken)5061",
+            "type": "t_contract(ILFIToken)5079",
             "contract": "VLFI",
             "src": "contracts/VLFI.sol:20"
           },
@@ -1228,7 +1228,7 @@
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(ILFIToken)5061": {
+          "t_contract(ILFIToken)5079": {
             "label": "contract ILFIToken"
           },
           "t_int256": {

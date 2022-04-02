@@ -110,7 +110,7 @@ contract LFIToken is
         );
         super._mint(to, amount);
     }
-    /// @notice internal _bint function
+    /// @notice internal _burn function
     function _burn(address account, uint256 amount) internal override(ERC20) {
         super._burn(account, amount);
     }
