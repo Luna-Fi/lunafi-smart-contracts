@@ -25,7 +25,7 @@ describe("VLFI TOKEN", () => {
 
     before(async () => {
         const[owner,user1] = await ethers.getSigners()
-        const supply = ethers.utils.formatUnits(returnBigNumber(1000000000 * 10 **18),0);
+        const supply = ethers.utils.formatUnits(returnBigNumber(10000000000 * 10**18),0);
         LFI = await ethers.getContractFactory("LFIToken")
         lfi = await LFI.deploy(supply)
         await lfi.deployed()
@@ -51,8 +51,8 @@ describe("VLFI TOKEN", () => {
 
     it("Should allow the owner to deposit 10000 LFI and get a proportionate amount on VLFI", async () => {
         const [owner] = await ethers.getSigners();
-        const amount = ethers.utils.formatUnits(returnBigNumber(1000 * 10 **18),0);
-        const value  = ethers.utils.formatUnits(returnBigNumber(1000000000 * 10 **18),0);
+        const amount = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
+        const value  = ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0);
         const result = await signERC2612Permit(
             owner,
             lfi.address,
@@ -71,10 +71,7 @@ describe("VLFI TOKEN", () => {
             result.s,
             owner.address,
         );
-
-        console.log(value);
-        console.log(amount);
-        
+ 
     })
 
     it("Should allow the manager to set Rewards PerSecond", async() => {
@@ -95,11 +92,17 @@ describe("VLFI TOKEN", () => {
     it("Should allow the user to get their LFI Deposit value", async() => {
         const [owner] = await ethers.getSigners()
         const LFIDeposit = await vlfi.getUserLFIDeposits(owner.address);
-        console.log(LFIDeposit);
+        expect(LFIDeposit).to.equal(ethers.utils.formatUnits(returnBigNumber(10000 * 10 **18),0));
+    })
+
+    it("Should get the user VLFI Balance", async() => {
+        const [owner] = await ethers.getSigners()
+        const VLFIDeposit = await vlfi.getUserVLFIAmount(owner.address);
+        expect(VLFIDeposit).to.equal(ethers.utils.formatUnits(returnBigNumber(10 * 10 **18),0));
     })
 
     
-
+    
 
     // it("Should allow another user to deposit LFI and get VLFI", async () => {
     //     const [owner,user1] = await ethers.getSigners();
