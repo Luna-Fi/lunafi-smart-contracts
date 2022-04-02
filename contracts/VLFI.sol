@@ -377,7 +377,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         ILFIToken(STAKED_TOKEN).transfer(to, _pendingReward);
         
     }
-
+    /// @notice Function to get the NextCooldonwTimestamp
     function getNextCooldownTimestamp(
         uint256 userCooldownTimestamp,
         uint256 amountToReceive,
@@ -412,7 +412,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         }
         return toCooldownTimestamp;
     }
-
+    /// @notice Internal function for after Token Transfer
     function _afterTokenTransfer(address from, address to, uint256 amount)
         internal
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
@@ -420,6 +420,9 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         super._afterTokenTransfer(from, to, amount);
     }
 
+    /// @notice Internal _mint 
+    /// @param to Address to mint to
+    /// @param amount amount to mint
     function _mint(address to, uint256 amount)
         internal
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
@@ -427,6 +430,9 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         super._mint(to, amount);
     }
 
+    /// @notice Internal _burn
+    /// @param account address to burn from
+    /// @param amount amount to burn
     function _burn(address account, uint256 amount)
         internal
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
