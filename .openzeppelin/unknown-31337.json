@@ -943,7 +943,7 @@
     },
     "ed725b069eabc047147869d018ed3c501a8b32b2440412c7e918fdeac3ce7316": {
       "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-      "txHash": "0x013c1ce4c7204475872c1d7bc9585c006bb124898ea6fbce77ece9cec14284f2",
+      "txHash": "0x778f88c85dd72deb7aed3941f6121f96fe66de87e145cbb6259dfbfc49bc130d",
       "layout": {
         "storage": [
           {
@@ -1126,7 +1126,7 @@
             "label": "STAKED_TOKEN",
             "offset": 0,
             "slot": "354",
-            "type": "t_contract(ILFIToken)5057",
+            "type": "t_contract(ILFIToken)5061",
             "contract": "VLFI",
             "src": "contracts/VLFI.sol:20"
           },
@@ -1228,7 +1228,7 @@
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(ILFIToken)5057": {
+          "t_contract(ILFIToken)5061": {
             "label": "contract ILFIToken"
           },
           "t_int256": {
