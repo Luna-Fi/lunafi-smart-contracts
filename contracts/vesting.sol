@@ -78,240 +78,6 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
         _grantRole(MANAGER_ROLE, msg.sender);
 
         MINUTES_IN_DAY = 1; // 24 * 60 for mainnet, 1 for testnet
-
-        uint8 decimals = 18;
-
-        // Team
-        createVestingSchedule(
-            address(0x27106C0f5c450ED30B4547681992709808964600),
-            1095,
-            182,
-            115000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0xFdA31099FcB1Fc146B7bd93dd99dD7F6c081c560),
-            1095,
-            182,
-            10000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0x00e294652292776e4d59F416ef35a73Cae0e01dc),
-            1095,
-            182,
-            5000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0x8959f1D534C83a3031ef4b8E5aAF0C2aB954ddE4),
-            1095,
-            182,
-            10000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0xBCB5BA11f7Aa02dF7d7e607Ec83F3F24880807A1),
-            1095,
-            182,
-            2000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0xBc9F27d42D2D9dFb3Ea58DAE8dfb22Dc9934E0fd),
-            1095,
-            182,
-            2000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0xe96703DbE09AA2f3F172c01D0fbD6F4408Ff83C2),
-            1095,
-            182,
-            2000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0xaD6f284437367357f9d4C825D95a7122E4AD60aB),
-            1095,
-            182,
-            2000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0x9c999F738693AB7d5fAEbDdd7B0f1564DADEAB00),
-            1095,
-            182,
-            2000000 * 10**decimals
-        );
-
-        // Seed
-        createVestingSchedule(
-            address(0xce46f9aFb2cD26030021c24DC1AB52116B19B68A),
-            365,
-            91,
-            3333333333 * 10**(decimals - 3)
-        );
-        createVestingSchedule(
-            address(0x555187752Ef6d73758862B5d364AAB362c996d0e),
-            365,
-            91,
-            3333333333 * 10**(decimals - 3)
-        );
-        createVestingSchedule(
-            address(0x5E46884a77E0aC5F3126e30720Bd5218814dc5E2),
-            365,
-            91,
-            3333333333 * 10**(decimals - 3)
-        );
-        createVestingSchedule(
-            address(0xF49779d278F9b25e0Ac50c44CaD48ca74e50D043),
-            365,
-            91,
-            10000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0xfE27c67D7a05E7D6c9C83672454a7dB7F1fD3eF1),
-            365,
-            91,
-            2500000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0x6F557741B2E0f1ED9563e1088f257C0086B5C8b0),
-            365,
-            91,
-            1000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0xEC4636Af52275d303B71F2544389e363A0619234),
-            365,
-            91,
-            2500000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0xcF808867dFd2bFfb9444cf9981C3a2c2B984b330),
-            365,
-            91,
-            2500000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0xE0C6023B6c292D23f41dCEE3424cD24547DDca90),
-            365,
-            91,
-            5000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0xc8c8559ab47C68B2A5f24D8F559Ae95290Cd68DF),
-            365,
-            91,
-            300000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0xdd930D3453FbEfd41938e2048a6fb49c7d3cC71F),
-            365,
-            91,
-            500000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0x5e351A2387512b4C19C78b530Fc872925362d37F),
-            365,
-            91,
-            500000 * 10**decimals
-        );
-
-        // Strategic
-        createVestingSchedule(
-            address(0x824F0e73561D2E154F8e54dCA2987f960114C601),
-            365,
-            0,
-            6666666667 * 10**(decimals - 4)
-        );
-        createVestingSchedule(
-            address(0x28aD1D1559f0ff9a9EcF4e261305B5811b8786f5),
-            365,
-            0,
-            6666666667 * 10**(decimals - 4)
-        );
-        createVestingSchedule(
-            address(0x2bC474A6285527c708827f924333e904860fFa86),
-            365,
-            0,
-            6666666667 * 10**(decimals - 4)
-        );
-        createVestingSchedule(
-            address(0x85b0157c74D77c5952fA31f9e2a55025a09f697e),
-            365,
-            0,
-            6666666667 * 10**(decimals - 4)
-        );
-        createVestingSchedule(
-            address(0x3Cd734d663AaF9d51Da45f14019dfC4EcAfEad73),
-            365,
-            0,
-            3333333333 * 10**(decimals - 4)
-        );
-        createVestingSchedule(
-            address(0x8b47e534964ec0389138b43ca39f598f18806fEC),
-            365,
-            0,
-            220000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0xCb2052f7cB59BcBD77f0ec8Ae27Ef61B39fF57C3),
-            365,
-            0,
-            50000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0x49A323CC2fa5F9A138f30794B9348e43065D8dA2),
-            365,
-            0,
-            10000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0x265C50DDc99C986912D4f7Cc8357303baeEB01d9),
-            365,
-            0,
-            3333333333 * 10**(decimals - 3)
-        );
-        createVestingSchedule(
-            address(0xA9F28648CaB79322fB50912Ae00D68E5dc5E704f),
-            365,
-            0,
-            3333333333 * 10**(decimals - 3)
-        );
-        createVestingSchedule(
-            address(0xA37e4eF510150E942Def77B79d262D5Fb31299EE),
-            365,
-            0,
-            6666666667 * 10**(decimals - 4)
-        );
-        createVestingSchedule(
-            address(0x1fcd4F6046FE53F914d7E7379CeE359790b0e9ff),
-            365,
-            0,
-            1666666667 * 10**(decimals - 4)
-        );
-
-        // Advisory
-        createVestingSchedule(
-            address(0x09A855d54C987D8e437A975f92A4E4F10bAB235c),
-            1095,
-            182,
-            10000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0x16F700f8713Ca47c6693DbDD814126f7a1704f87),
-            1095,
-            182,
-            10000000 * 10**decimals
-        );
-
-        // Testing for claiming tokens
-        createVestingSchedule(
-            address(0x70997970C51812dc3A010C7d01b50e0d17dc79C8),
-            1095,
-            182,
-            10000000 * 10**decimals
-        );
-        createVestingSchedule(
-            address(0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC),
-            1095,
-            31,
-            10000000 * 10**decimals
-        );
     }
 
     /**
@@ -326,12 +92,16 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
         uint256 _vestingPeriod,
         uint256 _cliffPeriod,
         uint256 _amount
-    ) internal onlyOwner {
+    ) public onlyOwner {
         require(_vestingPeriod > 0, "Vesting period must be > 0");
         require(_amount > 0, "Vesting amount must be > 0");
         require(
             vestingScheduleIdsByAddress[_recipient] == 0,
-            "Vesting schedule already present for this recipient"
+            "Vesting is already exists for this recipient"
+        );
+        require(
+            totalVestingAmount + _amount <= _token.balanceOf(address(this)),
+            "Not enough funds to cover new vesting schedule."
         );
 
         vestingScheduleCounter++;
@@ -356,7 +126,7 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
      * @notice Transfer claimable amount of tokens to all beneficiaries.
      */
     function transferVestedTokens() public nonReentrant {
-        require(block.timestamp > startTime, "Vesting is not started.");
+        require(block.timestamp > startTime, "Vesting has not started.");
         bool vestingHasEnded = true;
         for (uint256 i = 1; i <= vestingScheduleCounter; i++) {
             if (!vestingSchedulesById[i].vestingEnded) {
@@ -367,7 +137,7 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
 
         require(!vestingHasEnded, "Vesting has ended.");
 
-        require(remainingVestingAmount > 0, "No tokens available to transfer");
+        require(remainingVestingAmount > 0, "No remaining tokens to transfer");
 
         for (uint256 i = 1; i <= vestingScheduleCounter; i++) {
             transferVestedTokensById(i);
@@ -379,12 +149,9 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
      * @param id unique id of vesting
      */
     function transferVestedTokensById(uint256 id) internal {
-        uint256 _amount = computeReleasableAmount(id);
+        require(remainingVestingAmount > 0, "No remaining tokens to transfer");
 
-        require(
-            remainingVestingAmount > _amount,
-            "No tokens available to transfer"
-        );
+        uint256 _amount = computeReleasableAmount(id);
 
         _token.transfer(vestingSchedulesById[id].recipient, _amount);
 
@@ -410,19 +177,19 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
     function _claimTo(address to) internal {
         require(
             vestingScheduleIdsByAddress[msg.sender] != 0,
-            "No existing vesting."
+            "Vesting schedule does not exist."
         );
 
         uint256 id = vestingScheduleIdsByAddress[msg.sender];
 
-        require(remainingVestingAmount > 0, "No tokes available to transfer");
-
         require(
             block.timestamp > startTime + vestingSchedulesById[id].cliffPeriod,
-            "Cannot claim before cliff"
+            "Cannot claim before cliff periods ends."
         );
 
         uint256 _amount = computeReleasableAmount(id);
+
+        require(remainingVestingAmount > _amount, "No remaining tokens to transfer");
 
         if (
             block.timestamp >=
@@ -521,7 +288,7 @@ contract vesting is Ownable, ReentrancyGuard, AccessControl {
      * @return the vesting account address
      */
     function getVestingAccountById(uint256 id) public view returns (address) {
-        require(id <= vestingScheduleCounter, "vesting: index out of bounds");
+        require(id <= vestingScheduleCounter, "Index out of bounds");
         return vestingSchedulesById[id].recipient;
     }
 
