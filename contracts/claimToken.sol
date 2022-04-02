@@ -9,6 +9,7 @@ contract claimToken is IERC20 {
     address public owner;
     uint256 public _totalSupply;
     uint256 public initialSupply;
+    uint256 public constant maxCap = 1000000000 * 10**18;
     string public name;
     string public symbol;
 
@@ -146,6 +147,10 @@ contract claimToken is IERC20 {
         require(
             account != address(0),
             "USDCclaimToken: Mint from a zero address"
+        );
+        require(
+            _totalSupply + tokens <= maxCap,
+            "Error: Max supply reached, 1 Billion tokens minted."
         );
         balances[account] = balances[account] + tokens;
         _totalSupply = _totalSupply + tokens;
