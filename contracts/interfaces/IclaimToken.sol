@@ -1,7 +1,7 @@
 // SPDX-License-Identifier:  MIT
 pragma solidity 0.8.10;
 
-interface claimTokenInterface {
+interface IClaimToken {
     function burn(address account, uint256 tokens) external;
 
     function mint(address account, uint256 tokens) external;

@@ -1,16 +1,29 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
+import "contracts/interfaces/ILFIToken.sol";
+import "hardhat/console.sol";
+
 
 contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradeable, ERC20VotesUpgradeable {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    
+    
+    // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES BELOW
 
+    uint256 constant MAX_PRECISION = 18;
+    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
+    uint256 private constant ACC_REWARD_PRECISION = 1e18;
+    ILFIToken public  STAKED_TOKEN;
+    uint256 liquidity;
+    uint256 lpTokenPrice;
+    uint256 COOLDOWN_SECONDS;
+    uint256 UNSTAKE_WINDOW;
+    uint256 private rewardPerSecond;
+    
     struct FarmInfo {
         uint256 accRewardsPerShare;
         uint256 lastRewardTime;
@@ -22,23 +35,13 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     }
 
     FarmInfo farmInfo;
-    uint256 private rewardPerSecond;
-    uint256 constant MAX_PRECISION = 18;
-    uint256 liquidity;
-    uint256 lpTokenPrice = 1000 * 10**MAX_PRECISION;
-    IERC20Upgradeable public  STAKED_TOKEN;
-    uint256 COOLDOWN_SECONDS;
-    uint256 UNSTAKE_WINDOW;
-    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
-    uint256 public maxTreasuryWithdrawalPercentage;
-    mapping(address => uint256) private stakerRewardsToClaim;
+    
     mapping(address => uint256) private cooldownStartTimes;
     mapping(address => uint256) private userDeposits;
     mapping(address => UserInfo) private userInfo;
 
-    // Arrange the variables
-    uint256 private constant ACC_REWARD_PRECISION = 1e18;
-
+    // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES ABOVE
+    
     event Staked(
         address indexed from,
         address indexed onBehalfOf,
@@ -52,35 +55,44 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         uint256 amount
     );
 
+    /// @notice initialize function called by Openzeppelin Hardhat upgradeable plugin
     function initialize (
         string memory name,
         string memory symbol,
-        IERC20Upgradeable stakedToken,
+        ILFIToken stakedToken,
         uint256 cooldownSeconds,
         uint256 unstakeWindow,
-        uint256 rewardsPerSecond,
-        uint256 treasuryWithdrawlPercentage
+        uint256 rewardsPerSecond
     ) external  initializer {
         __ERC20_init(name,symbol);
         __ERC20Permit_init(name);
         STAKED_TOKEN = stakedToken;
         COOLDOWN_SECONDS = cooldownSeconds;
         UNSTAKE_WINDOW = unstakeWindow;
-        maxTreasuryWithdrawalPercentage = treasuryWithdrawlPercentage;
+        lpTokenPrice = 1000 * 10**MAX_PRECISION;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, msg.sender);
         setRewardPerSecond(rewardsPerSecond);
         createFarm();
     }
 
+    /// @notice Function to the cooldown seconds for the staker at any given time
+    /// @param staker -Address of the staker
+    /// @return returns the cooldown timestamp
     function getCooldown(address staker) external view returns (uint256) {
         return cooldownStartTimes[staker];
     }
 
+    /// @notice Function to get user LFI deposits
+    /// @param user address of the desired user
+    /// @return returns the total LFI deposits of the user
     function getUserLFIDeposits(address user) external view returns (uint256) {
         return userDeposits[user];
     }
 
+    /// @notice Function to get USer's VLFI Balance
+    /// @param benefitor address of the desired user
+    /// @return returns the VLFI amount depsoited 
     function getUserVLFIAmount(address benefitor)
         external
         view
@@ -89,6 +101,8 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         return userInfo[benefitor].amount;
     }
 
+    /// @notice Function to return user's rewardDebt
+    /// @param benefitor address of the desired user
     function getUserRewardDebt(address benefitor)
         external
         view
@@ -97,26 +111,38 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         return userInfo[benefitor].rewardDebt;
     }
 
+    /// @notice Function to return Accumulated RewardPerShare
+    /// @return returns farm's accRewardsPer Share
     function getAccRewardPerShare() external view returns (uint256) {
         return farmInfo.accRewardsPerShare;
     }
-
+    
+    /// @notice Function to return Last RewardTime
+    /// @return returns farm's lastRewardTime 
     function getLastRewardTime() external view returns (uint256) {
         return farmInfo.lastRewardTime;
     }
 
+    /// @notice Function to get rewards per second
+    /// @return returns the amount of rewardsPerSecond
     function getRewardPerSecond() external view returns(uint256) {
         return rewardPerSecond;
     }
 
+    /// @notice Function to get Cool down Seconds
+    /// @return Returns the cooldown seconds value
     function getCooldownSeconds() external view returns (uint256) {
         return COOLDOWN_SECONDS;
     }
 
+    /// @notice Function to get current Liquidity status
+    /// @return Returns current liquidity status 
     function getLiquidityStatus() external view returns (uint256) {
         return liquidity;
     }
 
+    /// @notice Function to set CooldownSeconds - Function can be called only by the Manager
+    /// @param coolDownSeconds Value of cooldown seconds e.g: 10days in seconds
     function setCooldownSeconds(uint256 coolDownSeconds)
         external
         onlyRole(MANAGER_ROLE)
@@ -124,6 +150,8 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         COOLDOWN_SECONDS = coolDownSeconds;
     }
 
+    /// @notice Function to set UnstakeWindow Time - Function can be called only by the Manager
+    /// @param unstakeWindow Value in seconds to allow the user to unstake e.g: 1 day in seconds 
     function setUnstakeWindowTime(uint256 unstakeWindow)
         external
         onlyRole(MANAGER_ROLE)
@@ -131,43 +159,34 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         UNSTAKE_WINDOW = unstakeWindow;
     }
 
+    /// @notice Function to get unstake Window time
+    /// @return return the untake window time in seconds
     function getUnstakeWindowTime() external view returns (uint256) {
         return UNSTAKE_WINDOW;
     }
 
-    function transferToTreasury(address to, uint256 treasuryWithdrawl)
-        external
-        onlyRole(MANAGER_ROLE)
-    {
-        uint256 maxWithdrawalLiquidity = (liquidity *
-            maxTreasuryWithdrawalPercentage) / 10000;
-        require(treasuryWithdrawl <= maxWithdrawalLiquidity);
-        IERC20Upgradeable(STAKED_TOKEN).safeTransfer(to, treasuryWithdrawl);
-    }
-
-    function setMaxTreasuryWithdrawalPercentage(uint256 percentage)
-        external
-        onlyRole(MANAGER_ROLE)
-    {
-        maxTreasuryWithdrawalPercentage = percentage;
-    }
-
+    /// @notice Function to update Farm. This updates the farm with the current state
+    // Returns the farm with latest state
     function updateFarm() public returns (FarmInfo memory farm) {
         farm = farmInfo;
         if (farm.lastRewardTime < block.timestamp) {
-            uint256 totalSupply = totalSupply();
-            if (totalSupply > 0) {
+            uint256 supply = totalSupply();
+            if (supply > 0) {
                 uint256 time = block.timestamp - farm.lastRewardTime;
                 uint256 rewardAmount = time * rewardPerSecond;
                 farm.accRewardsPerShare +=
                     (rewardAmount * ACC_REWARD_PRECISION) /
-                    totalSupply;
+                    supply;
             }
             farm.lastRewardTime = block.timestamp;
             farmInfo = farm;
         }
     }
 
+
+    /// @notice Function to return the current pending Rewards
+    /// @param benefitor address of the desired user to calculate the pending rewards.
+    /// @return pendingRewards return the pendingRewards
     function getRewards(address benefitor)
         public
         view
@@ -176,13 +195,13 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         FarmInfo memory farm = farmInfo;
         UserInfo storage user = userInfo[benefitor];
         uint256 accRewardPerShare = farm.accRewardsPerShare;
-        uint256 totalSupply = totalSupply();
-        if (block.timestamp > farm.lastRewardTime && totalSupply != 0) {
+        uint256 supply = totalSupply();
+        if (block.timestamp > farm.lastRewardTime && supply != 0) {
             uint256 time = block.timestamp - farm.lastRewardTime;
             uint256 rewardAmount = time * rewardPerSecond;
             accRewardPerShare +=
                 (rewardAmount * ACC_REWARD_PRECISION) /
-                totalSupply;
+                supply;
         }
         pendingRewards = uint256(
             int256((user.amount * accRewardPerShare) / ACC_REWARD_PRECISION) -
@@ -190,13 +209,17 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         );
     }
 
+    ///@notice Function to set the value of rewards issued per second - Function can be called only by the Manager
+    /// @param _rewardPerSecond value of the rewards per second, to be issues in base units (10**18)
     function setRewardPerSecond(uint256 _rewardPerSecond)
         public
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRole(MANAGER_ROLE)
     {
+        updateFarm();
         rewardPerSecond = _rewardPerSecond;
     }
 
+    /// @notice Function to create a Farm - Function can be called only by the Manager
     function createFarm() public onlyRole(MANAGER_ROLE) {
         farmInfo = FarmInfo({
             accRewardsPerShare: 0,
@@ -204,6 +227,13 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         });
     }
 
+    /// @notice Function that allows the user to stake LFI by avoiding approval step
+    /// @param owner address of the owner that want to give approval
+    /// @param spender address of the contract that needs to spend the tokens
+    /// @param deadline deadline value
+    /// @param v part of the signature
+    /// @param r part of the signature
+    /// @param s part of the signature
     function permitAndStake(
         address owner,
         address spender,
@@ -212,14 +242,15 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         uint8 v,
         bytes32 r,
         bytes32 s,
-        address onBehalfOf,
-        uint256 LFIamount
+        address onBehalfOf
     ) external {
-        permit(owner, spender, value, deadline, v, r, s);
-        this.stake(onBehalfOf, LFIamount);
+        ILFIToken(STAKED_TOKEN).permit(owner,spender,value,deadline,v,r,s);
+        stake(onBehalfOf, value);
     }
-
-    function stake(address onBehalfOf, uint256 amount) external {
+    /// @notice Function that allows the user to stake the LFI
+    /// @param onBehalfOf address of the user to mint the VLFI tokens to
+    /// @param amount amount on the LFI tokens to stake in base units (10**18)
+    function stake(address onBehalfOf, uint256 amount) public {
         require(amount != 0, "VLFI:INVALID_AMOUNT");
         uint256 balanceOfUser = balanceOf(onBehalfOf);
         FarmInfo memory farm = updateFarm();
@@ -237,23 +268,20 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
             onBehalfOf,
             balanceOfUser
         );
-        _mint(onBehalfOf, (amount * 10**18) / lpTokenPrice);
-        IERC20Upgradeable(STAKED_TOKEN).safeTransferFrom(
+       _mint(onBehalfOf, (amount * 10**18) / lpTokenPrice);
+        
+        ILFIToken(STAKED_TOKEN).transferFrom(
             msg.sender,
             address(this),
-            amount
-        );
-        emit Staked(msg.sender, onBehalfOf, amount);
+            amount);
+        emit Staked(msg.sender, onBehalfOf, amount);   
     }
-
-    function updateRewardsToClaim() external {
-        uint256 rewards;
-        stakerRewardsToClaim[msg.sender] = rewards;
-    }
-
-    function unStake(address to, uint256 amount) external {
+    /// @notice Function that allows the user to unstake the LFI
+    /// @param to address to transfer the LFI tokens to
+    /// @param amount amount of LFI tokens to unstake
+    function unStake(address to, uint256 amount) public {
         require(
-            amount != 0 && amount <= STAKED_TOKEN.balanceOf(msg.sender),
+            amount != 0 && amount <= userDeposits[to],
             "VLFI:INVALID_AMOUNT"
         );
         uint256 cooldownStartTimestamp = cooldownStartTimes[msg.sender];
@@ -270,21 +298,28 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
         user.rewardDebt -= int256(
-            (((amount * 10**18) / lpTokenPrice) * farm.accRewardsPerShare) /
+            ( (((amount * 10**18) * farm.accRewardsPerShare) / lpTokenPrice)) /
                 ACC_REWARD_PRECISION
         );
         user.amount -= (amount * 10**18) / lpTokenPrice;
         userDeposits[msg.sender] -= amount;
         liquidity -= amount;
-        _burn(msg.sender, (amount * 10**18) / lpTokenPrice); // VLFI
+        _burn(msg.sender, (amount * 10**18) / lpTokenPrice);
         if (balanceOfMessageSender - ((amount * 10**18) / lpTokenPrice) == 0) {
             cooldownStartTimes[msg.sender] = 0;
         }
-        IERC20Upgradeable(STAKED_TOKEN).safeTransfer(to, amount); // LFI transfer to user
-
+        ILFIToken(STAKED_TOKEN).transfer(to, amount); 
         emit UnStaked(msg.sender, msg.sender, amount);
     }
 
+    /// @notice Function that allows the user to unstake the LFI
+    /// @param to address to transfer the LFI tokens to
+    function unStakeMax(address to) external {
+        uint256 amount = userDeposits[to];
+        unStake(to, amount);
+    }
+
+    /// @notice Function users should execute to activate their cooldown period to unstake the LFI
     function activateCooldown() external {
         require(balanceOf(msg.sender) != 0, "VLFI:INVALID_BALANCE_ON_COOLDOWN");
         //solium-disable-next-line
@@ -335,7 +370,8 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         }
         super._transfer(from, to, amount);
     }
-
+    /// @notice Function that allows the user to claim the LFI rewards
+    /// @param to - Address to which the rewards should be transferred
     function claimRewards(address to) external {
         FarmInfo memory farm = updateFarm();
         UserInfo storage user = userInfo[msg.sender];
@@ -344,10 +380,11 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         );
         uint256 _pendingReward = uint256(accumulatedReward - user.rewardDebt);
         user.rewardDebt = accumulatedReward;
-        IERC20Upgradeable(STAKED_TOKEN).safeTransfer(to, _pendingReward);
         emit RewardsClaimed(msg.sender, to, _pendingReward);
+        ILFIToken(STAKED_TOKEN).transfer(to, _pendingReward);
+        
     }
-
+    /// @notice Function to get the NextCooldonwTimestamp
     function getNextCooldownTimestamp(
         uint256 userCooldownTimestamp,
         uint256 amountToReceive,
@@ -382,7 +419,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         }
         return toCooldownTimestamp;
     }
-
+    /// @notice Internal function for after Token Transfer
     function _afterTokenTransfer(address from, address to, uint256 amount)
         internal
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
@@ -390,6 +427,9 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         super._afterTokenTransfer(from, to, amount);
     }
 
+    /// @notice Internal _mint 
+    /// @param to Address to mint to
+    /// @param amount amount to mint
     function _mint(address to, uint256 amount)
         internal
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
@@ -397,6 +437,9 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         super._mint(to, amount);
     }
 
+    /// @notice Internal _burn
+    /// @param account address to burn from
+    /// @param amount amount to burn
     function _burn(address account, uint256 amount)
         internal
         override(ERC20Upgradeable, ERC20VotesUpgradeable)

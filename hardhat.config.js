@@ -7,9 +7,19 @@ require('dotenv').config();
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require('@openzeppelin/hardhat-upgrades');
+require("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-truffle5");
 
 const config = {
-  solidity: "0.8.10",
+  solidity: {
+    version : "0.8.10",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
   mocha: {
     timeout: 4000000
   },
