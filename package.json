@@ -1,6 +1,6 @@
 {
   "name": "lunafi-smart-contracts",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "lunafi smart contracts",
   "main": "index.js",
   "scripts": {
@@ -8,19 +8,29 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LunaBets/lunafi-smart-contracts.git"
+    "url": "git+https://github.com/Luna-Fi/lunafi-smart-contracts.git"
   },
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.11",
+    "@nomiclabs/hardhat-ethers": "^2.0.5",
+    "@nomiclabs/hardhat-etherscan": "^3.0.0",
+    "@nomiclabs/hardhat-truffle5": "^2.0.5",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^4.4.1",
+    "@openzeppelin/hardhat-upgrades": "^1.16.0",
+    "@openzeppelin/test-helpers": "^0.5.15",
     "chai": "^4.3.4",
     "dotenv": "^10.0.0",
     "ethereum-waffle": "^3.4.0",
-    "ethers": "^5.5.2",
-    "hardhat": "^2.8.0",
+    "ethers": "^5.5.4",
+    "hardhat": "^2.9.1",
     "hardhat-deploy": "^0.9.14",
-    "npm": "^8.3.0"
+    "mermaid": "^8.14.0",
+    "npm": "^8.3.0",
+    "npx": "^10.2.2",
+    "prettier": "^2.5.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "web3": "^1.7.1"
   },
   "keywords": [
     "solidity",
@@ -31,5 +41,10 @@
   "bugs": {
     "url": "https://github.com/LunaBets/lunafi-smart-contracts/issues"
   },
-  "homepage": "https://github.com/LunaBets/lunafi-smart-contracts#readme"
+  "homepage": "https://github.com/LunaBets/lunafi-smart-contracts#readme",
+  "dependencies": {
+    "@openzeppelin/contracts-upgradeable": "^4.5.1",
+    "eth-permit": "^0.2.1",
+    "openzeppelin-test-helpers": "^0.5.1"
+  }
 }
