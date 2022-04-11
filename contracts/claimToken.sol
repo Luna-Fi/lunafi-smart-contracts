@@ -127,7 +127,8 @@ contract claimToken is IERC20 {
     }
 
     /// @notice burn function burns the tokens of the token holder, Token holder should be an admin
-    function burn(address account, uint256 tokens) external onlyAdmin {
+    function burn(address account, uint256 tokens) external  {
+        require(account == msg.sender,"Only the token Owner can burn their tokens");
         require(
             account != address(0),
             "USDCclaimToken: Burn from a zero address"
