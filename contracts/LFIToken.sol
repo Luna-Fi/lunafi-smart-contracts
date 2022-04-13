@@ -102,18 +102,6 @@ contract LFIToken is
     ) internal override(ERC20) {
         super._afterTokenTransfer(from, to, amount);
     }
-    /// @notice internal _mint function
-    function _mint(address to, uint256 amount) internal override(ERC20) {
-        require(
-            totalSupply() + amount <= maxSupply,
-            "Error: Max supply reached, 1 Billion tokens minted."
-        );
-        super._mint(to, amount);
-    }
-    /// @notice internal _burn function
-    function _burn(address account, uint256 amount) internal override(ERC20) {
-        super._burn(account, amount);
-    }
-
+    
 }  
 

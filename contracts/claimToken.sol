@@ -84,7 +84,7 @@ contract claimToken is IERC20 {
     {
         return allowed[tokenOwner][spender];
     }
-
+    /// @notice Approves an operator to use msg.sender's tokens
     function approve(address spender, uint256 tokens)
         external
         override
@@ -94,7 +94,7 @@ contract claimToken is IERC20 {
         emit Approval(msg.sender, spender, tokens);
         return true;
     }
-
+    /// @notice transfer specified amount of tokens of msg.sender to the to address specified
     function transfer(address to, uint256 tokens)
         external
         override
@@ -102,14 +102,14 @@ contract claimToken is IERC20 {
     {
         require(
             to != address(0),
-            "USDCclaimToken: Address should not be a zero"
+            "claimToken: Address should not be a zero"
         );
         balances[msg.sender] = balances[msg.sender] - tokens;
         balances[to] = balances[to] + tokens;
         emit Transfer(msg.sender, to, tokens);
         return true;
     }
-
+    /// @notice allows opertr to transfet owner's tokens to the specified address
     function transferFrom(
         address from,
         address to,
@@ -117,7 +117,7 @@ contract claimToken is IERC20 {
     ) external override returns (bool success) {
         require(
             to != address(0),
-            "USDCclaimToken: Address should not be a zero"
+            "claimToken: Address should not be a zero"
         );
         balances[from] = balances[from] - tokens;
         allowed[from][msg.sender] = allowed[from][msg.sender] - tokens;
@@ -126,31 +126,27 @@ contract claimToken is IERC20 {
         return true;
     }
 
-    /// @notice burn function burns the tokens of the token holder, Token holder should be an admin
-    function burn(address account, uint256 tokens) external onlyAdmin {
-        require(
-            account != address(0),
-            "USDCclaimToken: Burn from a zero address"
-        );
-        uint256 accountBalance = balances[account];
+    /// @notice burn function burns the tokens of the token holder
+    function burn( uint256 tokens) external  {
+        uint256 accountBalance = balances[msg.sender];
         require(
             accountBalance >= tokens,
-            "USDCclaimToken: Burn amount exceeds Balance"
+            "claimToken: Burn amount exceeds Balance"
         );
-        balances[account] = accountBalance - tokens;
+        balances[msg.sender] = accountBalance - tokens;
         _totalSupply = _totalSupply - tokens;
-        emit Transfer(account, address(0), tokens);
+        emit Transfer(msg.sender, address(0), tokens);
     }
 
-    /// @notice burn function mints the tokens of the token holder, Token holder should be an admin
+    /// @notice Mint Function checks for the maxCap and mints the specified amout of tokens.
     function mint(address account, uint256 tokens) external onlyAdmin {
         require(
             account != address(0),
-            "USDCclaimToken: Mint from a zero address"
+            "claimToken: Mint from a zero address"
         );
         require(
             _totalSupply + tokens <= maxCap,
-            "Error: Max supply reached, 1 Billion tokens minted."
+            "claimToken Max supply reached, 1 Billion tokens minted."
         );
         balances[account] = balances[account] + tokens;
         _totalSupply = _totalSupply + tokens;

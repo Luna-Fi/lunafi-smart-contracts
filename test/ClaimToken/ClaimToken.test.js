@@ -79,22 +79,20 @@ describe("Claim Token", () => {
         
     })
 
-    it("Should allow the admin to burn tokens", async () => {
+    it("Should allow the token owner to burn tokens", async () => {
         const [owner,user1] = await ethers.getSigners();
         const tokensToBurn = ethers.utils.formatUnits(returnBigNumber(10 * 10**18),0)
         await claimToken.addAdmin(owner.address)
         const balanceOfUserBeforeBurn = await claimToken.balanceOf(user1.address);
-        await claimToken.burn(user1.address,tokensToBurn)
+        await claimToken.connect(user1).burn(user1.address,tokensToBurn)
         const BalanceAfterBurn =  await claimToken.balanceOf(user1.address);
         expect(BalanceAfterBurn).to.equal("0")
     })
 
-    it("Should not allow the non admin to burn tokens", async () => {
+    it("Should not allow the non owner to burn tokens", async () => {
         const [owner,user1] = await ethers.getSigners();
         const tokensToBurn = ethers.utils.formatUnits(returnBigNumber(10 * 10**18),0)
-        await claimToken.addAdmin(owner.address)
-        const balanceOfUserBeforeBurn = await claimToken.balanceOf(user1.address);
-        await expect(claimToken.connect(user1).burn(user1.address,tokensToBurn)).to.be.revertedWith("")
+        await expect(claimToken.burn(user1.address,tokensToBurn)).to.be.revertedWith("")
         
     })
 
