@@ -90,8 +90,15 @@ const config = {
       tags: ["PolygonMainNet"],
       saveDeployments: true,
       accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
-    }
-
+    },
+    toronto: {
+      url: `${process.env.NODE_URI_TORONTO}`,
+      chainId: 647,
+      live: true,
+      tags: ["toronto"],
+      saveDeployments: true,
+      accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
+    },
   },
   namedAccounts: {
     deployer: {
