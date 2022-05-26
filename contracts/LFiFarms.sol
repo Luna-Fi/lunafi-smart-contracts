@@ -12,16 +12,16 @@ import "contracts/interfaces/IFundDistributor.sol";
 contract LFiFarms is AccessControlUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
-     // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES BELOW
+    // DO NOT CHANGE THE NAME, TYPE OR ORDER OF EXISITING VARIABLES BELOW
 
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
     uint256 private constant ACC_REWARD_PRECISION = 1e18;
     IERC20Upgradeable public reward;
-    IFundDistributor public fund; 
+    IFundDistributor public fund;
     uint256 public rewardPerSecond;
     /// @dev Total allocation points. Must be the sum of all allocation points in all pools.
-    uint256 public totalAllocPoint ;
-    
+    uint256 public totalAllocPoint;
+
     //Info for each LFi Farms user
     //`amount` LP Token amount the user has provided
     //`rewardDebt` The amount of LFI Tokens entitled to the user.
@@ -39,8 +39,8 @@ contract LFiFarms is AccessControlUpgradeable {
         uint256 allocPoint;
     }
 
-    FarmInfo[]  farmInfo;
-    IERC20Upgradeable[] public lpToken; 
+    FarmInfo[] farmInfo;
+    IERC20Upgradeable[] public lpToken;
     // Info of each user that stakes LP tokens.
     mapping(uint256 => mapping(address => UserInfo)) userInfo;
 
@@ -92,8 +92,8 @@ contract LFiFarms is AccessControlUpgradeable {
     function initialize(
         address admin,
         IERC20Upgradeable rewardToken,
-        IFundDistributor fundContract   
-    ) external initializer{
+        IFundDistributor fundContract
+    ) external initializer {
         reward = rewardToken;
         fund = fundContract;
         totalAllocPoint = 0;
@@ -102,13 +102,22 @@ contract LFiFarms is AccessControlUpgradeable {
     }
 
     /// @notice Returns the amount of the user
-    /// @return amount of the user 
-    function getUserAmount(address user, uint256 farmID) external view returns(uint256) {
+    /// @return amount of the user
+    function getUserAmount(address user, uint256 farmID)
+        external
+        view
+        returns (uint256)
+    {
         return userInfo[farmID][user].amount;
     }
+
     /// @notice Returns the rewardDebt of the user
-    /// @return amount of the user 
-    function getUserRewardDebt(address user, uint256 farmID) external view returns(int256) {
+    /// @return amount of the user
+    function getUserRewardDebt(address user, uint256 farmID)
+        external
+        view
+        returns (int256)
+    {
         return userInfo[farmID][user].rewardDebt;
     }
 
@@ -178,7 +187,6 @@ contract LFiFarms is AccessControlUpgradeable {
         emit LogSetPool(fid, allocPoint, overwrite);
     }
 
-
     /// @notice Deposit LP tokens to farms for LFI token rewards
     /// @dev See FarmInfo struct `farmCount()` & `listFarms()` for farm details
     /// @param fid farm ID; see FarmInfo struct for more details
@@ -199,7 +207,6 @@ contract LFiFarms is AccessControlUpgradeable {
         );
         emit FarmDeposit(msg.sender, fid, lpAmount, benefitor);
         lpToken[fid].safeTransferFrom(msg.sender, address(this), lpAmount);
-        
     }
 
     /// @notice Function to withdraw the pool Tokens
@@ -220,11 +227,10 @@ contract LFiFarms is AccessControlUpgradeable {
         user.amount -= LPTokenAmount;
         emit FarmWithdraw(msg.sender, fid, LPTokenAmount, receiver);
         lpToken[fid].safeTransfer(receiver, LPTokenAmount);
-        
     }
 
     /// @notice Function to harvest rewards from all the farms
-    /// @param receiver Address of the receiver 
+    /// @param receiver Address of the receiver
     function harvestAll(address receiver) external {
         uint256 farmCount = farmInfo.length;
         for (uint256 fid = 0; fid < farmCount; ++fid) {
@@ -275,7 +281,7 @@ contract LFiFarms is AccessControlUpgradeable {
 
         // Note: transfer can fail or succeed if `amount` is zero.
         emit EmergencyWithdraw(msg.sender, fid, amount, receiver);
-        lpToken[fid].safeTransfer(receiver, amount);   
+        lpToken[fid].safeTransfer(receiver, amount);
     }
 
     /// @notice View function to see pending reward on frontend.
@@ -293,12 +299,15 @@ contract LFiFarms is AccessControlUpgradeable {
         uint256 lpBalanceOfFarm = lpToken[_fid].balanceOf(address(this));
         if (block.timestamp > farm.lastRewardTime && lpBalanceOfFarm != 0) {
             uint256 time = block.timestamp - farm.lastRewardTime;
-            uint256 rewardAmount = ((time * rewardPerSecond) * farm.allocPoint) / totalAllocPoint;
+            uint256 rewardAmount = ((time * rewardPerSecond) *
+                farm.allocPoint) / totalAllocPoint;
             accRewardPerShare +=
-                (rewardAmount * ACC_REWARD_PRECISION) / lpBalanceOfFarm;
+                (rewardAmount * ACC_REWARD_PRECISION) /
+                lpBalanceOfFarm;
         }
         pendingRewards = uint256(
-            int256(((user.amount * accRewardPerShare) / ACC_REWARD_PRECISION)) - user.rewardDebt
+            int256(((user.amount * accRewardPerShare) / ACC_REWARD_PRECISION)) -
+                user.rewardDebt
         );
     }
 
@@ -310,8 +319,11 @@ contract LFiFarms is AccessControlUpgradeable {
             uint256 lpSupply = lpToken[fid].balanceOf(address(this));
             if (lpSupply > 0) {
                 uint256 time = block.timestamp - farm.lastRewardTime;
-                uint256 rewardAmount = ((time * rewardPerSecond ) * farm.allocPoint) / totalAllocPoint;
-                farm.accRewardPerShare += (rewardAmount * ACC_REWARD_PRECISION) / lpSupply;
+                uint256 rewardAmount = ((time * rewardPerSecond) *
+                    farm.allocPoint) / totalAllocPoint;
+                farm.accRewardPerShare +=
+                    (rewardAmount * ACC_REWARD_PRECISION) /
+                    lpSupply;
             }
             farm.lastRewardTime = block.timestamp;
             farmInfo[fid] = farm;
@@ -356,5 +368,10 @@ contract LFiFarms is AccessControlUpgradeable {
             require(lpToken[index] != _token, "Farm exists already");
         }
     }
-  
+
+    /// @notice Function to return farmInfo for a Farm ID
+    /// @param farmId The farm ID of the returned farm
+    function getFarmInfo(uint256 farmId) public view returns (FarmInfo memory farm) {
+        return farmInfo[farmId];
+    }
 }
