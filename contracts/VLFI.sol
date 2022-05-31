@@ -23,8 +23,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     uint256 COOLDOWN_SECONDS;
     uint256 UNSTAKE_WINDOW;
     uint256 private rewardPerSecond;
-    uint256 public maxTreasuryWithdrawalPercentage;
-
+    
     struct FarmInfo {
         uint256 accRewardsPerShare;
         uint256 lastRewardTime;
@@ -63,8 +62,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         ILFIToken stakedToken,
         uint256 cooldownSeconds,
         uint256 unstakeWindow,
-        uint256 rewardsPerSecond,
-        uint256 treasuryWithdrawlPercentage
+        uint256 rewardsPerSecond
     ) external  initializer {
         __ERC20_init(name,symbol);
         __ERC20Permit_init(name);
@@ -72,7 +70,6 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         COOLDOWN_SECONDS = cooldownSeconds;
         UNSTAKE_WINDOW = unstakeWindow;
         lpTokenPrice = 1000 * 10**MAX_PRECISION;
-        maxTreasuryWithdrawalPercentage = treasuryWithdrawlPercentage;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, msg.sender);
         setRewardPerSecond(rewardsPerSecond);
@@ -168,28 +165,6 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         return UNSTAKE_WINDOW;
     }
 
-    /// @notice Function to transfer a part of liquidity amount to treasury - Function can be called only by the Manager
-    /// @param to address to which the liquidity should be transferred
-    /// @param treasuryWithdrawal amount to transfer to treasury
-    function transferToTreasury(address to, uint256 treasuryWithdrawal)
-        external
-        onlyRole(MANAGER_ROLE)
-    {
-        uint256 maxWithdrawalLiquidity = (liquidity *
-            maxTreasuryWithdrawalPercentage) / 10000;
-        require(treasuryWithdrawal <= maxWithdrawalLiquidity);
-        ILFIToken(STAKED_TOKEN).transfer(to, treasuryWithdrawal);
-    }
-
-    /// @notice Function to set the Maximum percentage of liquidity that treasury can withdraw - Function can be called only by the Manager
-    /// @param percentage Percentage value should be passed as 4 digits. For eg 30 % should be passed as 3000
-    function setMaxTreasuryWithdrawalPercentage(uint256 percentage)
-        external
-        onlyRole(MANAGER_ROLE)
-    {
-        maxTreasuryWithdrawalPercentage = percentage;
-    }
-
     /// @notice Function to update Farm. This updates the farm with the current state
     // Returns the farm with latest state
     function updateFarm() public returns (FarmInfo memory farm) {
@@ -240,6 +215,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         public
         onlyRole(MANAGER_ROLE)
     {
+        updateFarm();
         rewardPerSecond = _rewardPerSecond;
     }
 
@@ -254,7 +230,6 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     /// @notice Function that allows the user to stake LFI by avoiding approval step
     /// @param owner address of the owner that want to give approval
     /// @param spender address of the contract that needs to spend the tokens
-    /// @param value value of the tokens to stake
     /// @param deadline deadline value
     /// @param v part of the signature
     /// @param r part of the signature
@@ -267,11 +242,10 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         uint8 v,
         bytes32 r,
         bytes32 s,
-        address onBehalfOf,
-        uint256 LFIamount
+        address onBehalfOf
     ) external {
         ILFIToken(STAKED_TOKEN).permit(owner,spender,value,deadline,v,r,s);
-        stake(onBehalfOf, LFIamount);
+        stake(onBehalfOf, value);
     }
     /// @notice Function that allows the user to stake the LFI
     /// @param onBehalfOf address of the user to mint the VLFI tokens to
@@ -305,9 +279,9 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
     /// @notice Function that allows the user to unstake the LFI
     /// @param to address to transfer the LFI tokens to
     /// @param amount amount of LFI tokens to unstake
-    function unStake(address to, uint256 amount) external {
+    function unStake(address to, uint256 amount) public {
         require(
-            amount != 0 && amount <= STAKED_TOKEN.balanceOf(msg.sender),
+            amount != 0 && amount <= userDeposits[to],
             "VLFI:INVALID_AMOUNT"
         );
         uint256 cooldownStartTimestamp = cooldownStartTimes[msg.sender];
@@ -336,6 +310,13 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         }
         ILFIToken(STAKED_TOKEN).transfer(to, amount); 
         emit UnStaked(msg.sender, msg.sender, amount);
+    }
+
+    /// @notice Function that allows the user to unstake the LFI
+    /// @param to address to transfer the LFI tokens to
+    function unStakeMax(address to) external {
+        uint256 amount = userDeposits[to];
+        unStake(to, amount);
     }
 
     /// @notice Function users should execute to activate their cooldown period to unstake the LFI
@@ -403,7 +384,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         ILFIToken(STAKED_TOKEN).transfer(to, _pendingReward);
         
     }
-
+    /// @notice Function to get the NextCooldonwTimestamp
     function getNextCooldownTimestamp(
         uint256 userCooldownTimestamp,
         uint256 amountToReceive,
@@ -438,7 +419,7 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         }
         return toCooldownTimestamp;
     }
-
+    /// @notice Internal function for after Token Transfer
     function _afterTokenTransfer(address from, address to, uint256 amount)
         internal
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
@@ -446,6 +427,9 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         super._afterTokenTransfer(from, to, amount);
     }
 
+    /// @notice Internal _mint 
+    /// @param to Address to mint to
+    /// @param amount amount to mint
     function _mint(address to, uint256 amount)
         internal
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
@@ -453,6 +437,9 @@ contract VLFI is ERC20Upgradeable, ERC20PermitUpgradeable, AccessControlUpgradea
         super._mint(to, amount);
     }
 
+    /// @notice Internal _burn
+    /// @param account address to burn from
+    /// @param amount amount to burn
     function _burn(address account, uint256 amount)
         internal
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
