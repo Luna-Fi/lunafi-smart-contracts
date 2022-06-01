@@ -8,8 +8,8 @@ async function main() {
     const name = "VLFI"
     const symbol = "VLFI"
     const stakedToken = "0x9c4c940205cF972e0B5742c17B3B9a3eAAF87a47"
-    const cooldownSeconds = 120
-    const unstakeWindow = 60
+    const cooldownSeconds = 864000 // Use this in production. 864000 is equal to 10 days
+    const unstakeWindow = 172800 // use this in production. 172800 is equal to 2 days.
     const rewardPerSecond = ethers.utils.formatUnits(returnBigNumber(1 * 10**18),0)
     const treasuryPercentage = 3000
     const VLFI = await ethers.getContractFactory("VLFI");
