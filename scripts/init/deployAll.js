@@ -68,7 +68,7 @@ async function main() {
   const rewardsPerSecond = ethers.utils.formatUnits(returnBigNumber(1 * 10 **18),0);
  
   VLFI = await ethers.getContractFactory("VLFI")
-  vlfi = await upgrades.deployProxy(VLFI,[name,symbol,lfiToken.address,120,60,rewardsPerSecond,3000],{initializer: 'initialize'});
+  vlfi = await upgrades.deployProxy(VLFI,[name,symbol,lfiToken.address,120,60,rewardsPerSecond],{initializer: 'initialize'});
   await vlfi.deployed()
   console.log("VLFI Address:",vlfi.address)
 

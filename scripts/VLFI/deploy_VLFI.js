@@ -7,14 +7,14 @@ async function main() {
 
     const name = "VLFI"
     const symbol = "VLFI"
-    const stakedToken = "0x9c4c940205cF972e0B5742c17B3B9a3eAAF87a47"
+    const stakedToken = "0x58506F01a66F2f75dB055FE051C2ada297524CC2"
     const cooldownSeconds = 120
     const unstakeWindow = 60
     const rewardPerSecond = ethers.utils.formatUnits(returnBigNumber(1 * 10**18),0)
     const treasuryPercentage = 3000
     const VLFI = await ethers.getContractFactory("VLFI");
     console.log("Deploying VLFI...");
-    const vlfi = await upgrades.deployProxy(VLFI,[name,symbol,stakedToken,cooldownSeconds,unstakeWindow,rewardPerSecond,treasuryPercentage],{initializer: 'initialize'});
+    const vlfi = await upgrades.deployProxy(VLFI,[name,symbol,stakedToken,cooldownSeconds,unstakeWindow,rewardPerSecond],{initializer: 'initialize'});
     console.log("VLFI Deployed to :", vlfi.address);
   }
   
