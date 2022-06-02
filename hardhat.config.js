@@ -57,6 +57,7 @@ const config = {
       live: true,
       tags: ["production"],
       saveDeployments: true,
+      gas:"auto",
       accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
     },
     BSCTestNet: {
