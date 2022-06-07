@@ -12,7 +12,7 @@ require("@nomiclabs/hardhat-truffle5");
 
 const config = {
   solidity: {
-    version : "0.8.10",
+    version: "0.8.10",
     settings: {
       optimizer: {
         enabled: true,
@@ -23,7 +23,7 @@ const config = {
   mocha: {
     timeout: 4000000
   },
-  networks : {
+  networks: {
     localhost: {
       url: "http://127.0.0.1:8545/"
     },
@@ -57,7 +57,7 @@ const config = {
       live: true,
       tags: ["production"],
       saveDeployments: true,
-      gas:"auto",
+      gas: "auto",
       accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`]
     },
     BSCTestNet: {
@@ -104,14 +104,14 @@ const config = {
   },
   namedAccounts: {
     deployer: {
-        default: 0, 
-        localhost: `${process.env.DEPLOYER_ACCOUNT_ADDRESS}`,
-        ropsten: `${process.env.DEPLOYER_ACCOUNT_ADDRESS}`
-    }     
+      default: 0,
+      localhost: `${process.env.DEPLOYER_ACCOUNT_ADDRESS}`,
+      ropsten: `${process.env.DEPLOYER_ACCOUNT_ADDRESS}`
+    }
   },
   etherscan: {
-    //apiKey: "6J8G9VC791WVYDIQK5FA2XUJXVGNP2YH4I"
-    apiKey: "NT48PSDWUK7TGM27NPPGTRQBBHBSS29HZI"
+    apiKey: "6J8G9VC791WVYDIQK5FA2XUJXVGNP2YH4I"
+    // apiKey: "NT48PSDWUK7TGM27NPPGTRQBBHBSS29HZI"
   }
 };
 

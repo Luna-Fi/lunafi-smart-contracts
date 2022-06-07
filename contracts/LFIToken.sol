@@ -16,7 +16,7 @@ contract LFIToken is
     ERC20Permit,
     AccessControl
 {
-    string constant TOKEN_NAME = "LFIToken";
+    string constant TOKEN_NAME = "LunaFi";
     string constant TOKEN_SYMBOL = "LFI";
 
     
