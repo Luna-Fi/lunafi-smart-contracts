@@ -11,7 +11,6 @@ async function main() {
     const cooldownSeconds = 864000 // Use this in production. 864000 is equal to 10 days
     const unstakeWindow = 172800 // use this in production. 172800 is equal to 2 days.
     const rewardPerSecond = ethers.utils.formatUnits(returnBigNumber(1 * 10**18),0)
-    const treasuryPercentage = 3000
     const VLFI = await ethers.getContractFactory("VLFI");
     console.log("Deploying VLFI...");
     const vlfi = await upgrades.deployProxy(VLFI,[name,symbol,stakedToken,cooldownSeconds,unstakeWindow,rewardPerSecond],{initializer: 'initialize'});
