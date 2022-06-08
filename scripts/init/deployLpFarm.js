@@ -1,8 +1,8 @@
 const { BigNumber } = require("ethers");
 
-const LPTokenAddress = '0xAc1B87fDFcb76e45542a79B0F05B2f95112f5965'
+const LPTokenAddress = ''
 const LPFarmAllocPoints = 10
-const farmAddress = '0xc8DEE4b85f4a202769821Dd8D916a8e4aBe9C659'
+const farmAddress = '0x4175Acd3d7f128cF41d42826cCe2185A5aDe7C82'
 
 async function main() {
   const [owner, user1, user2, user3] = await ethers.getSigners()

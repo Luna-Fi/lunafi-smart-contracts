@@ -9,6 +9,11 @@
       "address": "0xfc604b6fD73a1bc60d31be111F798dd0D4137812",
       "txHash": "0xa9f48d49666de57bfc9912c2512ef0dc0dbf3e2464530235b186fe80b1d4a7b3",
       "kind": "transparent"
+    },
+    {
+      "address": "0x4175Acd3d7f128cF41d42826cCe2185A5aDe7C82",
+      "txHash": "0x6eae5a1c41c0900d86fee8134a6110cad6932a8f5c4d7d6da2f7899c59bf4538",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -401,6 +406,208 @@
           },
           "t_uint32": {
             "label": "uint32"
+          }
+        }
+      }
+    },
+    "6a18ed9ee1341262cac0d6a2856977ecf57ed3e6edea36c63ee4a7373f8ff570": {
+      "address": "0xb28f803A8772E6584A65Ab6dfC535aE6fEf8a0b2",
+      "txHash": "0xe4190cd2b241b2db51cfad8b69c62f2aa2e7ea3b6341a72c092d1b75fb4793b8",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:235"
+          },
+          {
+            "label": "reward",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_contract(IERC20Upgradeable)1244",
+            "contract": "LFiFarms",
+            "src": "contracts/LFiFarms.sol:19"
+          },
+          {
+            "label": "fund",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_contract(IFundDistributor)10345",
+            "contract": "LFiFarms",
+            "src": "contracts/LFiFarms.sol:20"
+          },
+          {
+            "label": "rewardPerSecond",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_uint256",
+            "contract": "LFiFarms",
+            "src": "contracts/LFiFarms.sol:21"
+          },
+          {
+            "label": "totalAllocPoint",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_uint256",
+            "contract": "LFiFarms",
+            "src": "contracts/LFiFarms.sol:23"
+          },
+          {
+            "label": "farmInfo",
+            "offset": 0,
+            "slot": "155",
+            "type": "t_array(t_struct(FarmInfo)7674_storage)dyn_storage",
+            "contract": "LFiFarms",
+            "src": "contracts/LFiFarms.sol:42"
+          },
+          {
+            "label": "lpToken",
+            "offset": 0,
+            "slot": "156",
+            "type": "t_array(t_contract(IERC20Upgradeable)1244)dyn_storage",
+            "contract": "LFiFarms",
+            "src": "contracts/LFiFarms.sol:43"
+          },
+          {
+            "label": "userInfo",
+            "offset": 0,
+            "slot": "157",
+            "type": "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)7667_storage))",
+            "contract": "LFiFarms",
+            "src": "contracts/LFiFarms.sol:45"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_contract(IERC20Upgradeable)1244)dyn_storage": {
+            "label": "contract IERC20Upgradeable[]"
+          },
+          "t_array(t_struct(FarmInfo)7674_storage)dyn_storage": {
+            "label": "struct LFiFarms.FarmInfo[]"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_contract(IERC20Upgradeable)1244": {
+            "label": "contract IERC20Upgradeable"
+          },
+          "t_contract(IFundDistributor)10345": {
+            "label": "contract IFundDistributor"
+          },
+          "t_int256": {
+            "label": "int256"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_mapping(t_address,t_struct(UserInfo)7667_storage)": {
+            "label": "mapping(address => struct LFiFarms.UserInfo)"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)7667_storage))": {
+            "label": "mapping(uint256 => mapping(address => struct LFiFarms.UserInfo))"
+          },
+          "t_struct(FarmInfo)7674_storage": {
+            "label": "struct LFiFarms.FarmInfo",
+            "members": [
+              {
+                "label": "accRewardPerShare",
+                "type": "t_uint256"
+              },
+              {
+                "label": "lastRewardTime",
+                "type": "t_uint256"
+              },
+              {
+                "label": "allocPoint",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32"
+              }
+            ]
+          },
+          "t_struct(UserInfo)7667_storage": {
+            "label": "struct LFiFarms.UserInfo",
+            "members": [
+              {
+                "label": "amount",
+                "type": "t_uint256"
+              },
+              {
+                "label": "rewardDebt",
+                "type": "t_int256"
+              }
+            ]
+          },
+          "t_uint256": {
+            "label": "uint256"
           }
         }
       }
