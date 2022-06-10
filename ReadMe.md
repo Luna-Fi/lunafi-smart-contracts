@@ -5,6 +5,11 @@ Note: To enable preview of designs add Markdown Preview Mermaid extension to VS 
 
 ## LunaFi
 
+
+## LunaFI Audit Report
+[Audit Report](https://hacken.io/wp-content/uploads/2022/04/LunaFi_Technologies_Ltd_23022022SCAudit_Report_3.pdf)
+
+## Smart Contracts
 Smart Contracts for [LunaFi](#) built for EVM-compatible blockchains and will initially be launched on Polygon.
 
 In LunaFi, we have a variety of products, from ERC20 Tokens, Yield Farms and Liquidity Pools(HousePools).
@@ -35,6 +40,3 @@ claim tokens are part of Phase 2 functionality and the remaining phase 2 functio
 To run the latest rest suite :
 
 ***npx hardhat test***
-
-## LunaFI Audit Report
-[Audit Report](https://hacken.io/wp-content/uploads/2022/04/LunaFi_Technologies_Ltd_23022022SCAudit_Report_3.pdf)
