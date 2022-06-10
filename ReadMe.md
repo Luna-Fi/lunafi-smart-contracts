@@ -35,3 +35,6 @@ claim tokens are part of Phase 2 functionality and the remaining phase 2 functio
 To run the latest rest suite :
 
 ***npx hardhat test***
+
+## LunaFI Audit Report
+[Audit Report](https://hacken.io/wp-content/uploads/2022/04/LunaFi_Technologies_Ltd_23022022SCAudit_Report_3.pdf)

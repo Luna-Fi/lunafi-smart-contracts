@@ -1,8 +1,8 @@
 // scripts/prepare_upgrade.js
 async function main() {
-    const USDCProxyAddress = '0x0e194E566a76d94F2956Abd9a865727755b53C59';
-    const WBTCProxyAddress = '0xade38530F85236B89FBa7F658691552DCCdeB77C'
-    const WETHProxyAddress = '0x3C3C7B36F09839BE1cAd98DA8db773d7F419b168'
+    const USDCProxyAddress = '';
+    const WBTCProxyAddress = ''
+    const WETHProxyAddress = ''
    
     const USDCHousePoolV2 = await ethers.getContractFactory("HousePoolUSDCV2");
     const WBTCHousePoolV2 = await ethers.getContractFactory("HousePoolWBTCV2");

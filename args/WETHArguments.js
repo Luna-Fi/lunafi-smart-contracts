@@ -1,8 +1,8 @@
 module.exports = [
 
-    "0xdd8eBa4604D2a9C6c77e4bC557B1884119174726",
-    "0xcaF1a42750C277bf06862012Ce5458EDBeA6e9E4",
-    "0x3759d7B927CfE2cE356012d25985E09F944Ce3e5",
+    "",
+    "",
+    "",
     "",
     ""
 ];
