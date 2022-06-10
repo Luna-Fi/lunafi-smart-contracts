@@ -3,9 +3,6 @@ Note: To enable preview of designs add Markdown Preview Mermaid extension to VS 
 
 # LunaFI smart contracts :
 
-## LunaFi
-
-
 ## LunaFI Audit Report
 [Audit Report](https://hacken.io/wp-content/uploads/2022/04/LunaFi_Technologies_Ltd_23022022SCAudit_Report_3.pdf)
 
